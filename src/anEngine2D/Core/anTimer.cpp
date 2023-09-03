@@ -5,10 +5,10 @@
 #endif
 
 anTimer::anTimer()
-	: mFrequency(0)
-	, mLastTick(0)
-	, mFirstTick(0)
 {
+	mFrequency = anTimer::GetFrequency();
+	mFirstTick = 0;
+	mLastTick = 0;
 }
 
 anTimer::~anTimer()
@@ -26,6 +26,12 @@ float anTimer::Tick()
 	const float dt = float(double(tick - mLastTick) / double(mFrequency));
 	mLastTick = tick;
 	return dt;
+}
+
+void anTimer::Reset()
+{
+	mFirstTick = 0;
+	mLastTick = 0;
 }
 
 anUInt64 anTimer::GetCounter()

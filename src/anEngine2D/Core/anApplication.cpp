@@ -1,8 +1,10 @@
 #include "anApplication.h"
 #include "Device/anShaders.h"
 #include "Device/anTexture.h"
+#include "anMessage.h"
 
 anApplication::anApplication(const anApplicationCreationDescription& desc)
+	: mFramesPerSecond(0)
 {
 	memset(&mApplicationDesc, 0, sizeof(anApplicationCreationDescription));
 	mApplicationDesc.Title = desc.Title;
@@ -21,9 +23,20 @@ void anApplication::Start()
 	anInitializeShaders();
 	Initialize();
 
+	int fps = 0;
+	float elapsedTime = 0.0f;
 	while (mWindow->IsRunning())
 	{
 		const float dt = mTimer.Tick();
+		elapsedTime += dt;
+		++fps;
+		if (elapsedTime >= 1.0f)
+		{
+			mFramesPerSecond = fps;
+			elapsedTime = 0.0f;
+			fps = 0;
+		}
+
 		Update(dt);
 		mWindow->Present();
 	}

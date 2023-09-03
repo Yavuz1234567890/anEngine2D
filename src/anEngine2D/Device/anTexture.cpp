@@ -1,4 +1,5 @@
 #include "anTexture.h"
+#include "Core/anMessage.h"
 
 #include <GL/glew.h>
 #include <stb_image.h>
@@ -31,11 +32,15 @@ anTexture::anTexture(const void* data, anUInt32 width, anUInt32 height, anUInt32
 		internalFormat = GL_RGB8;
 	if (iformat == anTextureFormat::RGBA)
 		internalFormat = GL_RGBA8;
-
+	if (iformat == anTextureFormat::Red)
+		internalFormat = GL_RED;
+	
 	if (dformat == anTextureFormat::RGB)
 		dataFormat = GL_RGB;
 	if (dformat == anTextureFormat::RGBA)
 		dataFormat = GL_RGBA;
+	if (dformat == anTextureFormat::Red)
+		dataFormat = GL_RED;
 	
 	glGenTextures(1, &mID);
 	glBindTexture(GL_TEXTURE_2D, mID);
@@ -104,6 +109,8 @@ anTexture* anLoadTexture(const anString& path)
 	int height = 0;
 
 	stbi_uc* data = stbi_load(path.c_str(), &width, &height, &channels, 4);
+	if (!data)
+		anShowMessageBox("Couldn't find texture '" + path + "'");
 
 	anUInt32 internalFormat = 0;
 	anUInt32 dataFormat = 0;

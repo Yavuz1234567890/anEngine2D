@@ -11,12 +11,6 @@
 #define anMaxTextureSlots			32
 #define anWhiteTextureSlot			0
 
-struct anColorVertex
-{
-	anFloat3 Position;
-	anFloat4 Color;
-};
-
 struct anTextureVertex
 {
 	anFloat3 Position;
@@ -36,22 +30,19 @@ public:
 	void Flush();
 	void Start();
 	void End();
-	void DrawLine(const anFloat2& start, const anFloat2& end, const anColor& color);
+	void DrawLine(const anFloat2& start, const anFloat2& end, const anColor& color, float width = 1.0f);
 	void DrawQuad(const anFloat2& pos, const anFloat2& size, const anColor& color);
 	void DrawQuad(const anFloat2& pos, const anFloat2& size, float rot, const anColor& color);
 	void DrawTexture(anTexture* texture, const anFloat2& pos, const anFloat2& size, const anColor& color);
 	void DrawTexture(anTexture* texture, const anFloat2& pos, const anFloat2& size, float rot, const anColor& color);
+	anUInt32 GetDrawCallCount() const;
+	anUInt32 GetIndexCount() const;
 private:
 	void DrawLineVertices(anFloat2* vertices, anUInt32 size, const anColor& color);
 	void StartDraw();
 	anUInt32 GetTextureIndex(anTexture* texture);
 private:
 	anMatrix4 mMatrix;
-
-	anVertexArray* mLineVertexArray;
-	anVertexBuffer* mLineVertexBuffer;
-	anVector<anColorVertex> mLineVertices;
-	anUInt32 mLineVertexCount = 0;
 
 	anFloat3 mQuadPositions[4];
 	anFloat2 mQuadTexCoords[4];
@@ -64,6 +55,8 @@ private:
 
 	anTexture* mTextures[anMaxTextureSlots];
 	anUInt32 mTextureIndex = 0;
+
+	anUInt32 mDrawCallCount = 0;
 };
 
 #endif

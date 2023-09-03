@@ -26,6 +26,7 @@ protected:
 	anApplicationCreationDescription mApplicationDesc;
 	anWindow* mWindow;
 	anTimer mTimer;
+	int mFramesPerSecond;
 };
 
 #endif

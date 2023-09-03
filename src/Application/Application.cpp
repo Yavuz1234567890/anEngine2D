@@ -5,6 +5,7 @@
 #include "World/anWorld.h"
 #include "World/anObject.h"
 #include "World/anSpriteObject.h"
+#include "Core/anMessage.h"
 
 class Application : public anApplication
 {
@@ -54,7 +55,7 @@ public:
 		mRenderer.Start();
 
 		mWorld->Render(mRenderer);
-		
+
 		mRenderer.End();
 	}
 

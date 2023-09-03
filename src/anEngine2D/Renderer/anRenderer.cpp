@@ -4,9 +4,7 @@
 #include "Device/anGPUCommands.h"
 
 anRenderer::anRenderer()
-	: mLineVertexArray(nullptr)
-	, mLineVertexBuffer(nullptr)
-	, mTextureVertexArray(nullptr)
+	: mTextureVertexArray(nullptr)
 	, mTextureIndexBuffer(nullptr)
 	, mTextureVertexBuffer(nullptr)
 {
@@ -20,14 +18,6 @@ anRenderer::~anRenderer()
 
 void anRenderer::Initialize()
 {
-	mLineVertexArray = new anVertexArray();
-
-	mLineVertexBuffer = new anVertexBuffer(anMaxVertices * sizeof(anColorVertex));
-	mLineVertexBuffer->PushAttribute(anVertexBufferAttribute::Float3);
-	mLineVertexBuffer->PushAttribute(anVertexBufferAttribute::Float4);
-
-	mLineVertexArray->AddVertexBuffer(mLineVertexBuffer);
-
 	mQuadPositions[0] = { -0.5f, -0.5f, 0.0f };
 	mQuadPositions[1] = {  0.5f, -0.5f, 0.0f };
 	mQuadPositions[2] = {  0.5f,  0.5f, 0.0f };
@@ -84,21 +74,6 @@ void anRenderer::SetMatrix(const anMatrix4& matrix)
 
 void anRenderer::Flush()
 {
-	if (!mLineVertices.empty())
-	{
-		mLineVertexBuffer->SetData(mLineVertices.data(), mLineVertices.size() * sizeof(anColorVertex));
-	
-		anGetColorShader()->Bind();
-		anGetColorShader()->SetUniformMatrix4("uMatrix", mMatrix);
-	
-		anDrawArrays(anDrawType::Lines, mLineVertices.size(), mLineVertexArray);
-	
-		anGetColorShader()->Unbind();
-	
-		mLineVertices.clear();
-		mLineVertexCount = 0;
-	}
-
 	if (!mTextureVertices.empty())
 	{
 		mTextureVertexBuffer->SetData(mTextureVertices.data(), mTextureVertices.size() * sizeof(anTextureVertex));
@@ -116,6 +91,8 @@ void anRenderer::Flush()
 		mTextureVertices.clear();
 		mTextureIndex = 1;
 		mTextureIndexCount = 0;
+
+		++mDrawCallCount;
 	}
 }
 
@@ -130,25 +107,43 @@ void anRenderer::End()
 
 void anRenderer::StartDraw()
 {
-	if (mLineVertexCount >= anMaxVertices || mTextureIndexCount >= anMaxIndices || mTextureIndex >= anMaxTextureSlots)
+	if (mTextureIndexCount >= anMaxIndices || mTextureIndex >= anMaxTextureSlots)
 		Flush();
 }
 
-void anRenderer::DrawLine(const anFloat2& start, const anFloat2& end, const anColor& color)
+void anRenderer::DrawLine(const anFloat2& start, const anFloat2& end, const anColor& color, float width)
 {
 	StartDraw();
 
-	anColorVertex v0;
+	anTextureVertex v0;
 	v0.Position = { start.X, start.Y, 0.0f };
+	v0.TexCoord = mQuadTexCoords[0];
 	v0.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
-	mLineVertices.push_back(v0);
+	v0.TexIndex = 0;
+	mTextureVertices.push_back(v0);
 
-	anColorVertex v1;
-	v1.Position = { end.X, end.Y, 0.0f };
+	anTextureVertex v1;
+	v1.Position = { start.X + width, start.Y, 0.0f };
+	v1.TexCoord = mQuadTexCoords[1];
 	v1.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
-	mLineVertices.push_back(v1);
+	v1.TexIndex = 0;
+	mTextureVertices.push_back(v1);
 
-	mLineVertexCount += 2;
+	anTextureVertex v2;
+	v2.Position = { end.X + width, end.Y + width, 0.0f };
+	v2.TexCoord = mQuadTexCoords[2];
+	v2.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
+	v2.TexIndex = 0;
+	mTextureVertices.push_back(v2);
+
+	anTextureVertex v3;
+	v3.Position = { end.X, end.Y + width, 0.0f };
+	v3.TexCoord = mQuadTexCoords[3];
+	v3.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
+	v3.TexIndex = 0;
+	mTextureVertices.push_back(v3);
+
+	mTextureIndexCount += 6;
 }
 
 void anRenderer::DrawQuad(const anFloat2& pos, const anFloat2& size, const anColor& color)
@@ -245,4 +240,14 @@ anUInt32 anRenderer::GetTextureIndex(anTexture* texture)
 	}
 
 	return 0;
+}
+
+anUInt32 anRenderer::GetDrawCallCount() const
+{
+	return mDrawCallCount;
+}
+
+anUInt32 anRenderer::GetIndexCount() const
+{
+	return mTextureIndexCount;
 }

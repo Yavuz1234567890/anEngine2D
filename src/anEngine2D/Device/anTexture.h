@@ -8,7 +8,8 @@ namespace anTextureFormat
 	enum : anUInt32
 	{
 		RGB,
-		RGBA
+		RGBA,
+		Red
 	};
 }
 

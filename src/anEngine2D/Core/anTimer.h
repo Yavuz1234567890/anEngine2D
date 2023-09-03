@@ -11,6 +11,7 @@ public:
 
 	float GetElapsedTime() const;
 	float Tick();
+	void Reset();
 public:
 	static anUInt64 GetCounter();
 	static anUInt64 GetFrequency();

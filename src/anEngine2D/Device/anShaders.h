@@ -6,6 +6,6 @@
 void anInitializeShaders();
 anShader* anGetColorShader();
 anShader* anGetTextureShader();
-anShader* anGetGUITextureShader();
+anShader* anGetFontShader();
 
 #endif

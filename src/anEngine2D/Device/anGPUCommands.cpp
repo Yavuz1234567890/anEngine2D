@@ -59,6 +59,11 @@ void anDrawArrays(anUInt32 type, anUInt32 size, anVertexArray* vertexArray)
 	vertexArray->Unbind();
 }
 
+void anPixelStore()
+{
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+}
+
 anFloat2 anGetViewportPosition()
 {
 	return sDeviceData.ViewportPosition;
