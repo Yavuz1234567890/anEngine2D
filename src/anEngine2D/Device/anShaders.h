@@ -5,6 +5,6 @@
 
 void anInitializeShaders();
 anShader* anGetColorShader();
-anShader* anGetTextureShader();
+anShader* anGetBatchShader();
 
 #endif

@@ -3,6 +3,7 @@
 
 #include "anWindow.h"
 #include "anTimer.h"
+#include "anEvent.h"
 
 struct anApplicationCreationDescription
 {
@@ -19,6 +20,7 @@ public:
 
 	virtual void Initialize() = 0;
 	virtual void Update(float dt) = 0;
+	virtual void OnEvent(const anEvent& event) = 0;
 
 	void Start();
 	anWindow* GetWindow();

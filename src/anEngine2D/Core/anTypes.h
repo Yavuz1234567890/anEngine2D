@@ -14,6 +14,7 @@ typedef signed char anInt8;
 #include <string>
 #include <map>
 #include <vector>
+#include <functional>
 
 typedef std::string anString;
 
@@ -42,6 +43,9 @@ using anVector = std::vector<T>;
 
 template<typename K, typename V>
 using anMap = std::map<K, V>;
+
+template<typename F>
+using anFunction = std::function<F>;
 
 struct anColor
 {

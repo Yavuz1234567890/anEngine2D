@@ -9,16 +9,13 @@
 #include "World/anTextObject.h"
 #include "Core/anMessage.h"
 
+#include <GLFW/glfw3.h>
+
 class Application : public anApplication
 {
 public:
 	Application()
 		: anApplication({ "anEngine2D Application", 1200, 700 })
-		, mScene(nullptr)
-		, mSprite(nullptr)
-		, mLine(nullptr)
-		, mText(nullptr)
-		, mWorld(nullptr)
 	{
 	}
 
@@ -47,11 +44,6 @@ public:
 		mSprite->SetTexture(anTexture::GetWhiteTexture());
 		mSprite->SetColor({ 0, 255, 255 });
 
-		mLine = new anLineObject("line test");
-		mLine->SetStartPoint({ 0.0f, 0.0f });
-		mLine->SetEndPoint({ 100.0f, 100.0f });
-		mLine->SetColor({ 255, 255, 0 });
-
 		mText = new anTextObject("text");
 		mText->SetPosition({ 0.0f, 10.0f });
 		mText->SetText("Application Test");
@@ -60,7 +52,6 @@ public:
 		
 		mScene->AddObject(mText);
 		mScene->AddObject(mSprite);
-		mScene->AddObject(mLine);
 
 		mWorld->SetCurrentScene(mScene);
 		mWorld->Initialize();
@@ -69,6 +60,20 @@ public:
 	void Update(float dt) override
 	{
 		mWorld->Update(dt);
+
+		if (mKeyW)
+			mQuadPosition.Y -= 2.0f;
+
+		if (mKeyS)
+			mQuadPosition.Y += 2.0f;
+
+		if (mKeyA)
+			mQuadPosition.X -= 2.0f;
+
+		if (mKeyD)
+			mQuadPosition.X += 2.0f;
+
+		mSprite->SetPosition(mQuadPosition);
 
 		anClear();
 		anEnableBlend();
@@ -84,6 +89,39 @@ public:
 
 		mRenderer.End();
 	}
+	
+	void OnEvent(const anEvent& event) override
+	{
+		if (event.Type == anEvent::KeyDown)
+		{
+			if (event.KeyCode == GLFW_KEY_W)
+				mKeyW = true;
+
+			if (event.KeyCode == GLFW_KEY_S)
+				mKeyS = true;
+
+			if (event.KeyCode == GLFW_KEY_A)
+				mKeyA = true;
+
+			if (event.KeyCode == GLFW_KEY_D)
+				mKeyD = true;
+		}
+
+		if (event.Type == anEvent::KeyUp)
+		{
+			if (event.KeyCode == GLFW_KEY_W)
+				mKeyW = false;
+
+			if (event.KeyCode == GLFW_KEY_S)
+				mKeyS = false;
+
+			if (event.KeyCode == GLFW_KEY_A)
+				mKeyA = false;
+
+			if (event.KeyCode == GLFW_KEY_D)
+				mKeyD = false;
+		}
+	}
 
 private:
 	anRenderer mRenderer;
@@ -92,14 +130,20 @@ private:
 
 	anFont mRaleway;
 
-	anScene* mScene;
-	anSpriteObject* mSprite;
-	anLineObject* mLine;
-	anTextObject* mText;
-	anWorld* mWorld;
+	anScene* mScene = nullptr;
+	anTextObject* mText = nullptr;
+	anWorld* mWorld = nullptr;
+
+	anSpriteObject* mSprite = nullptr;
+	anFloat2 mQuadPosition;
 
 	float mfWidth = 0.0f;
 	float mfHeight = 0.0f;
+
+	bool mKeyW = false;
+	bool mKeyS = false;
+	bool mKeyA = false;
+	bool mKeyD = false;
 };
 
 int anStartApplication(char** args, int argc)

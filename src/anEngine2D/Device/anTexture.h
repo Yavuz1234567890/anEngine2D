@@ -20,7 +20,13 @@ namespace anTextureParameter
 		Nearest,
 		Linear,
 		Repeat,
-		ClampToEdge
+		ClampToEdge,
+		Red,
+		Green,
+		Blue,
+		One,
+		Zero,
+		Alpha
 	};
 }
 
@@ -42,6 +48,7 @@ public:
 	anTexture(const anTextureCreationSpecification& spec);
 	~anTexture();
 
+	void SetTextureSwizzle(anUInt32 r, anUInt32 g, anUInt32 b, anUInt32 a);
 	void Bind(anUInt32 slot = 0) const;
 	void Unbind(anUInt32 slot = 0) const;
 	anUInt32 GetID() const;

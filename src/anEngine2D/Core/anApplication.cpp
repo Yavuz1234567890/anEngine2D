@@ -18,7 +18,9 @@ anApplication::~anApplication()
 
 void anApplication::Start()
 {
-	mWindow = anCreateWindow(mApplicationDesc.Title, mApplicationDesc.Width, mApplicationDesc.Height);
+	auto onEvent = [this](const anEvent& event) { OnEvent(event); };
+
+	mWindow = anCreateWindow(mApplicationDesc.Title, mApplicationDesc.Width, mApplicationDesc.Height, onEvent);
 	anTexture::Initialize();
 	anFont::Initialize();
 	anInitializeShaders();

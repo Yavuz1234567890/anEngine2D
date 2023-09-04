@@ -5,8 +5,7 @@ static struct
 	bool Initialized = false;
 
 	anShader* ColorShader;
-	anShader* TextureShader;
-	anShader* FontShader;
+	anShader* BatchShader;
 } sShaders;
 
 // Color shader
@@ -41,7 +40,7 @@ void main()
 )";
 
 // Texture shader
-static const char* sTextureVertexShaderSource = R"(
+static const char* sBatchVertexShaderSource = R"(
 #version 330 core
 
 layout(location=0) in vec3 aPos;
@@ -65,7 +64,7 @@ void main()
 }
 )";
 
-static const char* sTextureFragmentShaderSource = R"(
+static const char* sBatchFragmentShaderSource = R"(
 #version 330 core
 
 uniform sampler2D uSamplers[32];
@@ -76,7 +75,9 @@ flat in int oTexIndex;
 
 void main()
 {
-	gl_FragColor = texture(uSamplers[oTexIndex], oTexCoord) * oColor;
+	vec4 sampled = texture(uSamplers[oTexIndex], oTexCoord) * oColor;
+
+	gl_FragColor = sampled * oColor;
 }
 )";
 
@@ -86,7 +87,7 @@ void anInitializeShaders()
 		return;
 
 	sShaders.ColorShader = new anShader(sColorVertexShaderSource, sColorFragmentShaderSource);
-	sShaders.TextureShader = new anShader(sTextureVertexShaderSource, sTextureFragmentShaderSource);
+	sShaders.BatchShader = new anShader(sBatchVertexShaderSource, sBatchFragmentShaderSource);
 	sShaders.Initialized = true;
 }
 
@@ -95,7 +96,7 @@ anShader* anGetColorShader()
 	return sShaders.ColorShader;
 }
 
-anShader* anGetTextureShader()
+anShader* anGetBatchShader()
 {
-	return sShaders.TextureShader;
+	return sShaders.BatchShader;
 }

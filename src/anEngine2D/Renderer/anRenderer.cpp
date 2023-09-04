@@ -15,7 +15,7 @@ anRenderer::~anRenderer()
 
 void anRenderer::Initialize()
 {
-	mShader = anGetTextureShader();
+	mShader = anGetBatchShader();
 
 	mQuadPositions[0] = { -0.5f, -0.5f, 0.0f };
 	mQuadPositions[1] = {  0.5f, -0.5f, 0.0f };

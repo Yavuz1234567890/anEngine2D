@@ -37,6 +37,12 @@ static T _anGetTextureParameter(anUInt32 type)
 	case anTextureParameter::Linear: return GL_LINEAR;
 	case anTextureParameter::Nearest: return GL_NEAREST;
 	case anTextureParameter::Repeat: return GL_REPEAT;
+	case anTextureParameter::Red: return GL_RED;
+	case anTextureParameter::Green: return GL_GREEN;
+	case anTextureParameter::Blue: return GL_BLUE;
+	case anTextureParameter::One: return GL_ONE;
+	case anTextureParameter::Zero: return GL_ZERO;
+	case anTextureParameter::Alpha: return GL_ALPHA;
 	}
 
 	return 0;
@@ -66,17 +72,9 @@ anTexture::anTexture(const anTextureCreationSpecification& spec)
 		internalFormat = GL_R8;
 		dataFormat = GL_RED;
 	}
-	
+
 	glGenTextures(1, &mID);
 	glBindTexture(GL_TEXTURE_2D, mID);
-
-	if (spec.Format == anTextureFormat::Red)
-	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_RED);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_G, GL_RED);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_B, GL_RED);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_A, GL_ONE);
-	}
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, _anGetTextureParameter<float>(spec.MinFilter));
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, _anGetTextureParameter<float>(spec.MagFilter));
@@ -92,6 +90,18 @@ anTexture::anTexture(const anTextureCreationSpecification& spec)
 anTexture::~anTexture()
 {
 	glDeleteTextures(1, &mID);
+}
+
+void anTexture::SetTextureSwizzle(anUInt32 r, anUInt32 g, anUInt32 b, anUInt32 a)
+{
+	glBindTexture(GL_TEXTURE_2D, mID);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, _anGetTextureParameter<int>(r));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_G, _anGetTextureParameter<int>(g));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_B, _anGetTextureParameter<int>(b));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_A, _anGetTextureParameter<int>(a));
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void anTexture::Bind(anUInt32 slot) const

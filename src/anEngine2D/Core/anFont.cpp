@@ -55,6 +55,8 @@ bool anFont::Load(const anString& path, int size)
 		spec.WrapT = anTextureParameter::ClampToEdge;
 
 		anTexture* texture = new anTexture(spec);
+		// for transparent font
+		texture->SetTextureSwizzle(anTextureParameter::One, anTextureParameter::One, anTextureParameter::One, anTextureParameter::Red);
         anCharacter character = {
             texture,
             { face->glyph->bitmap.width, face->glyph->bitmap.rows },
