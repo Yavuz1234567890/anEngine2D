@@ -20,7 +20,7 @@ void anApplication::Start()
 {
 	auto onEvent = [this](const anEvent& event) { OnEvent(event); };
 
-	mWindow = anCreateWindow(mApplicationDesc.Title, mApplicationDesc.Width, mApplicationDesc.Height, onEvent);
+	mWindow = anCreateWindow(mApplicationDesc.Title, mApplicationDesc.Width, mApplicationDesc.Height, onEvent, mApplicationDesc.WindowResizable);
 	anTexture::Initialize();
 	anFont::Initialize();
 	anInitializeShaders();

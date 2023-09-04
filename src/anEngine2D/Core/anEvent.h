@@ -24,10 +24,10 @@ struct anEvent
 	anUInt32 MouseButton = 0;
 	anFloat2 MousePosition;
 	anFloat2 MouseScroll;
-	anUInt32 WindowX = 0;
-	anUInt32 WindowY = 0;
-	anUInt32 WindowWidth = 0;
-	anUInt32 WindowHeight = 0;
+	int WindowX = 0;
+	int WindowY = 0;
+	int WindowWidth = 0;
+	int WindowHeight = 0;
 };
 
 typedef anFunction<void(const anEvent&)> anEventCallback;

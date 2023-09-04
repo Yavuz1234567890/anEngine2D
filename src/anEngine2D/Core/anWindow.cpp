@@ -11,8 +11,8 @@ static bool sGLEWInitialized = false;
 class anGLFWWindow : public anWindow
 {
 public:
-	anGLFWWindow(const anString& title, anUInt32 width, anUInt32 height, const anEventCallback& callback)
-		: anWindow(title, width, height, callback)
+	anGLFWWindow(const anString& title, anUInt32 width, anUInt32 height, const anEventCallback& callback, bool isResizable = false)
+		: anWindow(title, width, height, callback, isResizable)
 	{
 		if (!sGLFWInitialized)
 		{
@@ -21,6 +21,9 @@ public:
 
 			sGLFWInitialized = true;
 		}
+
+		if (!isResizable)
+			glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 		mHandle = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
 		glfwMakeContextCurrent(mHandle);
@@ -86,14 +89,14 @@ public:
 			{
 				anGLFWWindow* wnd = (anGLFWWindow*)glfwGetWindowUserPointer(window);
 
-				wnd->OnWindowSize((anUInt32)width, (anUInt32)height);
+				wnd->OnWindowSize(width, height);
 			});
 
 		glfwSetWindowPosCallback(mHandle, [](GLFWwindow* window, int x, int y)
 			{
 				anGLFWWindow* wnd = (anGLFWWindow*)glfwGetWindowUserPointer(window);
 
-				wnd->OnWindowMove((anUInt32)x, (anUInt32)y);
+				wnd->OnWindowMove(x, y);
 			});
 
 		glfwSetWindowCloseCallback(mHandle, [](GLFWwindow* window)
@@ -119,16 +122,6 @@ public:
 		glfwSwapBuffers(mHandle);
 	}
 
-	void MakeFullscreen() override
-	{
-		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-
-		glfwSetWindowMonitor(mHandle, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
-
-		glViewport(0, 0, mode->width, mode->height);
-	}
-
 	void SetTitle(const anString& title) override
 	{
 		glfwSetWindowTitle(mHandle, title.c_str());
@@ -150,7 +143,7 @@ private:
 	GLFWwindow* mHandle = nullptr;
 };
 
-anWindow* anCreateWindow(const anString& title, anUInt32 width, anUInt32 height, const anEventCallback& callback)
+anWindow* anCreateWindow(const anString& title, anUInt32 width, anUInt32 height, const anEventCallback& callback, bool resizable)
 {
-	return new anGLFWWindow(title, width, height, callback);
+	return new anGLFWWindow(title, width, height, callback, resizable);
 }

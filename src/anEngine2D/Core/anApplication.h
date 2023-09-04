@@ -10,6 +10,7 @@ struct anApplicationCreationDescription
 	anString Title;
 	int Width;
 	int Height;
+	bool WindowResizable;
 };
 
 class anApplication

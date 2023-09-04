@@ -7,7 +7,7 @@
 class anWindow
 {
 public:
-	anWindow(const anString& title, anUInt32 width, anUInt32 height, const anEventCallback& callback)
+	anWindow(const anString& title, anUInt32 width, anUInt32 height, const anEventCallback& callback, bool isResizable = true)
 		: mTitle(title)
 		, mStartWidth(width)
 		, mStartHeight(height)
@@ -22,7 +22,6 @@ public:
 	}
 
 	virtual void Present() = 0;
-	virtual void MakeFullscreen() = 0;
 	virtual void SetTitle(const anString& title) = 0;
 	virtual void SetVSync(bool vsync) = 0;
 
@@ -115,7 +114,7 @@ public:
 		CallEventCallback(event);
 	}
 
-	void OnWindowMove(anUInt32 x, anUInt32 y)
+	void OnWindowMove(int x, int y)
 	{
 		anEvent event;
 		memset(&event, 0, sizeof(anEvent));
@@ -125,7 +124,7 @@ public:
 		CallEventCallback(event);
 	}
 
-	void OnWindowSize(anUInt32 width, anUInt32 height)
+	void OnWindowSize(int width, int height)
 	{
 		anEvent event;
 		memset(&event, 0, sizeof(anEvent));
@@ -161,6 +160,6 @@ protected:
 	anEventCallback mOnEventCallback;
 };
 
-anWindow* anCreateWindow(const anString& title, anUInt32 width, anUInt32 height, const anEventCallback& callback);
+anWindow* anCreateWindow(const anString& title, anUInt32 width, anUInt32 height, const anEventCallback& callback, bool resizable);
 
 #endif

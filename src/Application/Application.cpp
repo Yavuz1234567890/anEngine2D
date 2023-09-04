@@ -8,14 +8,13 @@
 #include "World/anLineObject.h"
 #include "World/anTextObject.h"
 #include "Core/anMessage.h"
-
-#include <GLFW/glfw3.h>
+#include "Core/anKeyCodes.h"
 
 class Application : public anApplication
 {
 public:
 	Application()
-		: anApplication({ "anEngine2D Application", 1200, 700 })
+		: anApplication({ "anEngine2D Application", 1200, 700, false })
 	{
 	}
 
@@ -24,7 +23,7 @@ public:
 	}
 
 	void Initialize() override
-	{
+	{		
 		mRaleway.Load("fonts/Raleway-Regular.ttf", 18);
 
 		mWorld = new anWorld();
@@ -94,31 +93,31 @@ public:
 	{
 		if (event.Type == anEvent::KeyDown)
 		{
-			if (event.KeyCode == GLFW_KEY_W)
+			if (event.KeyCode == anKeyW)
 				mKeyW = true;
 
-			if (event.KeyCode == GLFW_KEY_S)
+			if (event.KeyCode == anKeyS)
 				mKeyS = true;
 
-			if (event.KeyCode == GLFW_KEY_A)
+			if (event.KeyCode == anKeyA)
 				mKeyA = true;
 
-			if (event.KeyCode == GLFW_KEY_D)
+			if (event.KeyCode == anKeyD)
 				mKeyD = true;
 		}
 
 		if (event.Type == anEvent::KeyUp)
 		{
-			if (event.KeyCode == GLFW_KEY_W)
+			if (event.KeyCode == anKeyW)
 				mKeyW = false;
 
-			if (event.KeyCode == GLFW_KEY_S)
+			if (event.KeyCode == anKeyS)
 				mKeyS = false;
 
-			if (event.KeyCode == GLFW_KEY_A)
+			if (event.KeyCode == anKeyA)
 				mKeyA = false;
 
-			if (event.KeyCode == GLFW_KEY_D)
+			if (event.KeyCode == anKeyD)
 				mKeyD = false;
 		}
 	}
