@@ -24,7 +24,7 @@ public:
 
 		mHandle = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
 		glfwMakeContextCurrent(mHandle);
-		glfwSwapInterval(1);
+		glfwSwapInterval(mIsVSync ? 1 : 0);
 
 		if (!sGLEWInitialized)
 		{
@@ -76,6 +76,18 @@ public:
 	void SetTitle(const anString& title) override
 	{
 		glfwSetWindowTitle(mHandle, title.c_str());
+	}
+
+	void SetVSync(bool vsync) override
+	{
+		if (glfwGetCurrentContext() != mHandle)
+			return;
+
+		if (mIsVSync != vsync)
+		{
+			glfwSwapInterval(vsync ? 1 : 0);
+			mIsVSync = vsync;
+		}
 	}
 
 private:

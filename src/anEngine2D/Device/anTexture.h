@@ -13,10 +13,33 @@ namespace anTextureFormat
 	};
 }
 
+namespace anTextureParameter
+{
+	enum : anUInt32
+	{
+		Nearest,
+		Linear,
+		Repeat,
+		ClampToEdge
+	};
+}
+
+struct anTextureCreationSpecification
+{
+	const void* Data;
+	anUInt32 Width;
+	anUInt32 Height;
+	anUInt32 Format;
+	anUInt32 MinFilter;
+	anUInt32 MagFilter;
+	anUInt32 WrapS;
+	anUInt32 WrapT;
+};
+
 class anTexture
 {
 public:
-	anTexture(const void* data, anUInt32 width, anUInt32 height, anUInt32 iformat = anTextureFormat::RGBA, anUInt32 dformat = anTextureFormat::RGBA);
+	anTexture(const anTextureCreationSpecification& spec);
 	~anTexture();
 
 	void Bind(anUInt32 slot = 0) const;
@@ -24,17 +47,13 @@ public:
 	anUInt32 GetID() const;
 	anUInt32 GetWidth() const;
 	anUInt32 GetHeight() const;
-	anUInt32 GetInternalFormat() const;
-	anUInt32 GetDataFormat() const;
+	anUInt32 GetFormat() const;
 public:
 	static void Initialize();
 	static anTexture* GetWhiteTexture();
 private:
 	anUInt32 mID;
-	anUInt32 mWidth;
-	anUInt32 mHeight;
-	anUInt32 mInternalFormat;
-	anUInt32 mDataFormat;
+	anTextureCreationSpecification mSpecification;
 };
 
 anTexture* anLoadTexture(const anString& path);

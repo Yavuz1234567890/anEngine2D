@@ -22,6 +22,7 @@ public:
 	anFloat2& GetSize();
 	float& GetRotation();
 	const anColor& GetColor() const;
+	anColor& GetColor();
 	void SetTexture(anTexture* texture);
 	anTexture* GetTexture();
 private:

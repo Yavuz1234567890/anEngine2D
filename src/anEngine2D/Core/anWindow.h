@@ -10,6 +10,7 @@ public:
 		: mTitle(title)
 		, mStartWidth(width)
 		, mStartHeight(height)
+		, mIsVSync(true)
 	{ 
 	}
 		
@@ -22,7 +23,8 @@ public:
 	virtual bool IsRunning() const = 0;
 	virtual void MakeFullscreen() = 0;
 	virtual void SetTitle(const anString& title) = 0;
-		
+	virtual void SetVSync(bool vsync) = 0;
+
 	const anString& GetTitle() const
 	{
 		return mTitle;
@@ -38,10 +40,16 @@ public:
 		return mStartWidth;
 	}
 
+	bool IsVSync() const
+	{
+		return mIsVSync;
+	}
+
 protected:
 	anString mTitle;
 	anUInt32 mStartWidth;
 	anUInt32 mStartHeight;
+	bool mIsVSync;
 };
 
 anWindow* anCreateWindow(const anString& title, anUInt32 width, anUInt32 height);

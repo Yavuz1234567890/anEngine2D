@@ -12,6 +12,7 @@ public:
 
 	void AddObject(anObject* object);
 	anObject* GetObject(const anString& name);
+	void DestroyObject(anObject* object);
 
 	const anVector<anObject*>& GetObjects() const;
 	void Render(anRenderer& renderer);

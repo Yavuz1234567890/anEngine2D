@@ -22,7 +22,7 @@ public:
 private:
 	anFloat2 mStartPoint;
 	anFloat2 mEndPoint;
-	anColor mColor;
+	anColor mColor = { 255, 255, 255, 255 };
 };
 
 #endif

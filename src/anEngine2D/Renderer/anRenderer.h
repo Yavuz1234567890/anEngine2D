@@ -4,6 +4,8 @@
 #include "Device/anVertexArray.h"
 #include "Device/anTexture.h"
 #include "Math/anMatrix4.h"
+#include "Core/anFont.h"
+#include "Device/anShader.h"
 
 #define anMaxQuads					20000
 #define anMaxVertices				anMaxQuads * 4
@@ -35,6 +37,7 @@ public:
 	void DrawQuad(const anFloat2& pos, const anFloat2& size, float rot, const anColor& color);
 	void DrawTexture(anTexture* texture, const anFloat2& pos, const anFloat2& size, const anColor& color);
 	void DrawTexture(anTexture* texture, const anFloat2& pos, const anFloat2& size, float rot, const anColor& color);
+	void DrawString(const anFont& font, const anFloat2& pos, const anString& str, const anColor& color);
 	anUInt32 GetDrawCallCount() const;
 	anUInt32 GetIndexCount() const;
 private:
@@ -44,12 +47,14 @@ private:
 private:
 	anMatrix4 mMatrix;
 
+	anShader* mShader = nullptr;
+
 	anFloat3 mQuadPositions[4];
 	anFloat2 mQuadTexCoords[4];
 
-	anVertexArray* mTextureVertexArray;
-	anIndexBuffer* mTextureIndexBuffer;
-	anVertexBuffer* mTextureVertexBuffer;
+	anVertexArray* mTextureVertexArray = nullptr;
+	anIndexBuffer* mTextureIndexBuffer = nullptr;
+	anVertexBuffer* mTextureVertexBuffer = nullptr;
 	anVector<anTextureVertex> mTextureVertices;
 	anUInt32 mTextureIndexCount = 0;
 

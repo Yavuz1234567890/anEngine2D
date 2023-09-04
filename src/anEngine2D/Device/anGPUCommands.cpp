@@ -64,6 +64,17 @@ void anPixelStore()
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 }
 
+void anEnableBlend()
+{
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+void anDisableBlend()
+{
+	glDisable(GL_BLEND);
+}
+
 anFloat2 anGetViewportPosition()
 {
 	return sDeviceData.ViewportPosition;

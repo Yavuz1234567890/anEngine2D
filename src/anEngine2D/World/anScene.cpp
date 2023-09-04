@@ -1,6 +1,7 @@
 #include "anScene.h"
 #include "anSpriteObject.h"
 #include "anLineObject.h"
+#include "anTextObject.h"
 
 anScene::anScene()
 {
@@ -25,6 +26,18 @@ anObject* anScene::GetObject(const anString& name)
 	}
 
 	return nullptr;
+}
+
+void anScene::DestroyObject(anObject* object)
+{
+	for (anUInt32 i = 0; i < mObjects.size(); i++)
+	{
+		if (mObjects[i] == object)
+		{
+			mObjects.erase(mObjects.begin() + i);
+			break;
+		}
+	}
 }
 
 const anVector<anObject*>& anScene::GetObjects() const
@@ -52,6 +65,15 @@ void anScene::Render(anRenderer& renderer)
 			anLineObject* line = (anLineObject*)object;
 
 			renderer.DrawLine(line->GetStartPoint(), line->GetEndPoint(), line->GetColor());
+		}
+		break;
+		case anObject::Text:
+		{
+			anTextObject* text = (anTextObject*)object;
+			if (!text->GetFont().IsLoaded())
+				break;
+
+			renderer.DrawString(text->GetFont(), text->GetPosition(), text->GetText(), text->GetColor());
 		}
 		break;
 		}

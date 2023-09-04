@@ -12,46 +12,79 @@ void anTexture::Initialize()
 	if (!sWhiteTextureCreated)
 	{
 		anUInt32 whitePixel = 0xffffffff;
-		sWhiteTexture = new anTexture(&whitePixel, 1, 1);
+		anTextureCreationSpecification whiteTextureSpec;
+		whiteTextureSpec.Data = &whitePixel;
+		whiteTextureSpec.Width = 1;
+		whiteTextureSpec.Height = 1;
+		whiteTextureSpec.Format = anTextureFormat::RGBA;
+		whiteTextureSpec.MinFilter = anTextureParameter::Nearest;
+		whiteTextureSpec.MagFilter = anTextureParameter::Nearest;
+		whiteTextureSpec.WrapS = anTextureParameter::Repeat;
+		whiteTextureSpec.WrapT = anTextureParameter::Repeat;
+
+		sWhiteTexture = new anTexture(whiteTextureSpec);
 
 		sWhiteTextureCreated = true;
 	}
 }
 
-anTexture::anTexture(const void* data, anUInt32 width, anUInt32 height, anUInt32 iformat, anUInt32 dformat)
+template<typename T>
+static T _anGetTextureParameter(anUInt32 type)
 {
-	mWidth = width;
-	mHeight = height;
-	mInternalFormat = iformat;
-	mDataFormat = dformat;
+	switch (type)
+	{
+	case anTextureParameter::ClampToEdge: return GL_CLAMP_TO_EDGE;
+	case anTextureParameter::Linear: return GL_LINEAR;
+	case anTextureParameter::Nearest: return GL_NEAREST;
+	case anTextureParameter::Repeat: return GL_REPEAT;
+	}
 
+	return 0;
+}
+
+anTexture::anTexture(const anTextureCreationSpecification& spec)
+{
+	mSpecification = spec;
+	
 	GLenum internalFormat = 0;
 	GLenum dataFormat = 0;
 
-	if (iformat == anTextureFormat::RGB)
+	if (spec.Format == anTextureFormat::RGB)
+	{
 		internalFormat = GL_RGB8;
-	if (iformat == anTextureFormat::RGBA)
-		internalFormat = GL_RGBA8;
-	if (iformat == anTextureFormat::Red)
-		internalFormat = GL_RED;
-	
-	if (dformat == anTextureFormat::RGB)
 		dataFormat = GL_RGB;
-	if (dformat == anTextureFormat::RGBA)
+	}
+
+	if (spec.Format == anTextureFormat::RGBA)
+	{
+		internalFormat = GL_RGBA8;
 		dataFormat = GL_RGBA;
-	if (dformat == anTextureFormat::Red)
+	}
+
+	if (spec.Format == anTextureFormat::Red)
+	{
+		internalFormat = GL_R8;
 		dataFormat = GL_RED;
+	}
 	
 	glGenTextures(1, &mID);
 	glBindTexture(GL_TEXTURE_2D, mID);
 
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	if (spec.Format == anTextureFormat::Red)
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_RED);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_G, GL_RED);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_B, GL_RED);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_A, GL_ONE);
+	}
 
-	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, _anGetTextureParameter<float>(spec.MinFilter));
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, _anGetTextureParameter<float>(spec.MagFilter));
+	
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _anGetTextureParameter<int>(spec.WrapS));
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _anGetTextureParameter<int>(spec.WrapT));
 
-	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataFormat, GL_UNSIGNED_BYTE, data);
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, spec.Width, spec.Height, 0, dataFormat, GL_UNSIGNED_BYTE, spec.Data);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -79,22 +112,17 @@ anUInt32 anTexture::GetID() const
 
 anUInt32 anTexture::GetWidth() const
 {
-	return mWidth;
+	return mSpecification.Width;
 }
 
 anUInt32 anTexture::GetHeight() const
 {
-	return mHeight;
+	return mSpecification.Height;
 }
 
-anUInt32 anTexture::GetInternalFormat() const
+anUInt32 anTexture::GetFormat() const
 {
-	return mInternalFormat;
-}
-
-anUInt32 anTexture::GetDataFormat() const
-{
-	return mDataFormat;
+	return mSpecification.Format;
 }
 
 anTexture* anTexture::GetWhiteTexture()
@@ -112,21 +140,24 @@ anTexture* anLoadTexture(const anString& path)
 	if (!data)
 		anShowMessageBox("Couldn't find texture '" + path + "'");
 
-	anUInt32 internalFormat = 0;
-	anUInt32 dataFormat = 0;
+	anUInt32 format = 0;
 	if (channels == 4)
-	{
-		internalFormat = anTextureFormat::RGBA;
-		dataFormat = anTextureFormat::RGBA;
-	}
-
+		format = anTextureFormat::RGBA;
 	if (channels == 3)
-	{
-		internalFormat = anTextureFormat::RGB;
-		dataFormat = anTextureFormat::RGB;
-	}
+		format = anTextureFormat::RGB;
+	if (channels == 2)
+		format = anTextureFormat::Red;
 
-	anTexture* texture = new anTexture(data, width, height, internalFormat, dataFormat);
+	anTextureCreationSpecification spec;
+	spec.Data = data;
+	spec.Width = 1;
+	spec.Height = 1;
+	spec.Format = format;
+	spec.MinFilter = anTextureParameter::Nearest;
+	spec.MagFilter = anTextureParameter::Nearest;
+	spec.WrapS = anTextureParameter::Repeat;
+	spec.WrapT = anTextureParameter::Repeat;
+	anTexture* texture = new anTexture(spec);
 	
 	stbi_image_free(data);
 	

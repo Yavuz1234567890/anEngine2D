@@ -1,7 +1,7 @@
 #include "anApplication.h"
 #include "Device/anShaders.h"
 #include "Device/anTexture.h"
-#include "anMessage.h"
+#include "anFont.h"
 
 anApplication::anApplication(const anApplicationCreationDescription& desc)
 	: mFramesPerSecond(0)
@@ -20,6 +20,7 @@ void anApplication::Start()
 {
 	mWindow = anCreateWindow(mApplicationDesc.Title, mApplicationDesc.Width, mApplicationDesc.Height);
 	anTexture::Initialize();
+	anFont::Initialize();
 	anInitializeShaders();
 	Initialize();
 
@@ -29,13 +30,13 @@ void anApplication::Start()
 	{
 		const float dt = mTimer.Tick();
 		elapsedTime += dt;
-		++fps;
 		if (elapsedTime >= 1.0f)
 		{
 			mFramesPerSecond = fps;
 			elapsedTime = 0.0f;
 			fps = 0;
 		}
+		++fps;
 
 		Update(dt);
 		mWindow->Present();

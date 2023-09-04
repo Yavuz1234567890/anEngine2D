@@ -11,7 +11,8 @@ public:
 	enum : anUInt32
 	{
 		Line,
-		Sprite
+		Sprite,
+		Text
 	};
 
 public:

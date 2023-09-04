@@ -18,6 +18,7 @@ workspace "anEngine2D"
 	{
 		"thirdparty/glfw/include",
 		"thirdparty/glew/include",
+		"thirdparty/freetype/include",
 		"thirdparty/stb",
 		"src/anEngine2D"
 	}
@@ -53,14 +54,16 @@ workspace "anEngine2D"
 			libdirs
 			{
 				"thirdparty/glew/lib-x64",
-				"thirdparty/glfw/lib-x64"
+				"thirdparty/glfw/lib-x64",
+				"thirdparty/freetype/lib-x64"
 			}
 
 			links
 			{
 				"opengl32.lib",
 				"glew32.lib",
-				"glfw3.lib"
+				"glfw3.lib",
+				"freetype.lib"
 			}
 
 		filter "configurations:Debug"

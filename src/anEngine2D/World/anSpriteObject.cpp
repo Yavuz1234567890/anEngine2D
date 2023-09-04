@@ -64,6 +64,11 @@ const anColor& anSpriteObject::GetColor() const
 	return mColor;
 }
 
+anColor& anSpriteObject::GetColor()
+{
+	return mColor;
+}
+
 void anSpriteObject::SetTexture(anTexture* texture)
 {
 	mTexture = texture;

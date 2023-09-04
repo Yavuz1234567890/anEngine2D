@@ -4,9 +4,6 @@
 #include "Device/anGPUCommands.h"
 
 anRenderer::anRenderer()
-	: mTextureVertexArray(nullptr)
-	, mTextureIndexBuffer(nullptr)
-	, mTextureVertexBuffer(nullptr)
 {
 	for (anUInt32 i = 0; i < anMaxTextureSlots; i++)
 		mTextures[i] = nullptr;
@@ -18,6 +15,8 @@ anRenderer::~anRenderer()
 
 void anRenderer::Initialize()
 {
+	mShader = anGetTextureShader();
+
 	mQuadPositions[0] = { -0.5f, -0.5f, 0.0f };
 	mQuadPositions[1] = {  0.5f, -0.5f, 0.0f };
 	mQuadPositions[2] = {  0.5f,  0.5f, 0.0f };
@@ -35,7 +34,7 @@ void anRenderer::Initialize()
 	mTextureVertexBuffer->PushAttribute(anVertexBufferAttribute::Float2);
 	mTextureVertexBuffer->PushAttribute(anVertexBufferAttribute::Float4);
 	mTextureVertexBuffer->PushAttribute(anVertexBufferAttribute::Int);
-
+	
 	mTextureVertexArray->AddVertexBuffer(mTextureVertexBuffer);
 
 	anUInt32* quadIndices = new anUInt32[anMaxIndices];
@@ -62,9 +61,9 @@ void anRenderer::Initialize()
 	for (int i = 1; i < anMaxTextureSlots; i++)
 		samplers[i] = i;
 
-	anGetTextureShader()->Bind();
-	anGetTextureShader()->SetUniformIntArray("uSamplers", anMaxTextureSlots, samplers);
-	anGetTextureShader()->Unbind();
+	mShader->Bind();
+	mShader->SetUniformIntArray("uSamplers", anMaxTextureSlots, samplers);
+	mShader->Unbind();
 }
 
 void anRenderer::SetMatrix(const anMatrix4& matrix)
@@ -81,12 +80,12 @@ void anRenderer::Flush()
 		for (anUInt32 i = 0; i < mTextureIndex; i++)
 			mTextures[i]->Bind(i);
 
-		anGetTextureShader()->Bind();
-		anGetTextureShader()->SetUniformMatrix4("uMatrix", mMatrix);
+		mShader->Bind();
+		mShader->SetUniformMatrix4("uMatrix", mMatrix);
 
 		anDrawIndexed(anDrawType::Triangles, mTextureIndexCount, mTextureVertexArray);
 		
-		anGetTextureShader()->Unbind();
+		mShader->Unbind();
 
 		mTextureVertices.clear();
 		mTextureIndex = 1;
@@ -214,6 +213,84 @@ void anRenderer::DrawTexture(anTexture* texture, const anFloat2& pos, const anFl
 	}
 
 	mTextureIndexCount += 6;
+}
+
+void anRenderer::DrawString(const anFont& font, const anFloat2& pos, const anString& str, const anColor& color)
+{
+	anUInt32 spaceAdvance = font.GetCharacter(' ').Advance;
+	anUInt32 tabAdvance = spaceAdvance * 4;
+    
+	float x = pos.X;
+	float y = pos.Y;
+	for (anUInt32 i = 0; i < str.size(); i++)
+	{
+		if (str[i] == ' ')
+		{
+			x += spaceAdvance >> 6;
+			continue;
+		}
+
+		if (str[i] == '\t')
+		{
+			x += tabAdvance >> 6;
+			continue;
+		}
+
+		if (str[i] == '\r')
+			continue;
+
+		if (str[i] == '\n')
+		{
+			x = pos.X;
+			// for now
+			y += (float)font.GetSize();
+			continue;
+		}
+
+		StartDraw();
+
+		anCharacter ch = font.GetCharacter(str[i]);
+
+		float w = ch.Size.X;
+		float h = ch.Size.Y;
+
+		anUInt32 texIndex = GetTextureIndex(ch.Texture);
+
+		float xpos = x + ch.Bearing.X;
+		float ypos = -y - (ch.Size.Y - ch.Bearing.Y);
+
+		anTextureVertex v0;
+		v0.Position = { xpos, -ypos - h, 0.0f };
+		v0.TexCoord = mQuadTexCoords[0];
+		v0.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
+		v0.TexIndex = (int)texIndex;
+		mTextureVertices.push_back(v0);
+
+		anTextureVertex v1;
+		v1.Position = { xpos + w, -ypos - h, 0.0f };
+		v1.TexCoord = mQuadTexCoords[1];
+		v1.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
+		v1.TexIndex = (int)texIndex;
+		mTextureVertices.push_back(v1);
+
+		anTextureVertex v2;
+		v2.Position = { xpos + w, -ypos, 0.0f };
+		v2.TexCoord = mQuadTexCoords[2];
+		v2.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
+		v2.TexIndex = (int)texIndex;
+		mTextureVertices.push_back(v2);
+
+		anTextureVertex v3;
+		v3.Position = { xpos, -ypos, 0.0f };
+		v3.TexCoord = mQuadTexCoords[3];
+		v3.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
+		v3.TexIndex = (int)texIndex;
+		mTextureVertices.push_back(v3);
+
+		x += ch.Advance >> 6;
+
+		mTextureIndexCount += 6;
+	}
 }
 
 void anRenderer::DrawLineVertices(anFloat2* vertices, anUInt32 size, const anColor& color)

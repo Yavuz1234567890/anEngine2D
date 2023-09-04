@@ -80,48 +80,6 @@ void main()
 }
 )";
 
-// Font shader
-static const char* sFontVertexShaderSource = R"(
-#version 330 core
-
-layout(location=0) in vec3 aPos;
-layout(location=1) in vec2 aTexCoord;
-layout(location=2) in vec4 aColor;
-layout(location=3) in int aTexIndex;
-
-uniform mat4 uMatrix;
-
-out vec2 oTexCoord;
-out vec4 oColor;
-flat out int oTexIndex;
-
-void main()
-{
-	gl_Position = uMatrix * vec4(aPos, 1.0f);
-
-	oTexCoord = aTexCoord;
-	oColor = aColor;
-	oTexIndex = aTexIndex;
-}
-)";
-
-static const char* sFontFragmentShaderSource = R"(
-#version 330 core
-
-uniform sampler2D uSamplers[32];
-
-in vec2 oTexCoord;
-in vec4 oColor;
-flat in int oTexIndex;
-
-void main()
-{
-	vec4 sampled = vec4(1.0, 1.0, 1.0, texture(uSamplers[oTexIndex], oTexCoord));
-
-	gl_FragColor = sampled * oColor;
-}
-)";
-
 void anInitializeShaders()
 {
 	if (sShaders.Initialized)
@@ -129,7 +87,6 @@ void anInitializeShaders()
 
 	sShaders.ColorShader = new anShader(sColorVertexShaderSource, sColorFragmentShaderSource);
 	sShaders.TextureShader = new anShader(sTextureVertexShaderSource, sTextureFragmentShaderSource);
-	sShaders.FontShader = new anShader(sFontVertexShaderSource, sFontFragmentShaderSource);
 	sShaders.Initialized = true;
 }
 
@@ -141,9 +98,4 @@ anShader* anGetColorShader()
 anShader* anGetTextureShader()
 {
 	return sShaders.TextureShader;
-}
-
-anShader* anGetFontShader()
-{
-	return sShaders.FontShader;
 }
