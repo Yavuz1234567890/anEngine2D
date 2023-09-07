@@ -32,4 +32,8 @@ struct anEvent
 
 typedef anFunction<void(const anEvent&)> anEventCallback;
 
+bool anIsWindowEvent(anUInt32 event);
+bool anIsKeyboardEvent(anUInt32 event);
+bool anIsMouseEvent(anUInt32 event);
+
 #endif

@@ -23,10 +23,14 @@ public:
 	const anString& GetName() const;
 	anUInt32 GetType() const;
 	void SetScene(anScene* scene);
+	anScene* GetScene();
+	void SetVisible(bool visible);
+	bool IsVisible() const;
 protected:
 	anString mName;
 	anUInt32 mType;
 	anScene* mScene;
+	bool mIsVisible = true;
 };
 
 #endif

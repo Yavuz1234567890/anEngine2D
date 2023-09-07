@@ -9,6 +9,8 @@
 #include "World/anTextObject.h"
 #include "Core/anMessage.h"
 #include "Core/anKeyCodes.h"
+#include "State/anStateManager.h"
+#include "TestState.h"
 
 class Application : public anApplication
 {
@@ -36,90 +38,30 @@ public:
 		mProjection = anMatrix4::Ortho(mfWidth * -0.5f, mfWidth * 0.5f, mfHeight * 0.5f, mfHeight * -0.5f, -1.0f, 1.0f);
 		mRenderer.SetMatrix(mProjection);
 
-		mScene = new anScene();
-
-		mSprite = new anSpriteObject("test");
-		mSprite->SetSize({ 20.0f, 20.0f });
-		mSprite->SetTexture(anTexture::GetWhiteTexture());
-		mSprite->SetColor({ 0, 255, 255 });
-
-		mText = new anTextObject("text");
-		mText->SetPosition({ 0.0f, 10.0f });
-		mText->SetText("Application Test");
-		mText->SetFont(mRaleway);
-		mText->SetColor({ 255, 0, 0 });
-		
-		mScene->AddObject(mText);
-		mScene->AddObject(mSprite);
-
-		mWorld->SetCurrentScene(mScene);
 		mWorld->Initialize();
+
+		SetCurrentState<TestState>();
 	}
 
 	void Update(float dt) override
 	{
 		mWorld->Update(dt);
 
-		if (mKeyW)
-			mQuadPosition.Y -= 2.0f;
-
-		if (mKeyS)
-			mQuadPosition.Y += 2.0f;
-
-		if (mKeyA)
-			mQuadPosition.X -= 2.0f;
-
-		if (mKeyD)
-			mQuadPosition.X += 2.0f;
-
-		mSprite->SetPosition(mQuadPosition);
-
 		anClear();
 		anEnableBlend();
 		
 		mRenderer.Start();
 
+		anApplication::Render(mRenderer);
 		mWorld->Render(mRenderer);
 
-		const anString stats = "FPS: " + anToString(mFramesPerSecond) +
-			"\nDraw Calls: " + anToString((int)mRenderer.GetDrawCallCount()) +
-			"\nIndex Count: " + anToString((int)mRenderer.GetIndexCount());
-		mRenderer.DrawString(mRaleway, { -mfWidth * 0.5f, -mfHeight * 0.5f + (float)mRaleway.GetSize() }, stats, { 255, 0, 255, 255 });
+		mRenderer.DrawString(mRaleway, { -mfWidth * 0.5f, -mfHeight * 0.5f + (float)mRaleway.GetSize() }, "FPS: " + anToString(mFramesPerSecond), { 255, 0, 255, 255 });
 
 		mRenderer.End();
 	}
 	
 	void OnEvent(const anEvent& event) override
 	{
-		if (event.Type == anEvent::KeyDown)
-		{
-			if (event.KeyCode == anKeyW)
-				mKeyW = true;
-
-			if (event.KeyCode == anKeyS)
-				mKeyS = true;
-
-			if (event.KeyCode == anKeyA)
-				mKeyA = true;
-
-			if (event.KeyCode == anKeyD)
-				mKeyD = true;
-		}
-
-		if (event.Type == anEvent::KeyUp)
-		{
-			if (event.KeyCode == anKeyW)
-				mKeyW = false;
-
-			if (event.KeyCode == anKeyS)
-				mKeyS = false;
-
-			if (event.KeyCode == anKeyA)
-				mKeyA = false;
-
-			if (event.KeyCode == anKeyD)
-				mKeyD = false;
-		}
 	}
 
 private:
@@ -130,19 +72,10 @@ private:
 	anFont mRaleway;
 
 	anScene* mScene = nullptr;
-	anTextObject* mText = nullptr;
 	anWorld* mWorld = nullptr;
-
-	anSpriteObject* mSprite = nullptr;
-	anFloat2 mQuadPosition;
 
 	float mfWidth = 0.0f;
 	float mfHeight = 0.0f;
-
-	bool mKeyW = false;
-	bool mKeyS = false;
-	bool mKeyA = false;
-	bool mKeyD = false;
 };
 
 int anStartApplication(char** args, int argc)

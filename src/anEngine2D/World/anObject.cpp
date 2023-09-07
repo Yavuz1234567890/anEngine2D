@@ -31,3 +31,18 @@ void anObject::SetScene(anScene* scene)
 {
 	mScene = scene;
 }
+
+anScene* anObject::GetScene()
+{
+	return mScene;
+}
+
+void anObject::SetVisible(bool visible)
+{
+	mIsVisible = visible;
+}
+
+bool anObject::IsVisible() const
+{
+	return mIsVisible;
+}

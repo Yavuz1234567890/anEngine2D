@@ -2,6 +2,7 @@
 #include "Device/anShaders.h"
 #include "Device/anTexture.h"
 #include "anFont.h"
+#include "State/anStateManager.h"
 
 anApplication::anApplication(const anApplicationCreationDescription& desc)
 	: mFramesPerSecond(0)
@@ -18,12 +19,15 @@ anApplication::~anApplication()
 
 void anApplication::Start()
 {
-	auto onEvent = [this](const anEvent& event) { OnEvent(event); };
+	mStateManager = new anStateManager(this);
+
+	auto onEvent = [this](const anEvent& event) { AOnEvent(event); };
 
 	mWindow = anCreateWindow(mApplicationDesc.Title, mApplicationDesc.Width, mApplicationDesc.Height, onEvent, mApplicationDesc.WindowResizable);
 	anTexture::Initialize();
 	anFont::Initialize();
 	anInitializeShaders();
+	mStateManager->Initialize();
 	Initialize();
 
 	int fps = 0;
@@ -39,10 +43,26 @@ void anApplication::Start()
 			fps = 0;
 		}
 		++fps;
-
+		
+		mStateManager->Update(dt);
 		Update(dt);
 		mWindow->Present();
 	}
+}
+
+void anApplication::AOnEvent(const anEvent& event)
+{
+	OnEvent(event);
+}
+
+void anApplication::Render(anRenderer& renderer)
+{
+	mStateManager->Render(renderer);
+}
+
+void anApplication::SetCurrentState(anState* state)
+{
+	mStateManager->SetCurrentState(state);
 }
 
 anWindow* anApplication::GetWindow()

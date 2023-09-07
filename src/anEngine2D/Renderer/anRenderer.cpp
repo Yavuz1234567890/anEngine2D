@@ -118,28 +118,28 @@ void anRenderer::DrawLine(const anFloat2& start, const anFloat2& end, const anCo
 	v0.Position = { start.X, start.Y, 0.0f };
 	v0.TexCoord = mQuadTexCoords[0];
 	v0.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
-	v0.TexIndex = 0;
+	v0.TexIndex = anWhiteTextureSlot;
 	mTextureVertices.push_back(v0);
 
 	anTextureVertex v1;
 	v1.Position = { start.X + width, start.Y, 0.0f };
 	v1.TexCoord = mQuadTexCoords[1];
 	v1.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
-	v1.TexIndex = 0;
+	v1.TexIndex = anWhiteTextureSlot;
 	mTextureVertices.push_back(v1);
 
 	anTextureVertex v2;
 	v2.Position = { end.X + width, end.Y + width, 0.0f };
 	v2.TexCoord = mQuadTexCoords[2];
 	v2.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
-	v2.TexIndex = 0;
+	v2.TexIndex = anWhiteTextureSlot;
 	mTextureVertices.push_back(v2);
 
 	anTextureVertex v3;
 	v3.Position = { end.X, end.Y + width, 0.0f };
 	v3.TexCoord = mQuadTexCoords[3];
 	v3.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
-	v3.TexIndex = 0;
+	v3.TexIndex = anWhiteTextureSlot;
 	mTextureVertices.push_back(v3);
 
 	mTextureIndexCount += 6;

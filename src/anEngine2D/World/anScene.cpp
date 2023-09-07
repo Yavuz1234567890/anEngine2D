@@ -49,6 +49,9 @@ void anScene::Render(anRenderer& renderer)
 {
 	for (anObject* object : mObjects)
 	{
+		if (!object->IsVisible())
+			continue;
+
 		switch (object->GetType())
 		{
 		case anObject::Sprite:
