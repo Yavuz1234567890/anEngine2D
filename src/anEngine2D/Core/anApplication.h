@@ -33,6 +33,7 @@ public:
 	anWindow* GetWindow();
 protected:
 	void SetCurrentState(anState* state);
+	anState* GetCurrentState();
 
 	template<class T>
 	void SetCurrentState()

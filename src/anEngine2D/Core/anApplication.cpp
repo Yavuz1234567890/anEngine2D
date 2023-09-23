@@ -65,6 +65,11 @@ void anApplication::SetCurrentState(anState* state)
 	mStateManager->SetCurrentState(state);
 }
 
+anState* anApplication::GetCurrentState()
+{
+	return mStateManager->GetCurrentState();
+}
+
 anWindow* anApplication::GetWindow()
 {
 	return mWindow;

@@ -75,7 +75,7 @@ flat in int oTexIndex;
 
 void main()
 {
-	vec4 sampled = texture(uSamplers[oTexIndex], oTexCoord) * oColor;
+	vec4 sampled = texture(uSamplers[oTexIndex], oTexCoord);
 
 	gl_FragColor = sampled * oColor;
 }
