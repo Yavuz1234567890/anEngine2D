@@ -52,6 +52,7 @@ void anApplication::Start()
 
 void anApplication::AOnEvent(const anEvent& event)
 {
+	mStateManager->OnEvent(event);
 	OnEvent(event);
 }
 
