@@ -219,6 +219,28 @@ anMatrix4 anMatrix4::Inverse(const anMatrix4& m)
 	return res;
 }
 
+anMatrix4 anMatrix4::LookAt(const anFloat3& camera, const anFloat3& object, const anFloat3& up)
+{
+	anMatrix4 result(1.0f);
+	anFloat3 f = (object - camera).Normalize();
+	anFloat3 s = f.Cross(up.Normalize());
+	anFloat3 u = s.Cross(f);
+
+	result[0][0] = s.X;
+	result[1][0] = s.Y;
+	result[2][0] = s.Z;
+	
+	result[0][1] = u.X;
+	result[1][1] = u.Y;
+	result[2][1] = u.Z;
+	
+	result[0][2] = -f.X;
+	result[1][2] = -f.Y;
+	result[2][2] = -f.Z;
+
+	return result * Translate(anFloat3(-camera.X, -camera.Y, -camera.Z));
+}
+
 anFloat4 operator*(const anFloat4& f, const anMatrix4& m)
 {
 	anFloat4 res;

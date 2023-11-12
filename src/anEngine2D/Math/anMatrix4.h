@@ -26,6 +26,7 @@ struct anMatrix4
 	static anMatrix4 Rotate(float angle, const anFloat3& axis);
 	static anMatrix4 Ortho(float left, float right, float bottom, float top, float near, float far);
 	static anMatrix4 Inverse(const anMatrix4& matrix);
+	static anMatrix4 LookAt(const anFloat3& camera, const anFloat3& object, const anFloat3& up);
 };
 
 anFloat4 operator*(const anFloat4& f, const anMatrix4& m);

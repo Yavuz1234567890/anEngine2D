@@ -49,7 +49,7 @@ public:
 
 		anClearColor({ 255, 0, 0 });
 		anEnableBlend();
-		
+
 		mRenderer.Start();
 
 		anApplication::Render(mRenderer);

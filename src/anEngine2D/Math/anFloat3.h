@@ -89,6 +89,22 @@ struct anFloat3
 	{
 		return GetAddress()[index];
 	}
+
+	anFloat3 Cross(const anFloat3& other) const
+	{
+		return anFloat3(Y * other.Z - Z * other.Y, Z * other.X - X * other.Z, X * other.Y - Y * other.X);
+	}
+
+	float Magnitude() const
+	{
+		return sqrtf(X * X + Y * Y + Z * Z);
+	}
+
+	anFloat3 Normalize() const
+	{
+		float length = Magnitude();
+		return anFloat3(X / length, Y / length, Z / length);
+	}
 };
 
 #endif
