@@ -47,7 +47,7 @@ public:
 	{
 		mWorld->Update(dt);
 
-		anClear();
+		anClearColor({ 255, 0, 0 });
 		anEnableBlend();
 		
 		mRenderer.Start();
@@ -55,7 +55,8 @@ public:
 		anApplication::Render(mRenderer);
 		mWorld->Render(mRenderer);
 
-		mRenderer.DrawString(mRaleway, { -mfWidth * 0.5f, -mfHeight * 0.5f + (float)mRaleway.GetSize() }, "FPS: " + anToString(mFramesPerSecond), { 255, 0, 255, 255 });
+		mRenderer.DrawString(mRaleway, { 100.0f, 100.0f }, "FPS: " + anToString(mFramesPerSecond), { 255, 0, 255, 255 });
+		mRenderer.DrawTexture(anTexture::GetWhiteTexture(), { 0, 0 }, { 100, 100 }, { 255, 255, 255 });
 
 		mRenderer.End();
 	}
