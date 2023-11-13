@@ -24,7 +24,7 @@ public:
 	virtual void Present() = 0;
 	virtual void SetTitle(const anString& title) = 0;
 	virtual void SetVSync(bool vsync) = 0;
-
+	
 	void Close()
 	{
 		mIsRunning = false;

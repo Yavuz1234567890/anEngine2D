@@ -4,6 +4,7 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <stb_image.h>
 
 static bool sGLFWInitialized = false;
 static bool sGLEWInitialized = false;

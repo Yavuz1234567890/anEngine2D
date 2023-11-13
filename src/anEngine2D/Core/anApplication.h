@@ -5,6 +5,7 @@
 #include "anTimer.h"
 #include "anEvent.h"
 #include "Renderer/anRenderer.h"
+#include "Core/anSound.h"
 
 class anStateManager;
 class anState;
@@ -31,6 +32,7 @@ public:
 	void AOnEvent(const anEvent& event);
 	void Render(anRenderer& renderer);
 	anWindow* GetWindow();
+	void LogWrite(const anString& msg);
 protected:
 	void SetCurrentState(anState* state);
 	anState* GetCurrentState();
@@ -47,6 +49,7 @@ protected:
 	anTimer mTimer;
 	int mFramesPerSecond;
 	anStateManager* mStateManager;
+	anOutputFile mLogFile;
 };
 
 #endif

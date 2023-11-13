@@ -11,6 +11,7 @@ anApplication::anApplication(const anApplicationCreationDescription& desc)
 	mApplicationDesc.Title = desc.Title;
 	mApplicationDesc.Width = desc.Width;
 	mApplicationDesc.Height = desc.Height;
+	mLogFile.open(desc.Title + ".log");
 }
 
 anApplication::~anApplication()
@@ -26,6 +27,7 @@ void anApplication::Start()
 	mWindow = anCreateWindow(mApplicationDesc.Title, mApplicationDesc.Width, mApplicationDesc.Height, onEvent, mApplicationDesc.WindowResizable);
 	anTexture::Initialize();
 	anFont::Initialize();
+	anSound::InitializeFMOD();
 	anInitializeShaders();
 	mStateManager->Initialize();
 	Initialize();
@@ -48,6 +50,8 @@ void anApplication::Start()
 		Update(dt);
 		mWindow->Present();
 	}
+
+	anSound::ShutdownFMOD();
 }
 
 void anApplication::AOnEvent(const anEvent& event)
@@ -74,4 +78,12 @@ anState* anApplication::GetCurrentState()
 anWindow* anApplication::GetWindow()
 {
 	return mWindow;
+}
+
+void anApplication::LogWrite(const anString& msg)
+{
+	if (!mLogFile.is_open())
+		return;
+
+	mLogFile << msg << "\n";
 }

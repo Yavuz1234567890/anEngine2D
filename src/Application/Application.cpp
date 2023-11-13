@@ -26,7 +26,8 @@ public:
 
 	void Initialize() override
 	{		
-		mRaleway.Load("fonts/Raleway-Regular.ttf", 18);
+		mRaleway.Load("assets/Raleway-Regular.ttf", 18);
+		mTestSound.Load("assets/jaguar.wav");
 
 		mWorld = new anWorld();
 
@@ -46,7 +47,7 @@ public:
 	void Update(float dt) override
 	{
 		mWorld->Update(dt);
-
+		
 		anClearColor({ 255, 0, 0 });
 		anEnableBlend();
 
@@ -63,6 +64,13 @@ public:
 	
 	void OnEvent(const anEvent& event) override
 	{
+		if (event.Type == anEvent::KeyDown)
+		{
+			if (event.KeyCode == anKeySpace)
+			{
+				mTestSound.Play();
+			}
+		}
 	}
 
 private:
@@ -77,6 +85,8 @@ private:
 
 	float mfWidth = 0.0f;
 	float mfHeight = 0.0f;
+
+	anSound mTestSound;
 };
 
 int anStartApplication(char** args, int argc)

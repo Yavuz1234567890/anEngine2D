@@ -15,6 +15,7 @@ typedef signed char anInt8;
 #include <map>
 #include <vector>
 #include <functional>
+#include <fstream>
 
 typedef std::string anString;
 
@@ -46,6 +47,9 @@ using anMap = std::map<K, V>;
 
 template<typename F>
 using anFunction = std::function<F>;
+
+typedef std::ifstream anInputFile;
+typedef std::ofstream anOutputFile;
 
 struct anColor
 {
