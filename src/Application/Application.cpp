@@ -26,6 +26,10 @@ public:
 
 	void Initialize() override
 	{		
+		mWindow->SetWindowIcon("assets/icon.jpg");
+
+		mTest = anLoadTexture("assets/test.png");
+
 		mRaleway.Load("assets/Raleway-Regular.ttf", 18);
 		mTestSound.Load("assets/jaguar.wav");
 
@@ -58,6 +62,7 @@ public:
 
 		mRenderer.DrawString(mRaleway, { 100.0f, 100.0f }, "FPS: " + anToString(mFramesPerSecond), { 255, 0, 255, 255 });
 		mRenderer.DrawTexture(anTexture::GetWhiteTexture(), { 0, 0 }, { 100, 100 }, { 255, 255, 255 });
+		mRenderer.DrawTexture(mTest, { 0, 0 }, { 642.0f, 313.0f }, 0.0f, { 255, 255, 255 });
 
 		mRenderer.End();
 	}
@@ -87,6 +92,8 @@ private:
 	float mfHeight = 0.0f;
 
 	anSound mTestSound;
+
+	anTexture* mTest = nullptr;
 };
 
 int anStartApplication(char** args, int argc)

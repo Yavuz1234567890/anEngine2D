@@ -215,6 +215,32 @@ void anRenderer::DrawTexture(anTexture* texture, const anFloat2& pos, const anFl
 	mTextureIndexCount += 6;
 }
 
+void anRenderer::DrawTextureSub(anTexture* texture, const anFloat2& pos, const anFloat2& size, const anFloat2& spos, const anFloat2& ssize, float rot, const anColor& color)
+{
+	StartDraw();
+
+	const int texWidth = (int)texture->GetWidth();
+	const int texHeight = (int)texture->GetHeight();
+
+	anMatrix4 transform =
+		anMatrix4::Translate({ pos.X, pos.Y, 0.0f, })
+		* anMatrix4::Scale({ size.X, size.Y, 0.0f })
+		* anMatrix4::Rotate(rot, { 0.0f, 0.0f, 1.0f });
+
+	anUInt32 index = GetTextureIndex(texture);
+	for (anUInt32 i = 0; i < 4; i++)
+	{
+		anTextureVertex vertex;
+		vertex.Position = mQuadPositions[i] * transform;
+		vertex.TexCoord = { (mQuadTexCoords[i].X * ssize.X + spos.X) / texWidth, (mQuadTexCoords[i].Y * ssize.Y + spos.Y) / texHeight };
+		vertex.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
+		vertex.TexIndex = (int)index;
+		mTextureVertices.push_back(vertex);
+	}
+
+	mTextureIndexCount += 6;
+}
+
 void anRenderer::DrawString(const anFont& font, const anFloat2& pos, const anString& str, const anColor& color)
 {
 	anUInt32 spaceAdvance = font.GetCharacter(' ').Advance;

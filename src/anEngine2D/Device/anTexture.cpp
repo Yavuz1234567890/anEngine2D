@@ -135,6 +135,11 @@ anUInt32 anTexture::GetFormat() const
 	return mSpecification.Format;
 }
 
+const void* anTexture::GetData() const
+{
+	return mSpecification.Data;
+}
+
 anTexture* anTexture::GetWhiteTexture()
 {
 	return sWhiteTexture;
@@ -160,8 +165,8 @@ anTexture* anLoadTexture(const anString& path)
 
 	anTextureCreationSpecification spec;
 	spec.Data = data;
-	spec.Width = 1;
-	spec.Height = 1;
+	spec.Width = width;
+	spec.Height = height;
 	spec.Format = format;
 	spec.MinFilter = anTextureParameter::Nearest;
 	spec.MagFilter = anTextureParameter::Nearest;

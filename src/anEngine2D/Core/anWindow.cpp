@@ -117,6 +117,15 @@ public:
 		}
 	}
 
+	void SetWindowIcon(const void* data, int width, int height)
+	{
+		GLFWimage images[1];
+		images[0].pixels = (unsigned char*)data;
+		images[0].width = (int)width;
+		images[0].height = (int)height;
+		glfwSetWindowIcon(mHandle, 1, images);
+	}
+
 	void Present() override
 	{
 		glfwPollEvents();

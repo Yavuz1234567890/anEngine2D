@@ -55,6 +55,7 @@ public:
 	anUInt32 GetWidth() const;
 	anUInt32 GetHeight() const;
 	anUInt32 GetFormat() const;
+	const void* GetData() const;
 public:
 	static void Initialize();
 	static anTexture* GetWhiteTexture();

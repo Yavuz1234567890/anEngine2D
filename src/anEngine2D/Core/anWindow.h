@@ -3,6 +3,9 @@
 
 #include "anTypes.h"
 #include "anEvent.h"
+#include "Device/anTexture.h"
+
+#include <stb_image.h>
 
 class anWindow
 {
@@ -24,7 +27,18 @@ public:
 	virtual void Present() = 0;
 	virtual void SetTitle(const anString& title) = 0;
 	virtual void SetVSync(bool vsync) = 0;
+	virtual void SetWindowIcon(const void* data, int width, int height) = 0;
 	
+	void SetWindowIcon(const anString& path)
+	{
+		int width = 0;
+		int height = 0;
+		int channels = 0;
+		stbi_uc* data = stbi_load(path.c_str(), &width, &height, &channels, 4);
+
+		SetWindowIcon(data, width, height);
+	}
+
 	void Close()
 	{
 		mIsRunning = false;
