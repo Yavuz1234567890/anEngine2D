@@ -63,7 +63,7 @@ public:
 
 	anUInt32 GetStartHeight() const
 	{
-		return mStartWidth;
+		return mStartHeight;
 	}
 
 	bool IsVSync() const
