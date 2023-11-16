@@ -1,6 +1,8 @@
 #include "anMath.h"
+#include "Core/anTimer.h"
 
 #include <math.h>
+#include <stdlib.h>
 
 float anCos(float x)
 {
@@ -50,4 +52,34 @@ float anDegreesToRadians(float x)
 float anRadiansToDegeees(float x)
 {
 	return x * 180.0f / AN_PI;
+}
+
+void anInitializeRandomDevice()
+{
+	srand(anUInt32(anTimer::GetCounter()));
+}
+
+int anRand()
+{
+	return rand();
+}
+
+int anRand(int max)
+{
+	return rand() % max;
+}
+
+int anRand(int min, int max)
+{
+	return min + rand() % (max - min);
+}
+
+float anRandf(float max)
+{
+	return (float(rand()) / RAND_MAX) * max;
+}
+
+float anRandf(float min, float max)
+{
+	return min + (float(rand()) / RAND_MAX) * (max - min);
 }

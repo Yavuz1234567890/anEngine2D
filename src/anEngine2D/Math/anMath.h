@@ -13,5 +13,11 @@ float anMin(float x, float y);
 float anAbs(float x);
 float anDegreesToRadians(float x);
 float anRadiansToDegeees(float x);
+void anInitializeRandomDevice();
+int anRand();
+int anRand(int max);
+int anRand(int min, int max);
+float anRandf(float max);
+float anRandf(float min, float max);
 
 #endif

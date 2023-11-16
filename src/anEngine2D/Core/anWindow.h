@@ -37,6 +37,8 @@ public:
 		stbi_uc* data = stbi_load(path.c_str(), &width, &height, &channels, 4);
 
 		SetWindowIcon(data, width, height);
+
+		stbi_image_free(data);
 	}
 
 	void Close()

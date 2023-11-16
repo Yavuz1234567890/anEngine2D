@@ -10,6 +10,7 @@
 #include "Core/anMessage.h"
 #include "Core/anKeyCodes.h"
 #include "State/anStateManager.h"
+#include "Math/anMath.h"
 #include "TestState.h"
 
 class Application : public anApplication
@@ -26,6 +27,8 @@ public:
 
 	void Initialize() override
 	{		
+		anInitializeRandomDevice();
+
 		mWindow->SetWindowIcon("assets/icon.jpg");
 
 		mTest = anLoadTexture("assets/test.png");
