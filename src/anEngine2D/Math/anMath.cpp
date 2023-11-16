@@ -49,7 +49,7 @@ float anDegreesToRadians(float x)
 	return x * AN_PI / 180.0f;
 }
 
-float anRadiansToDegeees(float x)
+float anRadiansToDegrees(float x)
 {
 	return x * 180.0f / AN_PI;
 }

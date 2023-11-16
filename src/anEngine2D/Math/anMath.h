@@ -12,7 +12,7 @@ float anMax(float x, float y);
 float anMin(float x, float y);
 float anAbs(float x);
 float anDegreesToRadians(float x);
-float anRadiansToDegeees(float x);
+float anRadiansToDegrees(float x);
 void anInitializeRandomDevice();
 int anRand();
 int anRand(int max);
