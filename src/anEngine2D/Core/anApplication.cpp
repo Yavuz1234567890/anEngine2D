@@ -10,6 +10,7 @@ anApplication::anApplication(const anApplicationCreationDescription& desc)
 	mApplicationDesc.Title = desc.Title;
 	mApplicationDesc.Width = desc.Width;
 	mApplicationDesc.Height = desc.Height;
+	mApplicationDesc.WindowResizable = desc.WindowResizable;
 	mLogFile.open(desc.Title + ".log");
 }
 
