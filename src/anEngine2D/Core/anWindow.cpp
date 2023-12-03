@@ -117,7 +117,33 @@ public:
 		}
 	}
 
-	void SetWindowIcon(const void* data, int width, int height)
+	void SetCursorEnabled(bool enabled) override
+	{
+		glfwSetInputMode(mHandle, GLFW_CURSOR, enabled ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+	}
+
+	const anFloat2 GetMonitorSize() const override
+	{
+		const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
+		float w = (float)mode->width;
+		float h = (float)mode->height;
+
+		return { w, h };
+	}
+
+	void MakeFullscreen() override
+	{
+		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+		glfwSetWindowMonitor(mHandle, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+		glfwSwapInterval(mIsVSync ? 1 : 0);
+
+		anSetViewport({ 0.0f, 0.0f }, { (float)mode->width, (float)mode->height });
+	}
+
+	void SetWindowIcon(const void* data, int width, int height) override
 	{
 		GLFWimage images[1];
 		images[0].pixels = (unsigned char*)data;

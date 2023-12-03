@@ -30,6 +30,7 @@ void anApplication::Start()
 	anSound::InitializeFMOD();
 	anInitializeShaders();
 	mStateManager->Initialize();
+	mControllerDevice.Initialize();
 	Initialize();
 
 	int fps = 0;
@@ -46,8 +47,10 @@ void anApplication::Start()
 		}
 		++fps;
 		
+		mControllerDevice.Update(dt);
 		mStateManager->Update(dt);
 		Update(dt);
+
 		mWindow->Present();
 	}
 
@@ -86,4 +89,9 @@ void anApplication::LogWrite(const anString& msg)
 		return;
 
 	mLogFile << msg << "\n";
+}
+
+anControllerDevice anApplication::GetControllerDevice()
+{
+	return mControllerDevice;
 }

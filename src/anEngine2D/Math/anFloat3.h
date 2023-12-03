@@ -70,6 +70,26 @@ struct anFloat3
 		return { X / v.X, Y / v.Y, Z / v.Z };
 	}
 
+	anFloat3 operator+(float v) const
+	{
+		return { X + v, Y + v, Z + v };
+	}
+
+	anFloat3 operator-(float v) const
+	{
+		return { X - v, Y - v, Z - v };
+	}
+
+	anFloat3 operator*(float v) const
+	{
+		return { X * v, Y * v, Z * v };
+	}
+
+	anFloat3 operator/(float v) const
+	{
+		return { X / v, Y / v, Z / v };
+	}
+
 	float* GetAddress()
 	{
 		return &X;

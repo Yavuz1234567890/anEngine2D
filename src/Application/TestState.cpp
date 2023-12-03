@@ -23,5 +23,4 @@ void TestState::OnEvent(const anEvent& event)
 
 void TestState::Render(anRenderer& renderer)
 {
-	renderer.DrawLine({ 0.0f, 0.0f }, { 100.0f, 100.0f }, { 255, 255, 255 });
 }

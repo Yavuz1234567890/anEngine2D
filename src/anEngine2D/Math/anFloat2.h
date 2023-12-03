@@ -64,6 +64,26 @@ struct anFloat2
 		return { X / v.X, Y / v.Y };
 	}
 	
+	anFloat2 operator+(float v) const
+	{
+		return { X + v, Y + v };
+	}
+
+	anFloat2 operator-(float v) const
+	{
+		return { X - v, Y - v };
+	}
+
+	anFloat2 operator*(float v) const
+	{
+		return { X * v, Y * v };
+	}
+
+	anFloat2 operator/(float v) const
+	{
+		return { X / v, Y / v };
+	}
+
 	float* GetAddress()
 	{
 		return &X;

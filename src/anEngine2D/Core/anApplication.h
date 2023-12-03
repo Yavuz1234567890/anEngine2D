@@ -6,6 +6,7 @@
 #include "anEvent.h"
 #include "Renderer/anRenderer.h"
 #include "Core/anSound.h"
+#include "anControllerDevice.h"
 
 class anStateManager;
 class anState;
@@ -33,6 +34,7 @@ public:
 	void Render(anRenderer& renderer);
 	anWindow* GetWindow();
 	void LogWrite(const anString& msg);
+	anControllerDevice GetControllerDevice();
 protected:
 	void SetCurrentState(anState* state);
 	anState* GetCurrentState();
@@ -50,6 +52,7 @@ protected:
 	int mFramesPerSecond;
 	anStateManager* mStateManager;
 	anOutputFile mLogFile;
+	anControllerDevice mControllerDevice;
 };
 
 #endif
