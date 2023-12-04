@@ -31,6 +31,7 @@ void anApplication::Start()
 	anInitializeShaders();
 	mStateManager->Initialize();
 	mControllerDevice.Initialize();
+	mImGui.Initialize(mWindow);
 	Initialize();
 
 	int fps = 0;
@@ -51,6 +52,10 @@ void anApplication::Start()
 		mStateManager->Update(dt);
 		Update(dt);
 
+		mImGui.Start();
+		OnImGui();
+		mImGui.End();
+
 		mWindow->Present();
 	}
 
@@ -66,6 +71,12 @@ void anApplication::AOnEvent(const anEvent& event)
 void anApplication::Render(anRenderer& renderer)
 {
 	mStateManager->Render(renderer);
+}
+
+void anApplication::OnImGui()
+{
+	OnImGuiRender();
+	mStateManager->OnImGuiRender();
 }
 
 void anApplication::SetCurrentState(anState* state)

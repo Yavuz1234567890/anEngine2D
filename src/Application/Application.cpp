@@ -17,7 +17,7 @@ class Application : public anApplication
 {
 public:
 	Application()
-		: anApplication({ "anEngine2D Application", 1200, 700, true })
+		: anApplication({ "anEngine2D Application", 1200, 700, false })
 	{
 	}
 
@@ -30,6 +30,7 @@ public:
 		anInitializeRandomDevice();
 
 		mWindow->SetWindowIcon("assets/icon.jpg");
+		mWindow->SetVSync(true);
 
 		mTest = anLoadTexture("assets/test.png");
 
@@ -40,12 +41,8 @@ public:
 
 		mRenderer.Initialize();
 		
-		mWindow->MakeFullscreen();
-		mWindow->SetCursorEnabled(false);
-
-		anFloat2 monitorSize = mWindow->GetMonitorSize();
-		mfWidth = monitorSize.X;
-		mfHeight = monitorSize.Y;
+		mfWidth = (float)mApplicationDesc.Width;
+		mfHeight = (float)mApplicationDesc.Height;
 
 		mProjection = anMatrix4::Ortho(mfWidth * -0.5f, mfWidth * 0.5f, mfHeight * 0.5f, mfHeight * -0.5f, -1.0f, 1.0f);
 		mRenderer.SetMatrix(mProjection);
@@ -88,6 +85,10 @@ public:
 			if (event.KeyCode == anKeyEscape)
 				mWindow->Close();
 		}
+	}
+
+	void OnImGuiRender() override
+	{
 	}
 
 private:

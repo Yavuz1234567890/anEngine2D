@@ -13,6 +13,7 @@ public:
 	void Update(float dt) override;
 	void OnEvent(const anEvent& event) override;
 	void Render(anRenderer& renderer) override;
+	void OnImGuiRender() override;
 };
 
 #endif

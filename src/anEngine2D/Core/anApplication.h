@@ -7,6 +7,7 @@
 #include "Renderer/anRenderer.h"
 #include "Core/anSound.h"
 #include "anControllerDevice.h"
+#include "anImGuiDevice.h"
 
 class anStateManager;
 class anState;
@@ -28,10 +29,12 @@ public:
 	virtual void Initialize() = 0;
 	virtual void Update(float dt) = 0;
 	virtual void OnEvent(const anEvent& event) = 0;
+	virtual void OnImGuiRender() = 0;
 
 	void Start();
 	void AOnEvent(const anEvent& event);
 	void Render(anRenderer& renderer);
+	void OnImGui();
 	anWindow* GetWindow();
 	void LogWrite(const anString& msg);
 	anControllerDevice GetControllerDevice();
@@ -45,6 +48,8 @@ protected:
 		SetCurrentState(new T(this));
 	}
 
+private:
+	anImGuiDevice mImGui;
 protected:
 	anApplicationCreationDescription mApplicationDesc;
 	anWindow* mWindow;

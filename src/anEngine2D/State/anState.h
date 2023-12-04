@@ -15,6 +15,7 @@ public:
 	virtual void Update(float dt) = 0;
 	virtual void OnEvent(const anEvent& event) = 0;
 	virtual void Render(anRenderer& renderer) = 0;
+	virtual void OnImGuiRender() = 0;
 
 	anApplication* GetApplication();
 protected:

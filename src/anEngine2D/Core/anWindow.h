@@ -31,6 +31,7 @@ public:
 	virtual void SetTitle(const anString& title) = 0;
 	virtual void SetVSync(bool vsync) = 0;
 	virtual void SetWindowIcon(const void* data, int width, int height) = 0;
+	virtual void* GetHandle() const = 0;
 	
 	void SetWindowIcon(const anString& path)
 	{

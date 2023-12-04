@@ -49,3 +49,9 @@ void anStateManager::Render(anRenderer& renderer)
 	if (mCurrentState)
 		mCurrentState->Render(renderer);
 }
+
+void anStateManager::OnImGuiRender()
+{
+	if (mCurrentState)
+		mCurrentState->OnImGuiRender();
+}

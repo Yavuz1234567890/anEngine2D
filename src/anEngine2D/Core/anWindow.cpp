@@ -152,6 +152,11 @@ public:
 		glfwSetWindowIcon(mHandle, 1, images);
 	}
 
+	void* GetHandle() const override
+	{
+		return (void*)mHandle;
+	}
+
 	void Present() override
 	{
 		glfwPollEvents();

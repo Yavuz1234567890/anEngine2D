@@ -23,6 +23,7 @@ public:
 	void Update(float dt);
 	void OnEvent(const anEvent& event);
 	void Render(anRenderer& renderer);
+	void OnImGuiRender();
 private:
 	anState* mCurrentState = nullptr;
 	anApplication* mApplication = nullptr;
