@@ -319,6 +319,14 @@ void anRenderer::DrawString(const anFont& font, const anFloat2& pos, const anStr
 	}
 }
 
+void anRenderer::SetQuadPositions(const anFloat3& p0, const anFloat3& p1, const anFloat3& p2, const anFloat3& p3)
+{
+	mQuadPositions[0] = p0;
+	mQuadPositions[1] = p1;
+	mQuadPositions[2] = p2;
+	mQuadPositions[3] = p3;
+}
+
 void anRenderer::DrawLineVertices(anFloat2* vertices, anUInt32 size, const anColor& color)
 {
 	for (anUInt32 i = 0; i < size - 1; i++)
