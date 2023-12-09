@@ -32,7 +32,7 @@ public:
 	void Flush();
 	void Start();
 	void End();
-	void DrawLine(const anFloat2& start, const anFloat2& end, const anColor& color, float width = 1.0f);
+	void DrawLine(const anFloat2& start, const anFloat2& end, const anColor& color, float width = 0.5f);
 	void DrawQuad(const anFloat2& pos, const anFloat2& size, const anColor& color);
 	void DrawQuad(const anFloat2& pos, const anFloat2& size, float rot, const anColor& color);
 	void DrawTexture(anTexture* texture, const anFloat2& pos, const anFloat2& size, const anColor& color);
