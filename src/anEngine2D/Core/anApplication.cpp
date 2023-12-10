@@ -102,6 +102,11 @@ void anApplication::LogWrite(const anString& msg)
 	mLogFile << msg << "\n";
 }
 
+int anApplication::GetFramesPerSecond() const
+{
+	return mFramesPerSecond;
+}
+
 anControllerDevice anApplication::GetControllerDevice()
 {
 	return mControllerDevice;
