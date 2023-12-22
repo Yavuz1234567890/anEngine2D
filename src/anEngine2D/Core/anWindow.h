@@ -27,6 +27,7 @@ public:
 	virtual void SetCursorEnabled(bool enabled) = 0;
 	virtual const anFloat2 GetMonitorSize() const = 0;
 	virtual void MakeFullscreen() = 0;
+	virtual void UnableFullscreen() = 0;
 	virtual void Present() = 0;
 	virtual void SetTitle(const anString& title) = 0;
 	virtual void SetVSync(bool vsync) = 0;

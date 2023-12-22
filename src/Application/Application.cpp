@@ -47,6 +47,8 @@ public:
 		mProjection = anMatrix4::Ortho(mfWidth * -0.5f, mfWidth * 0.5f, mfHeight * 0.5f, mfHeight * -0.5f, -1.0f, 1.0f);
 		mRenderer.SetMatrix(mProjection);
 
+		mWindow->UnableFullscreen();
+
 		mWorld->Initialize();
 
 		SetCurrentState<TestState>();

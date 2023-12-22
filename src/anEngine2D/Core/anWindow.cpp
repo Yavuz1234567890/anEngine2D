@@ -143,6 +143,23 @@ public:
 		anSetViewport({ 0.0f, 0.0f }, { (float)mode->width, (float)mode->height });
 	}
 
+	void UnableFullscreen() override
+	{
+		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+		const int width = (int)mStartWidth;
+		const int height = (int)mStartHeight;
+
+		const int x = (mode->width - width) / 2;
+		const int y = (mode->height - height) / 2;
+
+		glfwSetWindowMonitor(mHandle, NULL, x, y, width, height, mode->refreshRate);
+		glfwSwapInterval(mIsVSync ? 1 : 0);
+
+		anSetViewport({ 0.0f, 0.0f }, { (float)width, (float)height });
+	}
+
 	void SetWindowIcon(const void* data, int width, int height) override
 	{
 		GLFWimage images[1];
