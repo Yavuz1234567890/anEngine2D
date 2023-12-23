@@ -35,7 +35,7 @@ public:
 
 		mTest = anLoadTexture("assets/test.png");
 
-		mRaleway.Load("assets/Raleway-Regular.ttf", 18);
+		mRaleway.Load("assets/Raleway-Regular.ttf", 60);
 		mTestSound.Load("assets/jaguar.wav");
 
 		mWorld = new anWorld();
@@ -46,9 +46,8 @@ public:
 		mfWidth = monitorSize.x;
 		mfHeight = monitorSize.y;
 
-		mProjection = glm::ortho(mfWidth * -0.5f, mfWidth * 0.5f, mfHeight * 0.5f, mfHeight * -0.5f, -1.0f, 1.0f);
-		mRenderer.SetMatrix(mProjection);
-
+		mCamera.SetOrtho(-mfWidth * 0.5f, mfWidth * 0.5f, -mfHeight * 0.5f, mfHeight * 0.5f);
+		
 		mWorld->Initialize();
 
 		SetCurrentState<TestState>();
@@ -65,7 +64,7 @@ public:
 		anClearColor({ 255, 0, 0 });
 		anEnableBlend();
 
-		mRenderer.Start();
+		mRenderer.Start(mCamera);
 
 		anApplication::Render(mRenderer);
 		mWorld->Render(mRenderer);
@@ -86,6 +85,33 @@ public:
 		
 			if (event.KeyCode == anKeyEscape)
 				mWindow->Close();
+		}
+
+		if (event.Type == anEvent::MouseDown)
+		{
+			if (event.MouseButton == 1)
+				mDragMouse = true;
+		}
+
+		if (event.Type == anEvent::MouseUp)
+		{
+			if (event.MouseButton == 1)
+				mDragMouse = false;
+		}
+
+		if (event.Type == anEvent::MouseMove)
+		{
+			mMousePosition = event.MousePosition;
+			if (mDragMouse)
+				mCamera.Move((mLastMousePosition - mMousePosition) * mCamera.GetZoomLevel());
+
+			mLastMousePosition = mMousePosition;
+		}
+
+		if (event.Type == anEvent::MouseWheel)
+		{
+			mCamera.IncreaseZoomLevel(-event.MouseScroll.y / 10.0f);
+			mCamera.Move((mMousePosition - anFloat2(mfWidth, mfHeight) * 0.5f) / 10.0f * event.MouseScroll.y / anAbs(-event.MouseScroll.y));
 		}
 	}
 
@@ -110,7 +136,13 @@ private:
 
 	anTexture* mTest = nullptr;
 
-	anFloat2 mTexturePos;
+	anFloat2 mTexturePos = { 0.0f, 0.0f };
+
+	anCamera2D mCamera;
+
+	anFloat2 mLastMousePosition;
+	anFloat2 mMousePosition;
+	bool mDragMouse = false;
 };
 
 int anStartApplication(char** args, int argc)

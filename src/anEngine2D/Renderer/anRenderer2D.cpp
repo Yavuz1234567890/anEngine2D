@@ -66,11 +66,6 @@ void anRenderer2D::Initialize()
 	mShader->Unbind();
 }
 
-void anRenderer2D::SetMatrix(const anMatrix4& matrix)
-{
-	mMatrix = matrix;
-}
-
 void anRenderer2D::Flush()
 {
 	if (!mTextureVertices.empty())
@@ -95,8 +90,10 @@ void anRenderer2D::Flush()
 	}
 }
 
-void anRenderer2D::Start()
+void anRenderer2D::Start(anCamera2D& camera)
 {
+	mCamera = camera;
+	mMatrix = camera.GetProjectionMatrix() * camera.GetViewMatrix();
 }
 
 void anRenderer2D::End()
@@ -362,4 +359,9 @@ anUInt32 anRenderer2D::GetDrawCallCount() const
 anUInt32 anRenderer2D::GetIndexCount() const
 {
 	return mTextureIndexCount;
+}
+
+anCamera2D& anRenderer2D::GetCamera()
+{
+	return mCamera;
 }

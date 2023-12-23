@@ -1,11 +1,12 @@
-#ifndef AN_RENDERER_H_
-#define AN_RENDERER_H_
+#ifndef AN_RENDERER_2D_H_
+#define AN_RENDERER_2D_H_
 
 #include "Device/anVertexArray.h"
 #include "Device/anTexture.h"
 #include "Math/anMatrix4.h"
 #include "Core/anFont.h"
 #include "Device/anShader.h"
+#include "anCamera2D.h"
 
 #define anMaxQuads					20000
 #define anMaxVertices				anMaxQuads * 4
@@ -28,9 +29,8 @@ public:
 	~anRenderer2D();
 
 	void Initialize();
-	void SetMatrix(const anMatrix4& matrix);
 	void Flush();
-	void Start();
+	void Start(anCamera2D& camera);
 	void End();
 	void DrawLine(const anFloat2& start, const anFloat2& end, const anColor& color, float width = 0.5f);
 	void DrawQuad(const anFloat2& pos, const anFloat2& size, const anColor& color);
@@ -42,12 +42,14 @@ public:
 	void SetQuadPositions(const anFloat3& p0, const anFloat3& p1, const anFloat3& p2, const anFloat3& p3);
 	anUInt32 GetDrawCallCount() const;
 	anUInt32 GetIndexCount() const;
+	anCamera2D& GetCamera();
 private:
 	void DrawLineVertices(anFloat2* vertices, anUInt32 size, const anColor& color);
 	void StartDraw();
 	anUInt32 GetTextureIndex(anTexture* texture);
 private:
 	anMatrix4 mMatrix;
+	anCamera2D mCamera;
 
 	anShader* mShader = nullptr;
 
