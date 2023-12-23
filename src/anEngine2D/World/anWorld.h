@@ -13,7 +13,7 @@ public:
 	anScene* GetCurrentScene();
 	void Initialize();
 	void Update(float dt);
-	void Render(anRenderer& renderer);
+	void Render(anRenderer2D& renderer);
 private:
 	anScene* mCurrentScene;
 };

@@ -27,7 +27,7 @@ void anWorld::Update(float dt)
 {
 }
 
-void anWorld::Render(anRenderer& renderer)
+void anWorld::Render(anRenderer2D& renderer)
 {
 	if (mCurrentScene)
 		mCurrentScene->Render(renderer);

@@ -1,6 +1,6 @@
 #include "Core/anApplication.h"
 #include "Core/anEntryPoint.h"
-#include "Renderer/anRenderer.h"
+#include "Renderer/anRenderer2D.h"
 #include "Device/anGPUCommands.h"
 #include "World/anWorld.h"
 #include "World/anObject.h"
@@ -94,7 +94,7 @@ public:
 	}
 
 private:
-	anRenderer mRenderer;
+	anRenderer2D mRenderer;
 
 	anMatrix4 mProjection;
 

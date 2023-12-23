@@ -68,7 +68,7 @@ void anApplication::AOnEvent(const anEvent& event)
 	OnEvent(event);
 }
 
-void anApplication::Render(anRenderer& renderer)
+void anApplication::Render(anRenderer2D& renderer)
 {
 	mStateManager->Render(renderer);
 }

@@ -45,7 +45,7 @@ const anVector<anObject*>& anScene::GetObjects() const
 	return mObjects;
 }
 
-void anScene::Render(anRenderer& renderer)
+void anScene::Render(anRenderer2D& renderer)
 {
 	for (anObject* object : mObjects)
 	{

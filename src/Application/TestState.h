@@ -12,7 +12,7 @@ public:
 	void Initialize() override;
 	void Update(float dt) override;
 	void OnEvent(const anEvent& event) override;
-	void Render(anRenderer& renderer) override;
+	void Render2D(anRenderer2D& renderer) override;
 	void OnImGuiRender() override;
 };
 

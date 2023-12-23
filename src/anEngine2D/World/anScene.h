@@ -2,7 +2,7 @@
 #define AN_SCENE_H_
 
 #include "anObject.h"
-#include "Renderer/anRenderer.h"
+#include "Renderer/anRenderer2D.h"
 
 class anScene
 {
@@ -15,7 +15,7 @@ public:
 	void DestroyObject(anObject* object);
 
 	const anVector<anObject*>& GetObjects() const;
-	void Render(anRenderer& renderer);
+	void Render(anRenderer2D& renderer);
 private:
 	anVector<anObject*> mObjects;
 };

@@ -1,19 +1,19 @@
-#include "anRenderer.h"
+#include "anRenderer2D.h"
 #include "Device/anShaders.h"
 #include "Core/anMessage.h"
 #include "Device/anGPUCommands.h"
 
-anRenderer::anRenderer()
+anRenderer2D::anRenderer2D()
 {
 	for (anUInt32 i = 0; i < anMaxTextureSlots; i++)
 		mTextures[i] = nullptr;
 }
 
-anRenderer::~anRenderer()
+anRenderer2D::~anRenderer2D()
 {
 }
 
-void anRenderer::Initialize()
+void anRenderer2D::Initialize()
 {
 	mShader = anGetBatchShader();
 
@@ -66,12 +66,12 @@ void anRenderer::Initialize()
 	mShader->Unbind();
 }
 
-void anRenderer::SetMatrix(const anMatrix4& matrix)
+void anRenderer2D::SetMatrix(const anMatrix4& matrix)
 {
 	mMatrix = matrix;
 }
 
-void anRenderer::Flush()
+void anRenderer2D::Flush()
 {
 	if (!mTextureVertices.empty())
 	{
@@ -95,22 +95,22 @@ void anRenderer::Flush()
 	}
 }
 
-void anRenderer::Start()
+void anRenderer2D::Start()
 {
 }
 
-void anRenderer::End()
+void anRenderer2D::End()
 {
 	Flush();
 }
 
-void anRenderer::StartDraw()
+void anRenderer2D::StartDraw()
 {
 	if (mTextureIndexCount >= anMaxIndices || mTextureIndex >= anMaxTextureSlots)
 		Flush();
 }
 
-void anRenderer::DrawLine(const anFloat2& start, const anFloat2& end, const anColor& color, float width)
+void anRenderer2D::DrawLine(const anFloat2& start, const anFloat2& end, const anColor& color, float width)
 {
 	StartDraw();
 	anFloat2 normal = glm::normalize(anFloat2(end.y - start.y, -(end.x - start.x)));
@@ -146,7 +146,7 @@ void anRenderer::DrawLine(const anFloat2& start, const anFloat2& end, const anCo
 	mTextureIndexCount += 6;
 }
 
-void anRenderer::DrawQuad(const anFloat2& pos, const anFloat2& size, const anColor& color)
+void anRenderer2D::DrawQuad(const anFloat2& pos, const anFloat2& size, const anColor& color)
 {
 	anFloat2 vertices[4];
 	for (anUInt32 i = 0; i < 4; i++)
@@ -155,7 +155,7 @@ void anRenderer::DrawQuad(const anFloat2& pos, const anFloat2& size, const anCol
 	DrawLineVertices(vertices, 4, color);
 }
 
-void anRenderer::DrawQuad(const anFloat2& pos, const anFloat2& size, float rot, const anColor& color)
+void anRenderer2D::DrawQuad(const anFloat2& pos, const anFloat2& size, float rot, const anColor& color)
 {
 	anMatrix4 transform = 
 		  glm::scale(anMatrix4(1.0f), { size.x, size.y, 0.0f })
@@ -174,7 +174,7 @@ void anRenderer::DrawQuad(const anFloat2& pos, const anFloat2& size, float rot, 
 	DrawLineVertices(vertices, 4, color);
 }
 
-void anRenderer::DrawTexture(anTexture* texture, const anFloat2& pos, const anFloat2& size, const anColor& color)
+void anRenderer2D::DrawTexture(anTexture* texture, const anFloat2& pos, const anFloat2& size, const anColor& color)
 {
 	StartDraw();
 
@@ -193,7 +193,7 @@ void anRenderer::DrawTexture(anTexture* texture, const anFloat2& pos, const anFl
 	mTextureIndexCount += 6;
 }
 
-void anRenderer::DrawTexture(anTexture* texture, const anFloat2& pos, const anFloat2& size, float rot, const anColor& color)
+void anRenderer2D::DrawTexture(anTexture* texture, const anFloat2& pos, const anFloat2& size, float rot, const anColor& color)
 {
 	StartDraw();
 
@@ -216,7 +216,7 @@ void anRenderer::DrawTexture(anTexture* texture, const anFloat2& pos, const anFl
 	mTextureIndexCount += 6;
 }
 
-void anRenderer::DrawTextureSub(anTexture* texture, const anFloat2& pos, const anFloat2& size, const anFloat2& spos, const anFloat2& ssize, float rot, const anColor& color)
+void anRenderer2D::DrawTextureSub(anTexture* texture, const anFloat2& pos, const anFloat2& size, const anFloat2& spos, const anFloat2& ssize, float rot, const anColor& color)
 {
 	StartDraw();
 
@@ -242,7 +242,7 @@ void anRenderer::DrawTextureSub(anTexture* texture, const anFloat2& pos, const a
 	mTextureIndexCount += 6;
 }
 
-void anRenderer::DrawString(const anFont& font, const anFloat2& pos, const anString& str, const anColor& color)
+void anRenderer2D::DrawString(const anFont& font, const anFloat2& pos, const anString& str, const anColor& color)
 {
 	anUInt32 spaceAdvance = font.GetCharacter(' ').Advance;
 	anUInt32 tabAdvance = spaceAdvance * 4;
@@ -320,7 +320,7 @@ void anRenderer::DrawString(const anFont& font, const anFloat2& pos, const anStr
 	}
 }
 
-void anRenderer::SetQuadPositions(const anFloat3& p0, const anFloat3& p1, const anFloat3& p2, const anFloat3& p3)
+void anRenderer2D::SetQuadPositions(const anFloat3& p0, const anFloat3& p1, const anFloat3& p2, const anFloat3& p3)
 {
 	mQuadPositions[0] = p0;
 	mQuadPositions[1] = p1;
@@ -328,7 +328,7 @@ void anRenderer::SetQuadPositions(const anFloat3& p0, const anFloat3& p1, const 
 	mQuadPositions[3] = p3;
 }
 
-void anRenderer::DrawLineVertices(anFloat2* vertices, anUInt32 size, const anColor& color)
+void anRenderer2D::DrawLineVertices(anFloat2* vertices, anUInt32 size, const anColor& color)
 {
 	for (anUInt32 i = 0; i < size - 1; i++)
 		DrawLine(vertices[i], vertices[i + 1], color);
@@ -336,7 +336,7 @@ void anRenderer::DrawLineVertices(anFloat2* vertices, anUInt32 size, const anCol
 	DrawLine(vertices[size - 1], vertices[0], color);
 }
 
-anUInt32 anRenderer::GetTextureIndex(anTexture* texture)
+anUInt32 anRenderer2D::GetTextureIndex(anTexture* texture)
 {
 	if (texture)
 	{
@@ -354,12 +354,12 @@ anUInt32 anRenderer::GetTextureIndex(anTexture* texture)
 	return 0;
 }
 
-anUInt32 anRenderer::GetDrawCallCount() const
+anUInt32 anRenderer2D::GetDrawCallCount() const
 {
 	return mDrawCallCount;
 }
 
-anUInt32 anRenderer::GetIndexCount() const
+anUInt32 anRenderer2D::GetIndexCount() const
 {
 	return mTextureIndexCount;
 }

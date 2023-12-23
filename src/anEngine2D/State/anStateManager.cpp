@@ -44,10 +44,10 @@ void anStateManager::OnEvent(const anEvent& event)
 		mCurrentState->OnEvent(event);
 }
 
-void anStateManager::Render(anRenderer& renderer)
+void anStateManager::Render(anRenderer2D& renderer)
 {
 	if (mCurrentState)
-		mCurrentState->Render(renderer);
+		mCurrentState->Render2D(renderer);
 }
 
 void anStateManager::OnImGuiRender()

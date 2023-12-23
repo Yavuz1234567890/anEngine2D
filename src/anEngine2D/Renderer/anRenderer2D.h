@@ -21,11 +21,11 @@ struct anTextureVertex
 	int TexIndex;
 };
 
-class anRenderer
+class anRenderer2D
 {
 public:
-	anRenderer();
-	~anRenderer();
+	anRenderer2D();
+	~anRenderer2D();
 
 	void Initialize();
 	void SetMatrix(const anMatrix4& matrix);

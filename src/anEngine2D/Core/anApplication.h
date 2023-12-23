@@ -4,7 +4,7 @@
 #include "anWindow.h"
 #include "anTimer.h"
 #include "anEvent.h"
-#include "Renderer/anRenderer.h"
+#include "Renderer/anRenderer2D.h"
 #include "Core/anSound.h"
 #include "anControllerDevice.h"
 #include "anImGuiDevice.h"
@@ -33,7 +33,7 @@ public:
 
 	void Start();
 	void AOnEvent(const anEvent& event);
-	void Render(anRenderer& renderer);
+	void Render(anRenderer2D& renderer);
 	void OnImGui();
 	anWindow* GetWindow();
 	void LogWrite(const anString& msg);
