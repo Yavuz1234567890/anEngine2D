@@ -42,7 +42,7 @@ void anSetViewport(const anFloat2& pos, const anFloat2& size)
 	sDeviceData.ViewportPosition = pos;
 	sDeviceData.ViewportSize = size;
 
-	glViewport((GLsizei)pos.X, (GLsizei)pos.Y, (GLsizei)size.X, (GLsizei)size.Y);
+	glViewport((GLsizei)pos.x, (GLsizei)pos.y, (GLsizei)size.x, (GLsizei)size.y);
 }
 
 void anDrawIndexed(anUInt32 type, anUInt32 count, anVertexArray* vertexArray)

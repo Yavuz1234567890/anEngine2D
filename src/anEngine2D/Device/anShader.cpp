@@ -83,22 +83,22 @@ void anShader::SetUniformFloat(const anString& name, float val)
 
 void anShader::SetUniformFloat2(const anString& name, const anFloat2& val)
 {
-	glUniform2f(GetUniformLocation(name), val.X, val.Y);
+	glUniform2f(GetUniformLocation(name), val.x, val.y);
 }
 
 void anShader::SetUniformFloat3(const anString& name, const anFloat3& val)
 {
-	glUniform3f(GetUniformLocation(name), val.X, val.Y, val.Z);
+	glUniform3f(GetUniformLocation(name), val.x, val.y, val.z);
 }
 
 void anShader::SetUniformFloat4(const anString& name, const anFloat4& val)
 {
-	glUniform4f(GetUniformLocation(name), val.X, val.Y, val.Z, val.W);
+	glUniform4f(GetUniformLocation(name), val.x, val.y, val.z, val.w);
 }
 
 void anShader::SetUniformMatrix4(const anString& name, const anMatrix4& val)
 {
-	glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, val.GetAddress());
+	glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, &val[0][0]);
 }
 
 void anShader::SetUniformIntArray(const anString& name, anUInt32 size, int* data)

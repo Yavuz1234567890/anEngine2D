@@ -26,11 +26,12 @@ public:
 	}
 
 	void Initialize() override
-	{		
+	{
 		anInitializeRandomDevice();
 
 		mWindow->SetWindowIcon("assets/icon.jpg");
 		mWindow->SetVSync(true);
+		mWindow->MakeFullscreen();
 
 		mTest = anLoadTexture("assets/test.png");
 
@@ -41,13 +42,12 @@ public:
 
 		mRenderer.Initialize();
 		
-		mfWidth = (float)mApplicationDesc.Width;
-		mfHeight = (float)mApplicationDesc.Height;
+		anFloat2 monitorSize = mWindow->GetMonitorSize();
+		mfWidth = monitorSize.x;
+		mfHeight = monitorSize.y;
 
-		mProjection = anMatrix4::Ortho(mfWidth * -0.5f, mfWidth * 0.5f, mfHeight * 0.5f, mfHeight * -0.5f, -1.0f, 1.0f);
+		mProjection = glm::ortho(mfWidth * -0.5f, mfWidth * 0.5f, mfHeight * 0.5f, mfHeight * -0.5f, -1.0f, 1.0f);
 		mRenderer.SetMatrix(mProjection);
-
-		mWindow->UnableFullscreen();
 
 		mWorld->Initialize();
 
@@ -60,7 +60,7 @@ public:
 		
 		anController controller = mControllerDevice.GetController(0);
 		if (controller.IsConnected)
-			mTexturePos += anFloat2(controller.LeftAxis.X, -controller.LeftAxis.Y) * 3.0f;
+			mTexturePos += anFloat2(controller.LeftAxis.x, -controller.LeftAxis.y) * 3.0f;
 	
 		anClearColor({ 255, 0, 0 });
 		anEnableBlend();

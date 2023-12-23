@@ -44,6 +44,7 @@ workspace "anEngine2D"
 		{
 			"src/anEngine2D/**.cpp",
 			"src/anEngine2D/**.h",
+			"src/anEngine2D/**.hpp",
 			
 			"thirdparty/stb/**.cpp",
 			"thirdparty/stb/**.h"

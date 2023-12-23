@@ -113,34 +113,31 @@ void anRenderer::StartDraw()
 void anRenderer::DrawLine(const anFloat2& start, const anFloat2& end, const anColor& color, float width)
 {
 	StartDraw();
-
-	anFloat2 normal = anFloat2(end.Y - start.Y, -(end.X - start.X));
-	float length = sqrtf(normal.X * normal.X + normal.Y * normal.Y);
-	normal = anFloat2(normal.X / length, normal.Y / length) * width;
-
+	anFloat2 normal = glm::normalize(anFloat2(end.y - start.y, -(end.x - start.x)));
+	
 	anTextureVertex v0;
-	v0.Position = { start.X + normal.X, start.Y + normal.Y, 0.0f };
+	v0.Position = { start.x + normal.x, start.y + normal.y, 0.0f };
 	v0.TexCoord = mQuadTexCoords[0];
 	v0.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
 	v0.TexIndex = anWhiteTextureSlot;
 	mTextureVertices.push_back(v0);
 
 	anTextureVertex v1;
-	v1.Position = { end.X + normal.X, end.Y + normal.Y, 0.0f };
+	v1.Position = { end.x + normal.x, end.y + normal.y, 0.0f };
 	v1.TexCoord = mQuadTexCoords[1];
 	v1.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
 	v1.TexIndex = anWhiteTextureSlot;
 	mTextureVertices.push_back(v1);
 
 	anTextureVertex v2;
-	v2.Position = { end.X - normal.X, end.Y - normal.Y, 0.0f };
+	v2.Position = { end.x - normal.x, end.y - normal.y, 0.0f };
 	v2.TexCoord = mQuadTexCoords[2];
 	v2.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
 	v2.TexIndex = anWhiteTextureSlot;
 	mTextureVertices.push_back(v2);
 
 	anTextureVertex v3;
-	v3.Position = { start.X - normal.X, start.Y - normal.Y, 0.0f };
+	v3.Position = { start.x - normal.x, start.y - normal.y, 0.0f };
 	v3.TexCoord = mQuadTexCoords[3];
 	v3.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
 	v3.TexIndex = anWhiteTextureSlot;
@@ -153,25 +150,25 @@ void anRenderer::DrawQuad(const anFloat2& pos, const anFloat2& size, const anCol
 {
 	anFloat2 vertices[4];
 	for (anUInt32 i = 0; i < 4; i++)
-		vertices[i] = { pos.X + mQuadPositions[i].X * size.X, pos.Y + mQuadPositions[i].Y * size.Y };
-
+		vertices[i] = { pos.x + mQuadPositions[i].x * size.x, pos.y + mQuadPositions[i].y * size.y };
+	
 	DrawLineVertices(vertices, 4, color);
 }
 
 void anRenderer::DrawQuad(const anFloat2& pos, const anFloat2& size, float rot, const anColor& color)
 {
 	anMatrix4 transform = 
-		  anMatrix4::Scale({ size.X, size.Y, 0.0f })
-		* anMatrix4::Translate({ pos.X, pos.Y, 0.0f, })
-		* anMatrix4::Rotate(rot, { 0.0f, 0.0f, 1.0f });
+		  glm::scale(anMatrix4(1.0f), { size.x, size.y, 0.0f })
+		* glm::translate(anMatrix4(1.0f), { pos.x, pos.y, 0.0f, })
+		* glm::rotate(anMatrix4(1.0f), glm::radians(rot), { 0.0f, 0.0f, 1.0f });
 
 	anFloat2 vertices[4];
 	for (anUInt32 i = 0; i < 4; i++)
 	{
-		anFloat3 vert = mQuadPositions[i] * transform;
+		anFloat3 vert = anFloat4(mQuadPositions[i], 0.0f) * transform;
 
-		vertices[i].X = vert.X;
-		vertices[i].Y = vert.Y;
+		vertices[i].x = vert.x;
+		vertices[i].y = vert.y;
 	}
 
 	DrawLineVertices(vertices, 4, color);
@@ -186,7 +183,7 @@ void anRenderer::DrawTexture(anTexture* texture, const anFloat2& pos, const anFl
 	for (anUInt32 i = 0; i < 4; i++)
 	{
 		anTextureVertex vertex;
-		vertex.Position = { pos.X + mQuadPositions[i].X * size.X, pos.Y + mQuadPositions[i].Y * size.Y, 0.0f };
+		vertex.Position = { pos.x + mQuadPositions[i].x * size.x, pos.y + mQuadPositions[i].y * size.y, 0.0f };
 		vertex.TexCoord = mQuadTexCoords[i];
 		vertex.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
 		vertex.TexIndex = (int)index;
@@ -201,15 +198,15 @@ void anRenderer::DrawTexture(anTexture* texture, const anFloat2& pos, const anFl
 	StartDraw();
 
 	anMatrix4 transform =
-		anMatrix4::Translate({ pos.X, pos.Y, 0.0f, })
-		* anMatrix4::Scale({ size.X, size.Y, 0.0f })
-		* anMatrix4::Rotate(rot, { 0.0f, 0.0f, 1.0f });
+		glm::scale(anMatrix4(1.0f), { size.x, size.y, 0.0f })
+		* glm::translate(anMatrix4(1.0f), { pos.x, pos.y, 0.0f, })
+		* glm::rotate(anMatrix4(1.0f), glm::radians(rot), { 0.0f, 0.0f, 1.0f });
 
 	anUInt32 index = GetTextureIndex(texture);
 	for (anUInt32 i = 0; i < 4; i++)
 	{
 		anTextureVertex vertex;
-		vertex.Position = mQuadPositions[i] * transform;
+		vertex.Position = anFloat4(mQuadPositions[i], 0.0f) * transform;
 		vertex.TexCoord = mQuadTexCoords[i];
 		vertex.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
 		vertex.TexIndex = (int)index;
@@ -227,16 +224,16 @@ void anRenderer::DrawTextureSub(anTexture* texture, const anFloat2& pos, const a
 	const int texHeight = (int)texture->GetHeight();
 
 	anMatrix4 transform =
-		anMatrix4::Translate({ pos.X, pos.Y, 0.0f, })
-		* anMatrix4::Scale({ size.X, size.Y, 0.0f })
-		* anMatrix4::Rotate(rot, { 0.0f, 0.0f, 1.0f });
+		glm::scale(anMatrix4(1.0f), { size.x, size.y, 0.0f })
+		* glm::translate(anMatrix4(1.0f), { pos.x, pos.y, 0.0f, })
+		* glm::rotate(anMatrix4(1.0f), glm::radians(rot), { 0.0f, 0.0f, 1.0f });
 
 	anUInt32 index = GetTextureIndex(texture);
 	for (anUInt32 i = 0; i < 4; i++)
 	{
 		anTextureVertex vertex;
-		vertex.Position = mQuadPositions[i] * transform;
-		vertex.TexCoord = { (mQuadTexCoords[i].X * ssize.X + spos.X) / texWidth, (mQuadTexCoords[i].Y * ssize.Y + spos.Y) / texHeight };
+		vertex.Position = anFloat4(mQuadPositions[i], 0.0f) * transform;
+		vertex.TexCoord = { (mQuadTexCoords[i].x * ssize.x + spos.x) / texWidth, (mQuadTexCoords[i].y * ssize.y + spos.y) / texHeight };
 		vertex.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
 		vertex.TexIndex = (int)index;
 		mTextureVertices.push_back(vertex);
@@ -250,8 +247,8 @@ void anRenderer::DrawString(const anFont& font, const anFloat2& pos, const anStr
 	anUInt32 spaceAdvance = font.GetCharacter(' ').Advance;
 	anUInt32 tabAdvance = spaceAdvance * 4;
     
-	float x = pos.X;
-	float y = pos.Y;
+	float x = pos.x;
+	float y = pos.y;
 	for (anUInt32 i = 0; i < str.size(); i++)
 	{
 		if (str[i] == ' ')
@@ -271,7 +268,7 @@ void anRenderer::DrawString(const anFont& font, const anFloat2& pos, const anStr
 
 		if (str[i] == '\n')
 		{
-			x = pos.X;
+			x = pos.x;
 			// for now
 			y += (float)font.GetSize();
 			continue;
