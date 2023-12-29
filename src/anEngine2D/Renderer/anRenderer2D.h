@@ -39,7 +39,7 @@ public:
 	void DrawTexture(anTexture* texture, const anFloat2& pos, const anFloat2& size, float rot, const anColor& color);
 	void DrawTextureSub(anTexture* texture, const anFloat2& pos, const anFloat2& size, const anFloat2& spos, const anFloat2& ssize, float rot, const anColor& color);
 	void DrawString(const anFont& font, const anFloat2& pos, const anString& str, const anColor& color);
-	void SetQuadPositions(const anFloat3& p0, const anFloat3& p1, const anFloat3& p2, const anFloat3& p3);
+	void SetQuadPositions(const anFloat4& p0, const anFloat4& p1, const anFloat4& p2, const anFloat4& p3);
 	anUInt32 GetDrawCallCount() const;
 	anUInt32 GetIndexCount() const;
 	anCamera2D& GetCamera();
@@ -53,7 +53,7 @@ private:
 
 	anShader* mShader = nullptr;
 
-	anFloat3 mQuadPositions[4];
+	anFloat4 mQuadPositions[4];
 	anFloat2 mQuadTexCoords[4];
 
 	anVertexArray* mTextureVertexArray = nullptr;

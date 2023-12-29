@@ -17,10 +17,10 @@ void anRenderer2D::Initialize()
 {
 	mShader = anGetBatchShader();
 
-	mQuadPositions[0] = { -0.5f, -0.5f, 0.0f };
-	mQuadPositions[1] = {  0.5f, -0.5f, 0.0f };
-	mQuadPositions[2] = {  0.5f,  0.5f, 0.0f };
-	mQuadPositions[3] = { -0.5f,  0.5f, 0.0f };
+	mQuadPositions[0] = { -0.5f, -0.5f, 0.0f, 1.0f };
+	mQuadPositions[1] = {  0.5f, -0.5f, 0.0f, 1.0f };
+	mQuadPositions[2] = {  0.5f,  0.5f, 0.0f, 1.0f };
+	mQuadPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f };
 
 	mQuadTexCoords[0] = { 0.0f, 0.0f };
 	mQuadTexCoords[1] = { 1.0f, 0.0f };
@@ -154,15 +154,12 @@ void anRenderer2D::DrawQuad(const anFloat2& pos, const anFloat2& size, const anC
 
 void anRenderer2D::DrawQuad(const anFloat2& pos, const anFloat2& size, float rot, const anColor& color)
 {
-	anMatrix4 transform = 
-		  glm::scale(anMatrix4(1.0f), { size.x, size.y, 0.0f })
-		* glm::translate(anMatrix4(1.0f), { pos.x, pos.y, 0.0f, })
-		* glm::rotate(anMatrix4(1.0f), glm::radians(rot), { 0.0f, 0.0f, 1.0f });
+	anFloat16 transform = anCreateTransformationMatrix({ pos.x, pos.y, 0.0f }, { size.x, size.y, 0.0f }, rot);
 
 	anFloat2 vertices[4];
 	for (anUInt32 i = 0; i < 4; i++)
 	{
-		anFloat3 vert = anFloat4(mQuadPositions[i], 0.0f) * transform;
+		anFloat3 vert = mQuadPositions[i] * transform;
 
 		vertices[i].x = vert.x;
 		vertices[i].y = vert.y;
@@ -194,16 +191,13 @@ void anRenderer2D::DrawTexture(anTexture* texture, const anFloat2& pos, const an
 {
 	StartDraw();
 
-	anMatrix4 transform =
-		glm::scale(anMatrix4(1.0f), { size.x, size.y, 0.0f })
-		* glm::translate(anMatrix4(1.0f), { pos.x, pos.y, 0.0f, })
-		* glm::rotate(anMatrix4(1.0f), glm::radians(rot), { 0.0f, 0.0f, 1.0f });
+	anFloat16 transform = anCreateTransformationMatrix({ pos.x, pos.y, 0.0f }, { size.x, size.y, 0.0f }, rot);
 
 	anUInt32 index = GetTextureIndex(texture);
 	for (anUInt32 i = 0; i < 4; i++)
 	{
 		anTextureVertex vertex;
-		vertex.Position = anFloat4(mQuadPositions[i], 0.0f) * transform;
+		vertex.Position = mQuadPositions[i] * transform;
 		vertex.TexCoord = mQuadTexCoords[i];
 		vertex.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
 		vertex.TexIndex = (int)index;
@@ -220,16 +214,13 @@ void anRenderer2D::DrawTextureSub(anTexture* texture, const anFloat2& pos, const
 	const int texWidth = (int)texture->GetWidth();
 	const int texHeight = (int)texture->GetHeight();
 
-	anMatrix4 transform =
-		glm::scale(anMatrix4(1.0f), { size.x, size.y, 0.0f })
-		* glm::translate(anMatrix4(1.0f), { pos.x, pos.y, 0.0f, })
-		* glm::rotate(anMatrix4(1.0f), glm::radians(rot), { 0.0f, 0.0f, 1.0f });
+	anFloat16 transform = anCreateTransformationMatrix({ pos.x, pos.y, 0.0f }, { size.x, size.y, 0.0f }, rot);
 
 	anUInt32 index = GetTextureIndex(texture);
 	for (anUInt32 i = 0; i < 4; i++)
 	{
 		anTextureVertex vertex;
-		vertex.Position = anFloat4(mQuadPositions[i], 0.0f) * transform;
+		vertex.Position = mQuadPositions[i] * transform;
 		vertex.TexCoord = { (mQuadTexCoords[i].x * ssize.x + spos.x) / texWidth, (mQuadTexCoords[i].y * ssize.y + spos.y) / texHeight };
 		vertex.Color = { (float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f };
 		vertex.TexIndex = (int)index;
@@ -317,7 +308,7 @@ void anRenderer2D::DrawString(const anFont& font, const anFloat2& pos, const anS
 	}
 }
 
-void anRenderer2D::SetQuadPositions(const anFloat3& p0, const anFloat3& p1, const anFloat3& p2, const anFloat3& p3)
+void anRenderer2D::SetQuadPositions(const anFloat4& p0, const anFloat4& p1, const anFloat4& p2, const anFloat4& p3)
 {
 	mQuadPositions[0] = p0;
 	mQuadPositions[1] = p1;

@@ -69,7 +69,7 @@ public:
 		anApplication::Render(mRenderer);
 		mWorld->Render(mRenderer);
 
-		mRenderer.DrawTexture(mTest, mTexturePos, { 642.0f, 313.0f }, 0.0f, { 255, 255, 255 });
+		mRenderer.DrawTexture(mTest, mTexturePos, {642.0f, 313.0f}, 0.0f, {255, 255, 255});
 		mRenderer.DrawString(mRaleway, { 100.0f, 100.0f }, "FPS: " + anToString(mFramesPerSecond), { 255, 0, 255, 255 });
 		mRenderer.DrawString(mRaleway, { 0.0f, 400.0f }, "Press ESC to exit", { 255, 255, 255 });
 
