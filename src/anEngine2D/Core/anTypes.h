@@ -53,10 +53,10 @@ typedef std::ofstream anOutputFile;
 
 struct anColor
 {
-	anUInt32 R;
-	anUInt32 G;
-	anUInt32 B;
-	anUInt32 A;
+	int R;
+	int G;
+	int B;
+	int A;
 
 	anColor()
 		: R(0)
@@ -66,7 +66,7 @@ struct anColor
 	{
 	}
 
-	anColor(anUInt32 r, anUInt32 g, anUInt32 b, anUInt32 a = 255)
+	anColor(int r, int g, int b, int a = 255)
 		: R(r)
 		, G(g)
 		, B(b)

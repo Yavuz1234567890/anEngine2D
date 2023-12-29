@@ -12,6 +12,7 @@
 #include "State/anStateManager.h"
 #include "Math/anMath.h"
 #include "TestState.h"
+#include "Renderer/anParticleSystem2D.h"
 
 class Application : public anApplication
 {
@@ -56,7 +57,20 @@ public:
 	void Update(float dt) override
 	{
 		mWorld->Update(dt);
+		mParticleSystem.Update(dt);
 		
+		anParticle2DProps props;
+		props.Position = { 0.0f, 0.0f };
+		props.LifeTime = 1.0f;
+		props.ColorBegin = { 255, 255, 0 };
+		props.ColorEnd = { 255, 0, 0 };
+		props.SizeBegin = 30.0f;
+		props.SizeEnd = 0.0f;
+		props.VelocityXInterval = { -1.0f, 1.0f };
+		props.VelocityYInterval = { 0.0f, -1.0f };
+		props.Velocity = { 30.0f, 100.0f };
+		mParticleSystem.Add(props);
+
 		anController controller = mControllerDevice.GetController(0);
 		if (controller.IsConnected)
 			mTexturePos += anFloat2(controller.LeftAxis.x, -controller.LeftAxis.y) * 3.0f;
@@ -72,6 +86,8 @@ public:
 		mRenderer.DrawTexture(mTest, mTexturePos, {642.0f, 313.0f}, 0.0f, {255, 255, 255});
 		mRenderer.DrawString(mRaleway, { 100.0f, 100.0f }, "FPS: " + anToString(mFramesPerSecond), { 255, 0, 255, 255 });
 		mRenderer.DrawString(mRaleway, { 0.0f, 400.0f }, "Press ESC to exit", { 255, 255, 255 });
+
+		mParticleSystem.Render2D(mRenderer);
 
 		mRenderer.End();
 	}
@@ -143,6 +159,8 @@ private:
 	anFloat2 mLastMousePosition;
 	anFloat2 mMousePosition;
 	bool mDragMouse = false;
+
+	anParticleSystem2D mParticleSystem;
 };
 
 int anStartApplication(char** args, int argc)
