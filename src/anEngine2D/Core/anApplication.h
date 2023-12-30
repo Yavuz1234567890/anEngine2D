@@ -18,6 +18,7 @@ struct anApplicationCreationDescription
 	int Width;
 	int Height;
 	bool WindowResizable;
+	bool WindowMaximized;
 };
 
 class anApplication

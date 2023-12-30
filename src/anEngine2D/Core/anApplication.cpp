@@ -7,10 +7,7 @@
 anApplication::anApplication(const anApplicationCreationDescription& desc)
 	: mFramesPerSecond(0)
 {
-	mApplicationDesc.Title = desc.Title;
-	mApplicationDesc.Width = desc.Width;
-	mApplicationDesc.Height = desc.Height;
-	mApplicationDesc.WindowResizable = desc.WindowResizable;
+	mApplicationDesc = desc;
 	mLogFile.open(desc.Title + ".log");
 }
 
@@ -24,7 +21,7 @@ void anApplication::Start()
 
 	auto onEvent = [this](const anEvent& event) { AOnEvent(event); };
 
-	mWindow = anCreateWindow(mApplicationDesc.Title, mApplicationDesc.Width, mApplicationDesc.Height, onEvent, mApplicationDesc.WindowResizable);
+	mWindow = anCreateWindow(mApplicationDesc.Title, mApplicationDesc.Width, mApplicationDesc.Height, onEvent, mApplicationDesc.WindowResizable, mApplicationDesc.WindowMaximized);
 	anTexture::Initialize();
 	anFont::Initialize();
 	anSound::InitializeFMOD();

@@ -16,7 +16,7 @@ class Application : public anApplication
 {
 public:
 	Application()
-		: anApplication({ "anEngine2D Application", 1200, 700, true })
+		: anApplication({ "anEngine2D Application", 1200, 700, true, true })
 	{
 	}
 

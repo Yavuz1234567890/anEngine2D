@@ -10,7 +10,7 @@
 class anWindow
 {
 public:
-	anWindow(const anString& title, anUInt32 width, anUInt32 height, const anEventCallback& callback, bool isResizable = true)
+	anWindow(const anString& title, anUInt32 width, anUInt32 height, const anEventCallback& callback, bool isResizable = true, bool isMaximized = false)
 		: mTitle(title)
 		, mStartWidth(width)
 		, mStartHeight(height)
@@ -181,6 +181,6 @@ protected:
 	anEventCallback mOnEventCallback;
 };
 
-anWindow* anCreateWindow(const anString& title, anUInt32 width, anUInt32 height, const anEventCallback& callback, bool resizable);
+anWindow* anCreateWindow(const anString& title, anUInt32 width, anUInt32 height, const anEventCallback& callback, bool resizable, bool maximized);
 
 #endif

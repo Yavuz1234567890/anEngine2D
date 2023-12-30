@@ -12,7 +12,7 @@ static bool sGLEWInitialized = false;
 class anGLFWWindow : public anWindow
 {
 public:
-	anGLFWWindow(const anString& title, anUInt32 width, anUInt32 height, const anEventCallback& callback, bool isResizable = false)
+	anGLFWWindow(const anString& title, anUInt32 width, anUInt32 height, const anEventCallback& callback, bool isResizable = true, bool isMaximized = false)
 		: anWindow(title, width, height, callback, isResizable)
 	{
 		if (!sGLFWInitialized)
@@ -25,6 +25,9 @@ public:
 
 		if (!isResizable)
 			glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+		if (isMaximized)
+			glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 
 		mHandle = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
 		glfwMakeContextCurrent(mHandle);
@@ -201,7 +204,7 @@ private:
 	GLFWwindow* mHandle = nullptr;
 };
 
-anWindow* anCreateWindow(const anString& title, anUInt32 width, anUInt32 height, const anEventCallback& callback, bool resizable)
+anWindow* anCreateWindow(const anString& title, anUInt32 width, anUInt32 height, const anEventCallback& callback, bool resizable, bool maximized)
 {
-	return new anGLFWWindow(title, width, height, callback, resizable);
+	return new anGLFWWindow(title, width, height, callback, resizable, maximized);
 }
