@@ -27,7 +27,7 @@ anFloat16 anCreateTransformationMatrix(const anFloat3& pos, const anFloat3& size
 	m3.F10 = s;
 	m3.F11 = c;
 
-	return m1 * m2 * m3;
+	return m1 * m3 * m2;
 }
 
 //#include "anMath.h"
