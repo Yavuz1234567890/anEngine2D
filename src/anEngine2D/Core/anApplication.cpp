@@ -32,6 +32,7 @@ void anApplication::Start()
 	mStateManager->Initialize();
 	mControllerDevice.Initialize();
 	mImGui.Initialize(mWindow);
+	mImGui.PrepareCustomStyle();
 	Initialize();
 
 	int fps = 0;

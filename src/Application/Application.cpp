@@ -36,7 +36,7 @@ public:
 
 		mTest = anLoadTexture("assets/test.png");
 
-		mRaleway.Load("assets/Raleway-Regular.ttf", 60);
+		mRaleway.Load("fonts/raleway/Raleway-Regular.ttf", 60);
 		mTestSound.Load("assets/jaguar.wav");
 
 		mWorld = new anWorld();
