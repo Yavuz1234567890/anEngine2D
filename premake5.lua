@@ -21,6 +21,8 @@ workspace "anEngine2D"
 		"thirdparty/freetype/include",
 		"thirdparty/fmod/include",
 		"thirdparty/stb",
+		"thirdparty/glm",
+		"thirdparty/imgui",
 		"src/anEngine2D"
 	}
 
@@ -29,6 +31,35 @@ workspace "anEngine2D"
 		{
 			"PLATFORM_WINDOWS"
 		}
+
+	project "ImGui"
+		location "thirdparty/imgui"
+		kind "StaticLib"
+		language "C++"
+		cppdialect "C++17"
+		staticruntime "off"
+
+		targetdir "bin"
+		objdir "obj"
+
+		files
+		{
+			"thirdparty/imgui/**.cpp",
+			"thirdparty/imgui/**.h"
+		}
+
+		filter "system:windows"
+			systemversion "latest"
+
+		filter "configurations:Debug"
+			defines "C_DEBUG"
+			runtime "Debug"
+			symbols "on"
+
+		filter "configurations:Release"
+			defines "C_RELEASE"
+			runtime "Release"
+			optimize "on"
 
 	project "anEngine2D"
 		location "src/anEngine2D"
@@ -44,10 +75,18 @@ workspace "anEngine2D"
 		{
 			"src/anEngine2D/**.cpp",
 			"src/anEngine2D/**.h",
-			"src/anEngine2D/**.hpp",
 			
 			"thirdparty/stb/**.cpp",
-			"thirdparty/stb/**.h"
+			"thirdparty/stb/**.h",
+
+			"thirdparty/glm/**.cpp",
+			"thirdparty/glm/**.hpp",
+			"thirdparty/glm/**.h"
+		}
+
+		links
+		{
+			"ImGui"
 		}
 
 		filter "system:windows"

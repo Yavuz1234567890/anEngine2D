@@ -2,11 +2,6 @@
 #include "Core/anEntryPoint.h"
 #include "Renderer/anRenderer2D.h"
 #include "Device/anGPUCommands.h"
-#include "World/anWorld.h"
-#include "World/anObject.h"
-#include "World/anSpriteObject.h"
-#include "World/anLineObject.h"
-#include "World/anTextObject.h"
 #include "Core/anMessage.h"
 #include "Core/anKeyCodes.h"
 #include "State/anStateManager.h"
@@ -39,8 +34,6 @@ public:
 
 		mRaleway.Load("fonts/raleway/Raleway-Regular.ttf", 60);
 		
-		mWorld = new anWorld();
-
 		mRenderer.Initialize();
 		
 		mfWidth = 1200.0f;
@@ -48,8 +41,6 @@ public:
 
 		mCamera.SetOrtho(-mfWidth * 0.5f, mfWidth * 0.5f, -mfHeight * 0.5f, mfHeight * 0.5f);
 		
-		mWorld->Initialize();
-
 		mFramebuffer = new anFramebuffer({ (anUInt32)mfWidth, (anUInt32)mfHeight });
 
 		SetCurrentState<TestState>();
@@ -57,7 +48,6 @@ public:
 
 	void Update(float dt) override
 	{
-		mWorld->Update(dt);
 		mParticleSystem.Update(dt);
 		
 		anParticle2DProps props;
@@ -87,8 +77,7 @@ public:
 		mRenderer.Start(mCamera);
 
 		anApplication::Render2D(mRenderer);
-		mWorld->Render(mRenderer);
-
+		
 		mRenderer.DrawTexture(mTest, mTexturePos, { 642.0f, 313.0f }, 0.0f, {255, 255, 255});
 		mRenderer.DrawString(mRaleway, { 100.0f, 100.0f }, "FPS: " + anToString(mFramesPerSecond), { 255, 0, 255, 255 });
 		mRenderer.DrawString(mRaleway, { 0.0f, 300.0f }, "Press ESC to exit", { 255, 255, 255 });
@@ -152,9 +141,6 @@ private:
 	anMatrix4 mProjection;
 
 	anFont mRaleway;
-
-	anScene* mScene = nullptr;
-	anWorld* mWorld = nullptr;
 
 	float mfWidth = 0.0f;
 	float mfHeight = 0.0f;

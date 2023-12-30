@@ -1,7 +1,7 @@
 #ifndef AN_IMGUI_DEVICE_H_
 #define AN_IMGUI_DEVICE_H_
 
-#include "anWindow.h"
+#include "Core/anWindow.h"
 
 class anImGuiDevice
 {
