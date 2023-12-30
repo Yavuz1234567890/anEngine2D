@@ -21,7 +21,7 @@ class Application : public anApplication
 {
 public:
 	Application()
-		: anApplication({ "anEngine2D Application", 1200, 700, false })
+		: anApplication({ "anEngine2D Application", 1200, 700, true })
 	{
 	}
 
@@ -33,22 +33,18 @@ public:
 	{
 		anInitializeRandomDevice();
 
-		mWindow->SetWindowIcon("assets/icon.jpg");
 		mWindow->SetVSync(true);
-		mWindow->MakeFullscreen();
-
+		
 		mTest = anLoadTexture("assets/test.png");
 
 		mRaleway.Load("fonts/raleway/Raleway-Regular.ttf", 60);
-		mTestSound.Load("assets/jaguar.wav");
-
+		
 		mWorld = new anWorld();
 
 		mRenderer.Initialize();
 		
-		anFloat2 monitorSize = mWindow->GetMonitorSize();
-		mfWidth = monitorSize.x;
-		mfHeight = monitorSize.y;
+		mfWidth = 1200.0f;
+		mfHeight = 700.0f;
 
 		mCamera.SetOrtho(-mfWidth * 0.5f, mfWidth * 0.5f, -mfHeight * 0.5f, mfHeight * 0.5f);
 		
@@ -85,6 +81,9 @@ public:
 
 		mFramebuffer->Bind();
 
+		anClear();
+		anEnableBlend();
+
 		mRenderer.Start(mCamera);
 
 		anApplication::Render2D(mRenderer);
@@ -92,7 +91,7 @@ public:
 
 		mRenderer.DrawTexture(mTest, mTexturePos, { 642.0f, 313.0f }, 0.0f, {255, 255, 255});
 		mRenderer.DrawString(mRaleway, { 100.0f, 100.0f }, "FPS: " + anToString(mFramesPerSecond), { 255, 0, 255, 255 });
-		mRenderer.DrawString(mRaleway, { 0.0f, 400.0f }, "Press ESC to exit", { 255, 255, 255 });
+		mRenderer.DrawString(mRaleway, { 0.0f, 300.0f }, "Press ESC to exit", { 255, 255, 255 });
 
 		mParticleSystem.Render2D(mRenderer);
 
@@ -105,9 +104,6 @@ public:
 	{
 		if (event.Type == anEvent::KeyDown)
 		{
-			if (event.KeyCode == anKeySpace)
-				mTestSound.Play();
-		
 			if (event.KeyCode == anKeyEscape)
 				mWindow->Close();
 		}
@@ -162,8 +158,6 @@ private:
 
 	float mfWidth = 0.0f;
 	float mfHeight = 0.0f;
-
-	anSound mTestSound;
 
 	anTexture* mTest = nullptr;
 

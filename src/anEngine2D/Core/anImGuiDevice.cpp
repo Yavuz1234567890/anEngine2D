@@ -65,11 +65,16 @@ void anImGuiDevice::PrepareCustomStyle()
 	colors[ImGuiCol_TabActive] = ImVec4{ 0.63f, 0.63f, 0.63f, 1.0f };
 	colors[ImGuiCol_TabUnfocused] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
 	colors[ImGuiCol_TabUnfocusedActive] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
-
+	
 	// Title
 	colors[ImGuiCol_TitleBg] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
 	colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
 	colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
+
+	// Resizing Grip
+	colors[ImGuiCol_ResizeGrip] = ImVec4{ 0.1f, 0.1f, 0.1f, 1.0f };
+	colors[ImGuiCol_ResizeGripHovered] = ImVec4{ 0.1f, 0.1f, 0.1f, 1.0f };
+	colors[ImGuiCol_ResizeGripActive] = ImVec4{ 0.1f, 0.1f, 0.1f, 1.0f };
 }
 
 void anImGuiDevice::Start()
