@@ -56,6 +56,7 @@ public:
 	anUInt32 GetHeight() const;
 	anUInt32 GetFormat() const;
 	const void* GetData() const;
+	void SetID(anUInt32 id);
 public:
 	static void Initialize();
 	static anTexture* GetWhiteTexture();

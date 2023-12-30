@@ -13,6 +13,9 @@
 #include "Math/anMath.h"
 #include "TestState.h"
 #include "Renderer/anParticleSystem2D.h"
+#include "Device/anFramebuffer.h"
+
+#include <imgui/imgui.h>
 
 class Application : public anApplication
 {
@@ -51,6 +54,8 @@ public:
 		
 		mWorld->Initialize();
 
+		mFramebuffer = new anFramebuffer({ (anUInt32)mfWidth, (anUInt32)mfHeight });
+
 		SetCurrentState<TestState>();
 	}
 
@@ -74,22 +79,26 @@ public:
 		anController controller = mControllerDevice.GetController(0);
 		if (controller.IsConnected)
 			mTexturePos += anFloat2(controller.LeftAxis.x, -controller.LeftAxis.y) * 3.0f;
-	
-		anClearColor({ 255, 0, 0 });
+
+		anClear();
 		anEnableBlend();
+
+		mFramebuffer->Bind();
 
 		mRenderer.Start(mCamera);
 
-		anApplication::Render(mRenderer);
+		anApplication::Render2D(mRenderer);
 		mWorld->Render(mRenderer);
 
-		mRenderer.DrawTexture(mTest, mTexturePos, {642.0f, 313.0f}, 0.0f, {255, 255, 255});
+		mRenderer.DrawTexture(mTest, mTexturePos, { 642.0f, 313.0f }, 0.0f, {255, 255, 255});
 		mRenderer.DrawString(mRaleway, { 100.0f, 100.0f }, "FPS: " + anToString(mFramesPerSecond), { 255, 0, 255, 255 });
 		mRenderer.DrawString(mRaleway, { 0.0f, 400.0f }, "Press ESC to exit", { 255, 255, 255 });
 
 		mParticleSystem.Render2D(mRenderer);
 
 		mRenderer.End();
+
+		mFramebuffer->Unbind();
 	}
 	
 	void OnEvent(const anEvent& event) override
@@ -133,6 +142,12 @@ public:
 
 	void OnImGuiRender() override
 	{
+		ImGui::Begin("Screen");
+
+		ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+		
+		ImGui::Image(reinterpret_cast<void*>(mFramebuffer->GetTextureID()), { viewportPanelSize.x, viewportPanelSize.y }, { 0, 1 }, { 1, 0 });
+		ImGui::End();
 	}
 
 private:
@@ -161,6 +176,8 @@ private:
 	bool mDragMouse = false;
 
 	anParticleSystem2D mParticleSystem;
+
+	anFramebuffer* mFramebuffer;
 };
 
 int anStartApplication(char** args, int argc)

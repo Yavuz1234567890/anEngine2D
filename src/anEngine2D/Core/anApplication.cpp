@@ -69,9 +69,9 @@ void anApplication::AOnEvent(const anEvent& event)
 	OnEvent(event);
 }
 
-void anApplication::Render(anRenderer2D& renderer)
+void anApplication::Render2D(anRenderer2D& renderer)
 {
-	mStateManager->Render(renderer);
+	mStateManager->Render2D(renderer);
 }
 
 void anApplication::OnImGui()

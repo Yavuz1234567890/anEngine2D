@@ -1,7 +1,5 @@
 #include "TestState.h"
 
-#include <imgui/imgui.h>
-
 TestState::TestState(anApplication* app)
 	: anState(app)
 {
@@ -29,5 +27,4 @@ void TestState::Render2D(anRenderer2D& renderer)
 
 void TestState::OnImGuiRender()
 {
-	ImGui::ShowDemoWindow();
 }

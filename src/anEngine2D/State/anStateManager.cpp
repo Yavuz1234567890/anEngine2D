@@ -44,7 +44,7 @@ void anStateManager::OnEvent(const anEvent& event)
 		mCurrentState->OnEvent(event);
 }
 
-void anStateManager::Render(anRenderer2D& renderer)
+void anStateManager::Render2D(anRenderer2D& renderer)
 {
 	if (mCurrentState)
 		mCurrentState->Render2D(renderer);

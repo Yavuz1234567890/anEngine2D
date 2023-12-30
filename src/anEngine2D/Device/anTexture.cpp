@@ -104,6 +104,11 @@ void anTexture::SetTextureSwizzle(anUInt32 r, anUInt32 g, anUInt32 b, anUInt32 a
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+void anTexture::SetID(anUInt32 id)
+{
+	mID = id;
+}
+
 void anTexture::Bind(anUInt32 slot) const
 {
 	glActiveTexture(GL_TEXTURE0 + slot);
