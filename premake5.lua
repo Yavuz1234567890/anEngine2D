@@ -1,7 +1,7 @@
 workspace "anEngine2D"
 	location ""
 	architecture "x86_64"
-	startproject "Application"
+	startproject "anEngine2DEditor"
 
 	configurations
 	{
@@ -134,6 +134,40 @@ workspace "anEngine2D"
 		{
 			"src/Application/**.cpp",
 			"src/Application/**.h"
+		}
+
+		links
+		{
+			"anEngine2D"
+		}
+
+		filter "system:windows"
+			systemversion "latest"
+
+		filter "configurations:Debug"
+			defines "C_DEBUG"
+			runtime "Debug"
+			symbols "on"
+
+		filter "configurations:Release"
+			defines "C_RELEASE"
+			runtime "Release"
+			optimize "on"
+
+	project "anEngine2DEditor"
+		location "src/anEngine2DEditor"
+		kind "WindowedApp"
+		language "C++"
+		cppdialect "C++17"
+		staticruntime "off"
+
+		targetdir "bin"
+		objdir "obj"
+
+		files
+		{
+			"src/anEngine2DEditor/**.cpp",
+			"src/anEngine2DEditor/**.h"
 		}
 
 		links
