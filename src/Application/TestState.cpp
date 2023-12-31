@@ -21,10 +21,6 @@ void TestState::OnEvent(const anEvent& event)
 {
 }
 
-void TestState::Render2D(anRenderer2D& renderer)
-{
-}
-
 void TestState::OnImGuiRender()
 {
 }

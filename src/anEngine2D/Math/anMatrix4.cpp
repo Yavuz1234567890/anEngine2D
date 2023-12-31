@@ -1,35 +1,4 @@
 #include "anMatrix4.h"
-
-anFloat3 operator*(const anFloat4& f4, const anFloat16& mat)
-{
-	return mat * f4;
-}
-
-anFloat16 anCreateTransformationMatrix(const anFloat3& pos, const anFloat3& size, float rot)
-{
-	anFloat16 m1(1.0f);
-	m1.F03 = pos.x;
-	m1.F13 = pos.y;
-	m1.F23 = pos.z;
-
-	anFloat16 m2(1.0f);
-	m2.F00 = size.x;
-	m2.F11 = size.y;
-	m2.F22 = size.z;
-
-	float rad = glm::radians(rot);
-	float c = cosf(rad);
-	float s = sinf(rad);
-
-	anFloat16 m3(1.0f);
-	m3.F00 = c;
-	m3.F01 = -s;
-	m3.F10 = s;
-	m3.F11 = c;
-
-	return m1 * m3 * m2;
-}
-
 //#include "anMath.h"
 //
 //anMatrix4::anMatrix4()

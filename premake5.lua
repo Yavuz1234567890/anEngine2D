@@ -23,6 +23,7 @@ workspace "anEngine2D"
 		"thirdparty/stb",
 		"thirdparty/glm",
 		"thirdparty/imgui",
+		"thirdparty/entt/include",
 		"src/anEngine2D"
 	}
 

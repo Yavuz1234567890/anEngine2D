@@ -34,7 +34,6 @@ public:
 
 	void Start();
 	void AOnEvent(const anEvent& event);
-	void Render2D(anRenderer2D& renderer);
 	void OnImGui();
 	anWindow* GetWindow();
 	void LogWrite(const anString& msg);

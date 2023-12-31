@@ -31,18 +31,23 @@ public:
 	void Initialize();
 	void Flush();
 	void Start(anCamera2D& camera);
+	void Start(anCamera2D& camera, const anMatrix4& transform);
 	void End();
 	void DrawLine(const anFloat2& start, const anFloat2& end, const anColor& color, float width = 0.5f);
 	void DrawQuad(const anFloat2& pos, const anFloat2& size, const anColor& color);
+	void DrawQuad(const anMatrix4& transform, const anColor& color);
 	void DrawQuad(const anFloat2& pos, const anFloat2& size, float rot, const anColor& color);
 	void DrawTexture(anTexture* texture, const anFloat2& pos, const anFloat2& size, const anColor& color);
 	void DrawTexture(anTexture* texture, const anFloat2& pos, const anFloat2& size, float rot, const anColor& color);
+	void DrawTexture(anTexture* texture, const anMatrix4& transform, const anColor& color);
 	void DrawTextureSub(anTexture* texture, const anFloat2& pos, const anFloat2& size, const anFloat2& spos, const anFloat2& ssize, float rot, const anColor& color);
+	void DrawTextureSub(anTexture* texture, const anMatrix4& transform, const anFloat2& spos, const anFloat2& ssize, const anColor& color);
 	void DrawString(const anFont& font, const anFloat2& pos, const anString& str, const anColor& color);
 	void SetQuadPositions(const anFloat4& p0, const anFloat4& p1, const anFloat4& p2, const anFloat4& p3);
 	anUInt32 GetDrawCallCount() const;
 	anUInt32 GetIndexCount() const;
 	anCamera2D& GetCamera();
+	static anRenderer2D& Get();
 private:
 	void DrawLineVertices(anFloat2* vertices, anUInt32 size, const anColor& color);
 	void StartDraw();

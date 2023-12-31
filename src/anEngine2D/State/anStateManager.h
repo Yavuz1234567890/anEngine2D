@@ -22,7 +22,6 @@ public:
 	void Initialize();
 	void Update(float dt);
 	void OnEvent(const anEvent& event);
-	void Render2D(anRenderer2D& renderer);
 	void OnImGuiRender();
 private:
 	anState* mCurrentState = nullptr;

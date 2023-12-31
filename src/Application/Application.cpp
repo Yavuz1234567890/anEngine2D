@@ -9,6 +9,7 @@
 #include "TestState.h"
 #include "Renderer/anParticleSystem2D.h"
 #include "Device/anFramebuffer.h"
+#include "Scene/anEntity.h"
 
 #include <imgui/imgui.h>
 
@@ -16,7 +17,7 @@ class Application : public anApplication
 {
 public:
 	Application()
-		: anApplication({ "anEngine2D Application", 1200, 700, true, true })
+		: anApplication({ "anEngine2D Application", 1200, 700, true, false })
 	{
 	}
 
@@ -34,8 +35,6 @@ public:
 
 		mRaleway.Load("fonts/raleway/Raleway-Regular.ttf", 60);
 		
-		mRenderer.Initialize();
-		
 		mfWidth = 1200.0f;
 		mfHeight = 700.0f;
 
@@ -44,28 +43,28 @@ public:
 		mFramebuffer = new anFramebuffer({ (anUInt32)mfWidth, (anUInt32)mfHeight });
 
 		SetCurrentState<TestState>();
+
+		mTestScene = new anScene();
+
+		{
+			mTestEntity = mTestScene->NewEntity("test");
+			auto& sprite = mTestEntity.AddComponent<anSpriteRendererComponent>();
+			sprite.Texture = mTest;
+			auto& transform = mTestEntity.GetComponent<anTransformComponent>();
+			transform.Size = { 400.0f, 200.0f };
+		}
+
+		{
+			mCameraEntity = mTestScene->NewEntity("camera");
+			auto& camera = mCameraEntity.AddComponent<anCameraComponent>();
+			camera.Camera.SetOrtho(-mfWidth * 0.5f, mfWidth * 0.5f, -mfHeight * 0.5f, mfHeight * 0.5f);
+		}
+
+		mTestScene->RuntimeInitialize();
 	}
 
 	void Update(float dt) override
 	{
-		mParticleSystem.Update(dt);
-		
-		anParticle2DProps props;
-		props.Position = { 0.0f, 0.0f };
-		props.LifeTime = 1.0f;
-		props.ColorBegin = { 255, 255, 0 };
-		props.ColorEnd = { 255, 0, 0 };
-		props.SizeBegin = 30.0f;
-		props.SizeEnd = 0.0f;
-		props.VelocityXInterval = { -1.0f, 1.0f };
-		props.VelocityYInterval = { 0.0f, -1.0f };
-		props.Velocity = { 30.0f, 100.0f };
-		mParticleSystem.Add(props);
-
-		anController controller = mControllerDevice.GetController(0);
-		if (controller.IsConnected)
-			mTexturePos += anFloat2(controller.LeftAxis.x, -controller.LeftAxis.y) * 3.0f;
-
 		anClear();
 		anEnableBlend();
 
@@ -74,17 +73,7 @@ public:
 		anClear();
 		anEnableBlend();
 
-		mRenderer.Start(mCamera);
-
-		anApplication::Render2D(mRenderer);
-		
-		mRenderer.DrawTexture(mTest, mTexturePos, { 642.0f, 313.0f }, 0.0f, {255, 255, 255});
-		mRenderer.DrawString(mRaleway, { 100.0f, 100.0f }, "FPS: " + anToString(mFramesPerSecond), { 255, 0, 255, 255 });
-		mRenderer.DrawString(mRaleway, { 0.0f, 300.0f }, "Press ESC to exit", { 255, 255, 255 });
-
-		mParticleSystem.Render2D(mRenderer);
-
-		mRenderer.End();
+		mTestScene->RuntimeUpdate(dt);
 
 		mFramebuffer->Unbind();
 	}
@@ -136,8 +125,6 @@ public:
 	}
 
 private:
-	anRenderer2D mRenderer;
-
 	anMatrix4 mProjection;
 
 	anFont mRaleway;
@@ -158,6 +145,10 @@ private:
 	anParticleSystem2D mParticleSystem;
 
 	anFramebuffer* mFramebuffer;
+
+	anEntity mTestEntity;
+	anEntity mCameraEntity;
+	anScene* mTestScene;
 };
 
 int anStartApplication(char** args, int argc)

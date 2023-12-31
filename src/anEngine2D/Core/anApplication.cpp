@@ -30,6 +30,7 @@ void anApplication::Start()
 	mControllerDevice.Initialize();
 	mImGui.Initialize(mWindow);
 	mImGui.PrepareCustomStyle();
+	anRenderer2D::Get().Initialize();
 	Initialize();
 
 	int fps = 0;
@@ -64,11 +65,6 @@ void anApplication::AOnEvent(const anEvent& event)
 {
 	mStateManager->OnEvent(event);
 	OnEvent(event);
-}
-
-void anApplication::Render2D(anRenderer2D& renderer)
-{
-	mStateManager->Render2D(renderer);
 }
 
 void anApplication::OnImGui()
