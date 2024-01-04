@@ -23,7 +23,7 @@ void anScene::DestroyEntity(anEntity entity)
 	mRegistry.destroy(entity.GetHandle());
 }
 
-void anScene::EditorUpdate(float dt, anCamera2D& camera)
+void anScene::EditorUpdate(float dt, anCamera2D& camera, anTexture* cameraIcon)
 {
 	anRenderer2D::Get().Start(camera);
 
@@ -35,16 +35,24 @@ void anScene::EditorUpdate(float dt, anCamera2D& camera)
 
 			anRenderer2D::Get().DrawTexture(sprite.Texture, transform.GetTransformationMatrix(), sprite.Color);
 		}
-	}
 
-	anRenderer2D::Get().End();
+		auto view = mRegistry.view<anTransformComponent, anCameraComponent>();
+		for (auto entity : view)
+		{
+			auto [transform, camera] = view.get<anTransformComponent, anCameraComponent>(entity);
+
+			int camW = (int)cameraIcon->GetWidth();
+			int camH = (int)cameraIcon->GetHeight();
+			anRenderer2D::Get().DrawTexture(cameraIcon, transform.Position, { (float)camW, (float)camH }, { 255, 255, 255 });
+		}
+	}
 }
 
 void anScene::RuntimeInitialize()
 {
 }
 
-void anScene::RuntimeUpdate(float dt)
+bool anScene::RuntimeUpdate(float dt)
 {
 	anCamera2D* cam = nullptr;
 	anMatrix4 cameraView;
@@ -63,21 +71,35 @@ void anScene::RuntimeUpdate(float dt)
 		}
 	}
 
-	if (cam)
+	if (cam == NULL)
+		return false;
+
+	anRenderer2D::Get().Start(*cam, cameraView);
+
 	{
-		anRenderer2D::Get().Start(*cam, cameraView);
-
+		auto group = mRegistry.group<anTransformComponent>(entt::get<anSpriteRendererComponent>);
+		for (auto entity : group)
 		{
-			auto group = mRegistry.group<anTransformComponent>(entt::get<anSpriteRendererComponent>);
-			for (auto entity : group)
-			{
-				auto [transform, sprite] = group.get<anTransformComponent, anSpriteRendererComponent>(entity);
+			auto [transform, sprite] = group.get<anTransformComponent, anSpriteRendererComponent>(entity);
 
-				anRenderer2D::Get().DrawTexture(sprite.Texture, transform.GetTransformationMatrix(), sprite.Color);
-			}
+			anRenderer2D::Get().DrawTexture(sprite.Texture, transform.GetTransformationMatrix(), sprite.Color);
 		}
+	}
 
-		anRenderer2D::Get().End();
+	return true;
+}
+
+void anScene::OnViewportSize(anUInt32 width, anUInt32 height)
+{
+	int iWidth = (int)width;
+	int iHeight = (int)height;
+
+	auto view = mRegistry.view<anCameraComponent>();
+	for (auto entity : view)
+	{
+		auto& cameraComponent = view.get<anCameraComponent>(entity);
+		
+		cameraComponent.Camera.SetOrtho((float)-iWidth * 0.5f, (float)iWidth * 0.5f, (float)-iHeight * 0.5f, (float)iHeight * 0.5f);
 	}
 }
 

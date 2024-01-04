@@ -123,7 +123,7 @@ void anRenderer2D::StartDraw()
 void anRenderer2D::DrawLine(const anFloat2& start, const anFloat2& end, const anColor& color, float width)
 {
 	StartDraw();
-	anFloat2 normal = glm::normalize(anFloat2(end.y - start.y, -(end.x - start.x)));
+	anFloat2 normal = glm::normalize(anFloat2(end.y - start.y, -(end.x - start.x))) * width;
 	
 	anTextureVertex v0;
 	v0.Position = { start.x + normal.x, start.y + normal.y, 0.0f };

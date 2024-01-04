@@ -98,3 +98,23 @@ float anCamera2D::GetZoomLevel() const
 {
 	return mZoom;
 }
+
+float anCamera2D::GetLeft() const
+{
+	return mLeft;
+}
+
+float anCamera2D::GetRight() const
+{
+	return mRight;
+}
+
+float anCamera2D::GetTop() const
+{
+	return mTop;
+}
+
+float anCamera2D::GetBottom() const
+{
+	return mBottom;
+}

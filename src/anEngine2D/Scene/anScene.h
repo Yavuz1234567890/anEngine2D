@@ -16,9 +16,10 @@ public:
 
 	anEntity NewEntity(const anString& tag);
 	void DestroyEntity(anEntity entity);
-	void EditorUpdate(float dt, anCamera2D& camera);
+	void EditorUpdate(float dt, anCamera2D& camera, anTexture* cameraIcon = nullptr);
 	void RuntimeInitialize();
-	void RuntimeUpdate(float dt);
+	bool RuntimeUpdate(float dt);
+	void OnViewportSize(anUInt32 width, anUInt32 height);
 	
 	entt::registry& GetRegistry();
 private:

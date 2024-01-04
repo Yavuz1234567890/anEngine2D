@@ -23,6 +23,10 @@ public:
 	const anMatrix4& GetProjectionMatrix() const;
 	const anMatrix4& GetViewMatrix() const;
 	float GetZoomLevel() const;
+	float GetLeft() const;
+	float GetRight() const;
+	float GetTop() const;
+	float GetBottom() const;
 private:
 	anMatrix4 mProjectionMatrix;
 	anMatrix4 mViewMatrix;

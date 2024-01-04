@@ -9,7 +9,7 @@ class anEngine2DEditorApplication : public anApplication
 {
 public:
 	anEngine2DEditorApplication()
-		: anApplication({ "anEngine2D Editor", 1200, 700, true, false })
+		: anApplication({ "anEngine2D Editor", 1200, 700, true, true })
 	{
 	}
 
