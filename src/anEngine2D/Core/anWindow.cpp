@@ -18,7 +18,7 @@ public:
 		if (!sGLFWInitialized)
 		{
 			if (!glfwInit())
-				anShowMessageBox("GLFW initialization failed!");
+				anShowInformation("GLFW initialization failed!");
 
 			sGLFWInitialized = true;
 		}
@@ -37,7 +37,7 @@ public:
 		{
 			glewExperimental = GL_TRUE;
 			if (glewInit())
-				anShowMessageBox("OpenGL initialization failed!");
+				anShowInformation("OpenGL initialization failed!");
 
 			sGLEWInitialized = true;
 		}

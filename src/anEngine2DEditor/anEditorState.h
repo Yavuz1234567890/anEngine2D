@@ -5,6 +5,8 @@
 #include "Scene/anScene.h"
 #include "Device/anFramebuffer.h"
 #include "Scene/anEntity.h"
+#include "Scene/anSceneSerializer.h"
+#include "anGizmoSystem.h"
 
 namespace anSceneState
 {
@@ -12,16 +14,6 @@ namespace anSceneState
 	{
 		Runtime,
 		Edit
-	};
-}
-
-namespace anGizmoType
-{
-	enum : anUInt32
-	{
-		Translate,
-		Scale,
-		Rotate
 	};
 }
 
@@ -35,21 +27,33 @@ public:
 	void Update(float dt) override;
 	void OnEvent(const anEvent& event) override;
 	void OnImGuiRender() override;
+
 	void BeginImGuiDockspace();
 	void EndImGuiDockspace();
 	void OnScenePanel();
 	void DrawEntityToScenePanel(anEntity entity);
 	void OnEntityPanel();
 	void DrawComponents(anEntity entity);
-	void UpdateGizmos(float dt);
 	void DrawToolbar();
+	void SaveSceneAs();
+	void NewScene();
+	void SaveScene();
 	
+	anEntity& GetSelectedEntity();
+
 	template<typename T>
 	void DisplayAddComponentEntry(const anString& entryName);
 private:
 	anScene* mEditorScene;
 	anCamera2D mEditorCamera;
+	anString mEditorScenePath;
 	anEntity mSelectedEntity;
+
+	anString mProjectName;
+	anString mProjectLocation;
+	anString mProjectStartScenePath;
+	anString mProjectScenesLocation;
+	anString mProjectAssetsLocation;
 
 	anFramebuffer* mFramebuffer;
 
@@ -67,27 +71,19 @@ private:
 	anFloat2 mLastExactViewportMousePosition;
 	anFloat2 mViewportLastMousePosition;
 
-	anFloat2 mLeftMouseTickedViewportMousePosition;
-	anFloat2 mLeftMouseTickedGizmoPosition;
-	
 	bool mDragEditorCamera = false;
-	bool mLeftMouseButtonPressed = false;
 
 	float mEditorCameraSpeed = 1.0f;
-
-	anUInt32 mGizmoType = -1;
-	anFloat2 mGizmoPosition;
-	bool mGizmoHorizontalTick = false;
-	bool mGizmoVerticalTick = false;
-	bool mGizmoIsUsing = false;
-	float mGizmoSize = 100.0f;
-	float mGizmoRectSize = mGizmoSize * 0.2f;
-	anFloat2 mGizmoBoxPosition;
-	bool mGizmoBoxTick = false;
 
 	anTexture* mPlayButtonTexture;
 	anTexture* mStopButtonTexture;
 	anTexture* mCameraIconTexture;
+
+	anGizmoSystem mGizmoSystem;
+
+	anSceneSerializer mSceneSerializer;
+
+	bool mFreshScene = true;
 };
 
 #endif

@@ -2,6 +2,9 @@
 #include "Device/anGPUCommands.h"
 #include "Core/anKeyCodes.h"
 #include "Math/anMath.h"
+#include "Project/anProject.h"
+#include "Core/anFileSystem.h"
+#include "Core/anMessage.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -21,7 +24,30 @@ void anEditorState::Initialize()
 	mStopButtonTexture = anLoadTexture("icons/stopbutton.png");
 	mCameraIconTexture = anLoadTexture("icons/cameraicon.png");
 
-	mEditorScene = new anScene();
+	if (!anProjectManager::GetCurrentProject())
+		mApplication->GetWindow()->Close();
+
+	mProjectLocation = anProjectManager::GetCurrentProject()->Location;
+	mProjectName = anProjectManager::GetCurrentProject()->Name;
+
+	mProjectAssetsLocation = mProjectLocation + "\\assets\\";
+	mProjectScenesLocation = mProjectLocation + "\\scenes\\";
+
+	mProjectStartScenePath = mProjectScenesLocation + anProjectManager::GetCurrentProject()->StartScene;
+
+	if (!mProjectStartScenePath.empty())
+	{
+		mEditorScenePath = mProjectScenesLocation + mProjectStartScenePath;
+		mEditorScene = mSceneSerializer.DeserializeScene(mProjectStartScenePath);
+		mFreshScene = false;
+	}
+	else
+		mEditorScene = new anScene();
+
+	mApplication->GetWindow()->SetTitle("anEngine2D Editor - " + mProjectName + " - " + (mFreshScene ? "Fresh Scene" : anFileSystem::path{mEditorScenePath}.filename().string()));
+
+	anFileSystem::create_directory(mProjectAssetsLocation);
+	anFileSystem::create_directory(mProjectScenesLocation);
 
 	mFramebuffer = new anFramebuffer({ mApplication->GetWindow()->GetStartWidth(), mApplication->GetWindow()->GetStartHeight() });
 
@@ -33,6 +59,7 @@ void anEditorState::Initialize()
 		mfHeight = (float)iHeight;
 	}
 
+	mGizmoSystem.Initialize(this);
 }
 
 void anEditorState::Update(float dt)
@@ -67,10 +94,10 @@ void anEditorState::Update(float dt)
 	{	
 		mEditorScene->EditorUpdate(dt, mEditorCamera, mCameraIconTexture);
 
-		UpdateGizmos(dt);
+		mGizmoSystem.UpdateGizmos(dt, mExactViewportMousePosition);
 		anRenderer2D::Get().End();
 
-		if (mViewportMousePosition.x >= 0 && mViewportMousePosition.y >= 0 && mViewportMousePosition.x < viewportSize.x && mViewportMousePosition.y < viewportSize.y && mDragEditorCamera && !mGizmoIsUsing)
+		if (mViewportMousePosition.x >= 0 && mViewportMousePosition.y >= 0 && mViewportMousePosition.x < viewportSize.x && mViewportMousePosition.y < viewportSize.y && mDragEditorCamera && !mGizmoSystem.IsUsing())
 		{
 			mEditorCamera.Move((mViewportLastMousePosition - mViewportMousePosition) * mEditorCameraSpeed * anFloat2(1.0f, -1.0f));
 		}
@@ -92,6 +119,8 @@ void anEditorState::Update(float dt)
 
 void anEditorState::OnEvent(const anEvent& event)
 {
+	mGizmoSystem.OnEvent(event);
+
 	if (event.Type == anEvent::KeyDown)
 	{
 		if (event.KeyCode == anKeyDelete)
@@ -112,35 +141,57 @@ void anEditorState::OnEvent(const anEvent& event)
 	{
 		if (event.MouseButton == 1)
 			mDragEditorCamera = true;
-
-		if (event.MouseButton == 0)
-		{
-			mLeftMouseButtonPressed = true;
-			mLeftMouseTickedGizmoPosition = mGizmoPosition;
-			mLeftMouseTickedViewportMousePosition = mExactViewportMousePosition;
-		}
 	}
 
 	if (event.Type == anEvent::MouseUp)
 	{
 		if (event.MouseButton == 1)
 			mDragEditorCamera = false;
-
-		if (event.MouseButton == 0)
-		{
-			mLeftMouseButtonPressed = false;
-			mLeftMouseTickedGizmoPosition = { 0.0f, 0.0f };
-			mLeftMouseTickedViewportMousePosition = { 0.0f, 0.0f };
-			mGizmoHorizontalTick = false;
-			mGizmoVerticalTick = false;
-			mGizmoBoxTick = false;
-		}
 	}
 }
 
 void anEditorState::OnImGuiRender()
 {
 	BeginImGuiDockspace();
+
+	if (ImGui::BeginMenuBar())
+	{
+		if (ImGui::BeginMenu("Application"))
+		{
+			if (ImGui::MenuItem("Exit"))
+				mApplication->GetWindow()->Close();
+
+			if (ImGui::MenuItem("Set Starting Scene"))
+			{
+				if (mFreshScene)
+					anShowMessageBox("Error", "The current scene is fresh scene", anMessageBoxDialogType::OkCancel, anMessageBoxIconType::Error);
+				else
+				{
+					anProjectManager::GetCurrentProject()->StartScene = anFileSystem::path{mEditorScenePath}.filename().string();
+					mProjectStartScenePath = mEditorScenePath;
+					anProjectManager::SaveProject(anProjectManager::GetCurrentProject()->FullPath);
+				}
+			}
+
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("File"))
+		{
+			if (ImGui::MenuItem("New Scene", "Ctrl+N"))
+				NewScene();
+
+			if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
+				SaveScene();
+
+			if (ImGui::MenuItem("Save Scene As", "Ctrl+Shift+S"))
+				SaveSceneAs();
+
+			ImGui::EndMenu();
+		}
+
+		ImGui::EndMenuBar();
+	}
 
 	ImGui::Begin("Scene");
 	DrawToolbar();
@@ -168,7 +219,36 @@ void anEditorState::OnImGuiRender()
 
 	ImGui::End();
 
-	ImGui::Begin("Asset Browser");
+	ImGui::Begin("Scene Manager");
+
+	if (ImGui::Button("New Scene"))
+		NewScene();
+
+	ImGui::SameLine();
+
+	if (ImGui::Button("Save Scene As"))
+		SaveSceneAs();
+
+	ImGui::SameLine();
+
+	if (ImGui::Button("Save Scene"))
+		SaveScene();
+
+	ImGui::Separator();
+
+	ImGui::Text("Scenes");
+
+	for (const auto entry : anFileSystem::directory_iterator(mProjectScenesLocation))
+	{
+		const anString fileName = entry.path().filename().string();
+		if (ImGui::Button(fileName.c_str()))
+		{
+			mEditorScenePath = entry.path().string();
+			mEditorScene = mSceneSerializer.DeserializeScene(mEditorScenePath);
+			mApplication->GetWindow()->SetTitle("anEngine2D Editor - " + mProjectName + " - " + fileName);
+			mFreshScene = false;
+		}
+	}
 
 	ImGui::End();
 
@@ -515,94 +595,6 @@ void anEditorState::DisplayAddComponentEntry(const anString& entryName)
 	}
 }
 
-#pragma region Gizmos
-
-void anEditorState::UpdateGizmos(float dt)
-{
-	if (mSelectedEntity.GetHandle() != entt::null && mGizmoType != -1)
-	{
-		auto& tc = mSelectedEntity.GetComponent<anTransformComponent>();
-		mGizmoPosition = tc.Position;
-
-		mGizmoBoxPosition = { mGizmoPosition.x + 0.5f + mGizmoRectSize * 0.5f, mGizmoPosition.y - 0.5f - mGizmoRectSize * 0.5f };
-
-		anRenderer2D::Get().DrawLine(mGizmoPosition, { mGizmoPosition.x, mGizmoPosition.y - mGizmoSize }, { 0, 255, 0 });
-		anRenderer2D::Get().DrawLine(mGizmoPosition, { mGizmoPosition.x + mGizmoSize, mGizmoPosition.y }, { 255, 0, 0 });
-		anRenderer2D::Get().DrawTexture(anTexture::GetWhiteTexture(), mGizmoBoxPosition, { mGizmoRectSize, mGizmoRectSize }, { 255, 100, 100 });
-
-		if (!mGizmoHorizontalTick && !mGizmoVerticalTick)
-		{
-			if (mExactViewportMousePosition.x >= mGizmoPosition.x + 1.0f && 
-				mExactViewportMousePosition.x <= mGizmoPosition.x + 1.0f + mGizmoRectSize && 
-				mExactViewportMousePosition.y <= mGizmoPosition.y - 1.0f && 
-				mExactViewportMousePosition.y >= mGizmoPosition.y - 1.0f - mGizmoRectSize || mGizmoBoxTick)
-			{
-				if (mLeftMouseButtonPressed)
-				{
-					mGizmoBoxTick = true;
-					if (mGizmoType == anGizmoType::Translate)
-						tc.Position = mExactViewportMousePosition + (mLeftMouseTickedGizmoPosition - mLeftMouseTickedViewportMousePosition);
-					if (mGizmoType == anGizmoType::Scale)
-						tc.Size += (mLastExactViewportMousePosition - mExactViewportMousePosition) * anFloat2(-1.0f, 1.0f);
-					if (mGizmoType == anGizmoType::Rotate)
-					{
-						anFloat2 delta = mGizmoPosition - mExactViewportMousePosition;
-						
-						tc.Rotation = anRadiansToDegrees(anAtan2(delta.y, delta.x));
-					}
-				}
-			}
-		}
-
-		if (!mGizmoBoxTick)
-		{
-			if (!mGizmoHorizontalTick)
-			{
-				if (mExactViewportMousePosition.x >= mGizmoPosition.x - 2.0f && mExactViewportMousePosition.x <= mGizmoPosition.x + 2.0f || mGizmoVerticalTick)
-				{
-					if (mExactViewportMousePosition.y <= mGizmoPosition.y - 1.0f && mExactViewportMousePosition.y >= mGizmoPosition.y - mGizmoSize || mGizmoVerticalTick)
-					{
-						if (mLeftMouseButtonPressed)
-						{
-							mGizmoVerticalTick = true;
-							if (mGizmoType == anGizmoType::Translate)
-								tc.Position.y = mExactViewportMousePosition.y + (mLeftMouseTickedGizmoPosition.y - mLeftMouseTickedViewportMousePosition.y);
-							if (mGizmoType == anGizmoType::Scale)
-								tc.Size.y += mLastExactViewportMousePosition.y - mExactViewportMousePosition.y;
-							if (mGizmoType == anGizmoType::Rotate)
-								tc.Rotation += mLastExactViewportMousePosition.y - mExactViewportMousePosition.y;
-						}
-					}
-				}
-			}
-
-			if (!mGizmoVerticalTick)
-			{
-				if (mExactViewportMousePosition.y >= mGizmoPosition.y - 2.0f && mExactViewportMousePosition.y <= mGizmoPosition.y + 2.0f || mGizmoHorizontalTick)
-				{
-					if (mExactViewportMousePosition.x >= mGizmoPosition.x + 1.0f && mExactViewportMousePosition.x <= mGizmoPosition.x + mGizmoSize || mGizmoHorizontalTick)
-					{
-						if (mLeftMouseButtonPressed)
-						{
-							mGizmoHorizontalTick = true;
-							if (mGizmoType == anGizmoType::Translate)
-								tc.Position.x = mExactViewportMousePosition.x + (mLeftMouseTickedGizmoPosition.x - mLeftMouseTickedViewportMousePosition.x);
-							if (mGizmoType == anGizmoType::Scale)
-								tc.Size.x += mExactViewportMousePosition.x - mLastExactViewportMousePosition.x;
-							if (mGizmoType == anGizmoType::Rotate)
-								tc.Rotation += mExactViewportMousePosition.x - mLastExactViewportMousePosition.x;
-						}
-					}
-				}
-			}
-		}
-
-		mGizmoIsUsing = mGizmoHorizontalTick || mGizmoVerticalTick || mGizmoBoxTick;
-	}
-}
-
-#pragma endregion
-
 void anEditorState::DrawToolbar()
 {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
@@ -639,7 +631,7 @@ void anEditorState::DrawToolbar()
 	ImGui::SameLine();
 
 	const char* items[] = { "None", "Translate", "Scale", "Rotate" };
-	const char* currentItem = items[mGizmoType + 1];
+	const char* currentItem = items[mGizmoSystem.GetGizmoType() + 1];
 
 	if (ImGui::BeginCombo("##gizmotype", currentItem, ImGuiComboFlags_NoArrowButton))
 	{
@@ -647,7 +639,7 @@ void anEditorState::DrawToolbar()
 		{
 			bool isSelected = (currentItem == items[i]);
 			if (ImGui::Selectable(items[i], isSelected))
-				mGizmoType = i - 1;
+				mGizmoSystem.SetGizmoType(i - 1);
 			if (isSelected)
 				ImGui::SetItemDefaultFocus();
 		}
@@ -657,4 +649,42 @@ void anEditorState::DrawToolbar()
 
 	ImGui::PopStyleVar(2);
 	ImGui::PopStyleColor(3);
+}
+
+anEntity& anEditorState::GetSelectedEntity()
+{
+	return mSelectedEntity;
+}
+
+void anEditorState::SaveSceneAs()
+{
+	anString sceneName = "New Scene";
+	if (anShowInputBox(sceneName, "Save As Scene", "Project Name", sceneName))
+	{
+		const anString fileName = sceneName + ".anScene";
+		mEditorScenePath = mProjectScenesLocation + fileName;
+		if (anFileSystem::exists(anFileSystem::path{ mEditorScenePath }))
+			anShowMessageBox("Error", mEditorScenePath + " is existing scene", anMessageBoxDialogType::OkCancel, anMessageBoxIconType::Error);
+		else
+		{
+			mSceneSerializer.SerializeScene(mEditorScene, mEditorScenePath);
+			mFreshScene = false;
+			mApplication->GetWindow()->SetTitle("anEngine2D Editor - " + mProjectName + " - " + fileName);
+		}
+	}
+}
+
+void anEditorState::NewScene()
+{
+	mEditorScene = new anScene();
+	mApplication->GetWindow()->SetTitle("anEngine2D Editor - " + mProjectName + " - Fresh Scene");
+	mFreshScene = true;
+}
+
+void anEditorState::SaveScene()
+{
+	if (mFreshScene)
+		SaveSceneAs();
+	else
+		mSceneSerializer.SerializeScene(mEditorScene, mEditorScenePath);
 }

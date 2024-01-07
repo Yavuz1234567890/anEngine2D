@@ -29,7 +29,6 @@ void anApplication::Start()
 	mStateManager->Initialize();
 	mControllerDevice.Initialize();
 	mImGui.Initialize(mWindow);
-	mImGui.PrepareCustomStyle();
 	anRenderer2D::Get().Initialize();
 	Initialize();
 

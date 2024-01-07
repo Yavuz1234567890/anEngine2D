@@ -30,7 +30,7 @@ bool anFont::Load(const anString& path, int size)
 	bool succes = !FT_New_Face(sFontData.FreeType, path.c_str(), 0, &face);
 	if (!succes)
 	{
-		anShowMessageBox("Couldn't find font '" + path + "'");
+		anShowInformation("Couldn't find font '" + path + "'");
 		return false;
 	}
 
@@ -101,7 +101,7 @@ void anFont::Initialize()
 
 	if (FT_Init_FreeType(&sFontData.FreeType))
 	{
-		anShowMessageBox("Error: FreeType couldn't initialized");
+		anShowInformation("Error: FreeType couldn't initialized");
 		return;
 	}
 

@@ -158,7 +158,7 @@ anTexture* anLoadTexture(const anString& path)
 
 	stbi_uc* data = stbi_load(path.c_str(), &width, &height, &channels, 4);
 	if (!data)
-		anShowMessageBox("Couldn't find texture '" + path + "'");
+		anShowInformation("Couldn't find texture '" + path + "'");
 
 	anUInt32 format = 0;
 	if (channels == 4)

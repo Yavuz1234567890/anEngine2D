@@ -10,7 +10,6 @@ public:
 	~anImGuiDevice();
 
 	void Initialize(anWindow* window);
-	void PrepareCustomStyle();
 	void Start();
 	void End();
 };

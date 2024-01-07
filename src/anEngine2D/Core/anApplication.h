@@ -39,7 +39,6 @@ public:
 	void LogWrite(const anString& msg);
 	anControllerDevice GetControllerDevice();
 	int GetFramesPerSecond() const;
-protected:
 	void SetCurrentState(anState* state);
 	anState* GetCurrentState();
 

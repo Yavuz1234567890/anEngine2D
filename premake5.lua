@@ -24,6 +24,8 @@ workspace "anEngine2D"
 		"thirdparty/glm",
 		"thirdparty/imgui",
 		"thirdparty/entt/include",
+		"thirdparty/tinyxml2",
+		"thirdparty/tinyfiledialogs",
 		"src/anEngine2D"
 	}
 
@@ -82,7 +84,13 @@ workspace "anEngine2D"
 
 			"thirdparty/glm/**.cpp",
 			"thirdparty/glm/**.hpp",
-			"thirdparty/glm/**.h"
+			"thirdparty/glm/**.h",
+
+			"thirdparty/tinyxml2/tinyxml2.h",
+			"thirdparty/tinyxml2/tinyxml2.cpp",
+
+			"thirdparty/tinyfiledialogs/tinyfiledialogs.h",
+			"thirdparty/tinyfiledialogs/tinyfiledialogs.c"
 		}
 
 		links
@@ -168,6 +176,40 @@ workspace "anEngine2D"
 		{
 			"src/anEngine2DEditor/**.cpp",
 			"src/anEngine2DEditor/**.h"
+		}
+
+		links
+		{
+			"anEngine2D"
+		}
+
+		filter "system:windows"
+			systemversion "latest"
+
+		filter "configurations:Debug"
+			defines "C_DEBUG"
+			runtime "Debug"
+			symbols "on"
+
+		filter "configurations:Release"
+			defines "C_RELEASE"
+			runtime "Release"
+			optimize "on"
+
+	project "anEngine2DApplication"
+		location "src/anEngine2DApplication"
+		kind "WindowedApp"
+		language "C++"
+		cppdialect "C++17"
+		staticruntime "off"
+
+		targetdir "bin"
+		objdir "obj"
+
+		files
+		{
+			"src/anEngine2DApplication/**.cpp",
+			"src/anEngine2DApplication/**.h"
 		}
 
 		links

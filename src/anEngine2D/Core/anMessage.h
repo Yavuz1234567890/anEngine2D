@@ -4,6 +4,6 @@
 #include "anTypes.h"
 
 void anMessage(const anString& msg);
-void anShowMessageBox(const anString& msg);
+void anShowInformation(const anString& msg);
 
 #endif
