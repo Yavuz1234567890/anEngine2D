@@ -3,7 +3,6 @@
 #include "Core/anKeyCodes.h"
 #include "Math/anMath.h"
 #include "Project/anProject.h"
-#include "Core/anFileSystem.h"
 #include "Core/anMessage.h"
 
 #include <imgui/imgui.h>
@@ -23,6 +22,8 @@ void anEditorState::Initialize()
 	mPlayButtonTexture = anLoadTexture("icons/playbutton.png");
 	mStopButtonTexture = anLoadTexture("icons/stopbutton.png");
 	mCameraIconTexture = anLoadTexture("icons/cameraicon.png");
+	mFolderIconTexture = anLoadTexture("icons/directoryicon.png");
+	mFileIconTexture = anLoadTexture("icons/fileicon.png");
 
 	if (!anProjectManager::GetCurrentProject())
 		mApplication->GetWindow()->Close();
@@ -30,25 +31,23 @@ void anEditorState::Initialize()
 	mProjectLocation = anProjectManager::GetCurrentProject()->Location;
 	mProjectName = anProjectManager::GetCurrentProject()->Name;
 
-	mProjectAssetsLocation = mProjectLocation + "\\assets\\";
-	mProjectScenesLocation = mProjectLocation + "\\scenes\\";
+	mProjectAssetsLocation = mProjectLocation / "assets";
+	
+	mAssetBrowserLocation = mProjectAssetsLocation;
 
-	mProjectStartScenePath = mProjectScenesLocation + anProjectManager::GetCurrentProject()->StartScene;
+	mProjectStartScenePath = mProjectLocation / anProjectManager::GetCurrentProject()->StartScene;
 
-	if (!mProjectStartScenePath.empty())
+	if (!anProjectManager::GetCurrentProject()->StartScene.empty())
 	{
-		mEditorScenePath = mProjectScenesLocation + mProjectStartScenePath;
-		mEditorScene = mSceneSerializer.DeserializeScene(mProjectStartScenePath);
-		mFreshScene = false;
+		mEditorScenePath = mProjectStartScenePath;
+		mEditorScene = mSceneSerializer.DeserializeScene(mProjectLocation, mProjectStartScenePath);
+		mNoScene = false;
 	}
-	else
-		mEditorScene = new anScene();
 
-	mApplication->GetWindow()->SetTitle("anEngine2D Editor - " + mProjectName + " - " + (mFreshScene ? "Fresh Scene" : anFileSystem::path{mEditorScenePath}.filename().string()));
+	mApplication->GetWindow()->SetTitle("anEngine2D Editor - " + mProjectName + " - " + (mNoScene ? "No Scene" : anFileSystem::path{mEditorScenePath}.filename().string()));
 
 	anFileSystem::create_directory(mProjectAssetsLocation);
-	anFileSystem::create_directory(mProjectScenesLocation);
-
+	
 	mFramebuffer = new anFramebuffer({ mApplication->GetWindow()->GetStartWidth(), mApplication->GetWindow()->GetStartHeight() });
 
 	{
@@ -64,7 +63,8 @@ void anEditorState::Initialize()
 
 void anEditorState::Update(float dt)
 {
-	mEditorScene->OnViewportSize(anUInt32(mViewportSize.x), anUInt32(mViewportSize.y));
+	if (SceneIsValid())
+		mEditorScene->OnViewportSize(anUInt32(mViewportSize.x), anUInt32(mViewportSize.y));
 
 	anFramebufferSpecification spec = mFramebuffer->GetSpecification();
 	if (mViewportSize.x > 0.0f && mViewportSize.y > 0.0f && (spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
@@ -90,25 +90,28 @@ void anEditorState::Update(float dt)
 	mLastExactViewportMousePosition = mExactViewportMousePosition;
 	mExactViewportMousePosition = ((mViewportMousePosition - (mViewportBounds[1] - mViewportBounds[0]) * 0.5f) * anFloat2(1.0f, -1.0f)) + mEditorCamera.GetPosition();
 
-	if (mSceneState == anSceneState::Edit)
-	{	
-		mEditorScene->EditorUpdate(dt, mEditorCamera, mCameraIconTexture);
-
-		mGizmoSystem.UpdateGizmos(dt, mExactViewportMousePosition);
-		anRenderer2D::Get().End();
-
-		if (mViewportMousePosition.x >= 0 && mViewportMousePosition.y >= 0 && mViewportMousePosition.x < viewportSize.x && mViewportMousePosition.y < viewportSize.y && mDragEditorCamera && !mGizmoSystem.IsUsing())
-		{
-			mEditorCamera.Move((mViewportLastMousePosition - mViewportMousePosition) * mEditorCameraSpeed * anFloat2(1.0f, -1.0f));
-		}
-	}
-
-	if (mSceneState == anSceneState::Runtime)
+	if (SceneIsValid())
 	{
-		if (mEditorScene->RuntimeUpdate(dt))
+		if (mSceneState == anSceneState::Edit)
 		{
+			mEditorScene->EditorUpdate(dt, mEditorCamera, mCameraIconTexture);
 
+			mGizmoSystem.UpdateGizmos(dt, mExactViewportMousePosition);
 			anRenderer2D::Get().End();
+
+			if (mViewportMousePosition.x >= 0 && mViewportMousePosition.y >= 0 && mViewportMousePosition.x < viewportSize.x && mViewportMousePosition.y < viewportSize.y && mDragEditorCamera && !mGizmoSystem.IsUsing())
+			{
+				mEditorCamera.Move((mViewportLastMousePosition - mViewportMousePosition) * mEditorCameraSpeed * anFloat2(1.0f, -1.0f));
+			}
+		}
+
+		if (mSceneState == anSceneState::Runtime)
+		{
+			if (mEditorScene->RuntimeUpdate(dt))
+			{
+
+				anRenderer2D::Get().End();
+			}
 		}
 	}
 
@@ -119,21 +122,51 @@ void anEditorState::Update(float dt)
 
 void anEditorState::OnEvent(const anEvent& event)
 {
-	mGizmoSystem.OnEvent(event);
-
-	if (event.Type == anEvent::KeyDown)
+	if (SceneIsValid())
 	{
-		if (event.KeyCode == anKeyDelete)
+		mGizmoSystem.OnEvent(event);
+
+		if (event.Type == anEvent::KeyDown)
 		{
-			if (GImGui->ActiveId == 0)
+			if (event.KeyCode == anKeyLeftControl)
+				mLeftCtrl = true;
+
+			if (event.KeyCode == anKeyRightControl)
+				mRightCtrl = true;
+
+			if (event.KeyCode == anKeyS)
 			{
-				anEntity ent = mSelectedEntity;
-				if (ent.GetHandle() != entt::null)
+				if (mLeftCtrl || mRightCtrl)
+					SaveScene();
+			}
+
+			if (event.KeyCode == anKeyW)
+			{
+				if (mLeftCtrl || mRightCtrl)
+					CloseScene();
+			}
+
+			if (event.KeyCode == anKeyDelete)
+			{
+				if (GImGui->ActiveId == 0)
 				{
-					mEditorScene->DestroyEntity(ent);
-					mSelectedEntity = {};
+					anEntity ent = mSelectedEntity;
+					if (ent.GetHandle() != entt::null)
+					{
+						mEditorScene->DestroyEntity(ent);
+						mSelectedEntity = {};
+					}
 				}
 			}
+		}
+
+		if (event.Type == anEvent::KeyUp)
+		{
+			if (event.KeyCode == anKeyLeftControl)
+				mLeftCtrl = false;
+
+			if (event.KeyCode == anKeyRightControl)
+				mRightCtrl = false;
 		}
 	}
 
@@ -163,12 +196,12 @@ void anEditorState::OnImGuiRender()
 
 			if (ImGui::MenuItem("Set Starting Scene"))
 			{
-				if (mFreshScene)
+				if (mNoScene)
 					anShowMessageBox("Error", "The current scene is fresh scene", anMessageBoxDialogType::OkCancel, anMessageBoxIconType::Error);
 				else
 				{
-					anProjectManager::GetCurrentProject()->StartScene = anFileSystem::path{mEditorScenePath}.filename().string();
-					mProjectStartScenePath = mEditorScenePath;
+					mProjectStartScenePath = mEditorScenePath.lexically_relative(mProjectLocation);
+					anProjectManager::GetCurrentProject()->StartScene = mProjectStartScenePath.string();
 					anProjectManager::SaveProject(anProjectManager::GetCurrentProject()->FullPath);
 				}
 			}
@@ -178,14 +211,11 @@ void anEditorState::OnImGuiRender()
 
 		if (ImGui::BeginMenu("File"))
 		{
-			if (ImGui::MenuItem("New Scene", "Ctrl+N"))
-				NewScene();
-
 			if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
 				SaveScene();
 
-			if (ImGui::MenuItem("Save Scene As", "Ctrl+Shift+S"))
-				SaveSceneAs();
+			if (ImGui::MenuItem("Close Scene", "Ctrl+W"))
+				CloseScene();
 
 			ImGui::EndMenu();
 		}
@@ -194,14 +224,18 @@ void anEditorState::OnImGuiRender()
 	}
 
 	ImGui::Begin("Scene");
-	DrawToolbar();
+	if (SceneIsValid())
+	{
+		DrawToolbar();
+		OnScenePanel();
+	}
 
-	OnScenePanel();
 	ImGui::End();
 
 	ImGui::Begin("Entity");
+	if (SceneIsValid())
+		OnEntityPanel();
 
-	OnEntityPanel();
 	ImGui::End();
 
 	ImGui::Begin("Viewport");
@@ -219,35 +253,108 @@ void anEditorState::OnImGuiRender()
 
 	ImGui::End();
 
-	ImGui::Begin("Scene Manager");
+	ImGui::Begin("Asset Browser");
 
-	if (ImGui::Button("New Scene"))
-		NewScene();
-
-	ImGui::SameLine();
-
-	if (ImGui::Button("Save Scene As"))
-		SaveSceneAs();
+	if (mAssetBrowserLocation != mProjectAssetsLocation)
+	{
+		if (ImGui::Button("<-"))
+			mAssetBrowserLocation = mAssetBrowserLocation.parent_path();
+	}
 
 	ImGui::SameLine();
 
-	if (ImGui::Button("Save Scene"))
-		SaveScene();
+	ImGui::Text(mAssetBrowserLocation.string().c_str());
 
 	ImGui::Separator();
 
-	ImGui::Text("Scenes");
+	static float padding = 16.0f;
+	static float thumbnailSize = 128.0f;
+	float cellSize = thumbnailSize + padding;
 
-	for (const auto entry : anFileSystem::directory_iterator(mProjectScenesLocation))
+	float panelWidth = ImGui::GetContentRegionAvail().x;
+	int columnCount = (int)(panelWidth / cellSize);
+	if (columnCount < 1)
+		columnCount = 1;
+
+	ImGui::Columns(columnCount, 0, false);
+
+	for (const auto entry : anFileSystem::directory_iterator(mAssetBrowserLocation))
 	{
 		const anString fileName = entry.path().filename().string();
-		if (ImGui::Button(fileName.c_str()))
+
+		ImGui::PushID(fileName.c_str());
+		anTexture* icon = entry.is_directory() ? mFolderIconTexture : mFileIconTexture;
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+		ImGui::ImageButton((ImTextureID)icon->GetID(), { thumbnailSize, thumbnailSize }, { 0, 0 }, { 1, 1 });
+
+		if (ImGui::BeginDragDropSource())
 		{
-			mEditorScenePath = entry.path().string();
-			mEditorScene = mSceneSerializer.DeserializeScene(mEditorScenePath);
-			mApplication->GetWindow()->SetTitle("anEngine2D Editor - " + mProjectName + " - " + fileName);
-			mFreshScene = false;
+			anFileSystem::path relativePath(entry.path());
+			const wchar_t* itemPath = relativePath.c_str();
+			ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t));
+			ImGui::EndDragDropSource();
 		}
+
+		ImGui::PopStyleColor();
+
+		if (ImGui::IsItemHovered())
+		{
+			if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+			{
+				if (entry.is_directory())
+					mAssetBrowserLocation /= entry.path().filename();
+
+				if (entry.path().extension().string() == ".anScene")
+				{
+					mEditorScenePath = entry.path().string();
+					mEditorScene = mSceneSerializer.DeserializeScene(mProjectLocation, mEditorScenePath);
+					mApplication->GetWindow()->SetTitle("anEngine2D Editor - " + mProjectName + " - " + fileName);
+					mNoScene = false;
+				}
+			}
+		}
+		
+		ImGui::TextWrapped(fileName.c_str());
+
+		ImGui::NextColumn();
+
+		ImGui::PopID();
+	}
+
+	ImGui::Columns(1);
+
+	if (ImGui::BeginPopupContextWindow(0, 1))
+	{
+		if (ImGui::MenuItem("New Scene"))
+		{
+			anString sceneName = "New Scene";
+			if (anShowInputBox(sceneName, "New Scene", "Scene Name", sceneName))
+			{
+				const anFileSystem::path path = mAssetBrowserLocation / anFileSystem::path{ sceneName + ".anScene"};
+				if (anFileSystem::exists(path))
+					anShowMessageBox("Error", sceneName + " is existing scene", anMessageBoxDialogType::OkCancel, anMessageBoxIconType::Error);
+				else
+				{
+					anScene* scene = new anScene();
+					mSceneSerializer.SerializeScene(scene, path);
+				}
+			}
+		}
+
+		if (ImGui::MenuItem("New Folder"))
+		{
+			anString folderName = "New Folder";
+			if (anShowInputBox(folderName, "New Folder", "Folder Name", folderName))
+			{
+				const anFileSystem::path path = mAssetBrowserLocation / folderName;
+				if (anFileSystem::exists(path))
+					anShowMessageBox("Error", folderName + " is existing folder", anMessageBoxDialogType::OkCancel, anMessageBoxIconType::Error);
+				else
+					anFileSystem::create_directory(path);
+			}
+		}
+
+		ImGui::EndPopup();
 	}
 
 	ImGui::End();
@@ -579,6 +686,23 @@ void anEditorState::DrawComponents(anEntity entity)
 			component.Color.G = colors[1] * 255;
 			component.Color.B = colors[2] * 255;
 			component.Color.A = colors[3] * 255;
+
+			ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+				{
+					const wchar_t* path = (const wchar_t*)payload->Data;
+					anFileSystem::path texturePath(path);
+					anTexture* texture = anLoadTexture(texturePath.string());
+					texture->SetScenePath(texturePath.lexically_relative(anProjectManager::GetCurrentProject()->Location).string());
+					component.Texture = texture;
+				}
+				ImGui::EndDragDropTarget();
+			}
+
+			ImGui::SameLine();
+			ImGui::Text(component.Texture == nullptr ? "No Texture" : component.Texture->GetScenePath().c_str());
 		});
 }
 
@@ -656,35 +780,23 @@ anEntity& anEditorState::GetSelectedEntity()
 	return mSelectedEntity;
 }
 
-void anEditorState::SaveSceneAs()
-{
-	anString sceneName = "New Scene";
-	if (anShowInputBox(sceneName, "Save As Scene", "Project Name", sceneName))
-	{
-		const anString fileName = sceneName + ".anScene";
-		mEditorScenePath = mProjectScenesLocation + fileName;
-		if (anFileSystem::exists(anFileSystem::path{ mEditorScenePath }))
-			anShowMessageBox("Error", mEditorScenePath + " is existing scene", anMessageBoxDialogType::OkCancel, anMessageBoxIconType::Error);
-		else
-		{
-			mSceneSerializer.SerializeScene(mEditorScene, mEditorScenePath);
-			mFreshScene = false;
-			mApplication->GetWindow()->SetTitle("anEngine2D Editor - " + mProjectName + " - " + fileName);
-		}
-	}
-}
-
-void anEditorState::NewScene()
-{
-	mEditorScene = new anScene();
-	mApplication->GetWindow()->SetTitle("anEngine2D Editor - " + mProjectName + " - Fresh Scene");
-	mFreshScene = true;
-}
-
 void anEditorState::SaveScene()
 {
-	if (mFreshScene)
-		SaveSceneAs();
+	if (!SceneIsValid())
+		anShowMessageBox("Error", "You can't save the scene because there is no scene", anMessageBoxDialogType::OkCancel, anMessageBoxIconType::Error);
 	else
 		mSceneSerializer.SerializeScene(mEditorScene, mEditorScenePath);
+}
+
+void anEditorState::CloseScene()
+{
+	mSelectedEntity = {};
+	mEditorScene = nullptr;
+	mNoScene = true;
+	mApplication->GetWindow()->SetTitle("anEngine2D Editor - " + mProjectName + " - No Scene");
+}
+
+bool anEditorState::SceneIsValid() const
+{
+	return mNoScene != true && mEditorScene != nullptr;
 }

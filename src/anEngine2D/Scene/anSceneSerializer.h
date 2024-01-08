@@ -2,6 +2,7 @@
 #define AN_SCENE_SERIALIZER_H_
 
 #include "anScene.h"
+#include "Core/anFileSystem.h"
 
 class anSceneSerializer
 {
@@ -9,8 +10,8 @@ public:
 	anSceneSerializer();
 	~anSceneSerializer();
 
-	anScene* DeserializeScene(const anString& filePath);
-	void SerializeScene(anScene* scene, const anString& filePath);
+	anScene* DeserializeScene(const anFileSystem::path& location, const anFileSystem::path& filePath);
+	void SerializeScene(anScene* scene, const anFileSystem::path& filePath);
 };
 
 #endif

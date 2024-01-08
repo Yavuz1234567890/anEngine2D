@@ -16,10 +16,10 @@ anSceneSerializer::~anSceneSerializer()
 {
 }
 
-anScene* anSceneSerializer::DeserializeScene(const anString& filePath)
+anScene* anSceneSerializer::DeserializeScene(const anFileSystem::path& location, const anFileSystem::path& filePath)
 {
 	tinyxml2::XMLDocument document;
-	document.LoadFile(filePath.c_str());
+	document.LoadFile(filePath.string().c_str());
 	if (document.Error()) 
 	{
 		document.PrintError();
@@ -66,11 +66,17 @@ anScene* anSceneSerializer::DeserializeScene(const anString& filePath)
 
 					if (strcmp(child->Value(), "SpriteRenderer") == 0)
 					{
+
 						auto& component = entity.AddComponent<anSpriteRendererComponent>();
 						component.Color.R = (int)child->FloatAttribute("r");
 						component.Color.G = (int)child->FloatAttribute("g");
 						component.Color.B = (int)child->FloatAttribute("b");
 						component.Color.A = (int)child->FloatAttribute("a");
+						
+						anString scenePath = child->Attribute("path");
+						anFileSystem::path path = location / scenePath;
+						component.Texture = path.empty() ? nullptr : anLoadTexture(path.string());
+						component.Texture->SetScenePath(scenePath);
 
 						continue;
 					}
@@ -84,10 +90,10 @@ anScene* anSceneSerializer::DeserializeScene(const anString& filePath)
 	return nullptr;
 }
 
-void anSceneSerializer::SerializeScene(anScene* scene, const anString& filePath)
+void anSceneSerializer::SerializeScene(anScene* scene, const anFileSystem::path& filePath)
 {
 	FILE* file;
-	fopen_s(&file, filePath.c_str(), "w");
+	fopen_s(&file, filePath.string().c_str(), "w");
 	if (!file)
 		return;
 
@@ -144,6 +150,8 @@ void anSceneSerializer::SerializeScene(anScene* scene, const anString& filePath)
 				printer.PushAttribute("g", component.Color.G);
 				printer.PushAttribute("b", component.Color.B);
 				printer.PushAttribute("a", component.Color.A);
+
+				printer.PushAttribute("path", component.Texture->GetScenePath().c_str());
 				printer.CloseElement();
 			}
 

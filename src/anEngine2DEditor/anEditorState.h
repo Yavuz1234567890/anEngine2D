@@ -7,6 +7,7 @@
 #include "Scene/anEntity.h"
 #include "Scene/anSceneSerializer.h"
 #include "anGizmoSystem.h"
+#include "Core/anFileSystem.h"
 
 namespace anSceneState
 {
@@ -35,25 +36,24 @@ public:
 	void OnEntityPanel();
 	void DrawComponents(anEntity entity);
 	void DrawToolbar();
-	void SaveSceneAs();
-	void NewScene();
 	void SaveScene();
+	void CloseScene();
+	bool SceneIsValid() const;
 	
 	anEntity& GetSelectedEntity();
 
 	template<typename T>
 	void DisplayAddComponentEntry(const anString& entryName);
 private:
-	anScene* mEditorScene;
+	anScene* mEditorScene = nullptr;
 	anCamera2D mEditorCamera;
-	anString mEditorScenePath;
+	anFileSystem::path mEditorScenePath;
 	anEntity mSelectedEntity;
 
 	anString mProjectName;
-	anString mProjectLocation;
-	anString mProjectStartScenePath;
-	anString mProjectScenesLocation;
-	anString mProjectAssetsLocation;
+	anFileSystem::path mProjectLocation;
+	anFileSystem::path mProjectStartScenePath;
+	anFileSystem::path mProjectAssetsLocation;
 
 	anFramebuffer* mFramebuffer;
 
@@ -78,12 +78,19 @@ private:
 	anTexture* mPlayButtonTexture;
 	anTexture* mStopButtonTexture;
 	anTexture* mCameraIconTexture;
+	anTexture* mFolderIconTexture;
+	anTexture* mFileIconTexture;
 
 	anGizmoSystem mGizmoSystem;
 
 	anSceneSerializer mSceneSerializer;
 
-	bool mFreshScene = true;
+	bool mNoScene = true;
+
+	anFileSystem::path mAssetBrowserLocation;
+	
+	bool mLeftCtrl = false;
+	bool mRightCtrl = false;
 };
 
 #endif

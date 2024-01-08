@@ -1,6 +1,7 @@
 #include "anGameState.h"
 
 #include "Project/anProject.h"
+#include "Device/anGPUCommands.h"
 
 anGameState::anGameState(anApplication* app)
 	: anState(app)
@@ -16,7 +17,7 @@ void anGameState::Initialize()
 	anProjectManager::LoadProject("Application.anProj");
 	mApplication->GetWindow()->SetTitle(anProjectManager::GetCurrentProject()->Name);
 
-	mScene = mSceneSerializer.DeserializeScene(mScenesFolder + anProjectManager::GetCurrentProject()->StartScene);
+	mScene = mSceneSerializer.DeserializeScene(anFileSystem::current_path(), anProjectManager::GetCurrentProject()->StartScene);
 	mScene->RuntimeInitialize();
 
 	const anFloat2 monitorSize = mApplication->GetWindow()->GetMonitorSize();
@@ -28,6 +29,9 @@ void anGameState::Initialize()
 
 void anGameState::Update(float dt)
 {
+	anClear();
+	anEnableBlend();
+
 	mScene->RuntimeUpdate(dt);
 
 	anRenderer2D::Get().End();

@@ -183,3 +183,13 @@ anTexture* anLoadTexture(const anString& path)
 	
 	return texture;
 }
+
+anString anTexture::GetScenePath() const
+{
+	return mScenePath;
+}
+
+void anTexture::SetScenePath(const anString& path)
+{
+	mScenePath = path;
+}

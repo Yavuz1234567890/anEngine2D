@@ -5,9 +5,4 @@
         <Transform px="-67" py="-281" sx="1" sy="1" rot="0"/>
         <Camera current="true"/>
     </Entity>
-    <Entity>
-        <Tag tag="Entity"/>
-        <Transform px="-207" py="-120" sx="98" sy="89" rot="0"/>
-        <SpriteRenderer r="255" g="255" b="255" a="255"/>
-    </Entity>
 </Scene>

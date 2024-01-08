@@ -38,7 +38,7 @@ void anProjectManager::LoadProject(const anString& path)
 
 			if (strcmp(child->Value(), "StartScene") == 0)
 			{
-				sCurrentProject->StartScene = child->Attribute("name");
+				sCurrentProject->StartScene = child->Attribute("path");
 				continue;
 			}
 		}
@@ -65,7 +65,7 @@ void anProjectManager::SaveProject(const anString& path)
 	printer.CloseElement();
 
 	printer.OpenElement("StartScene");
-	printer.PushAttribute("name", sCurrentProject->StartScene.c_str());
+	printer.PushAttribute("path", sCurrentProject->StartScene.c_str());
 	printer.CloseElement();
 
 	printer.CloseElement();
