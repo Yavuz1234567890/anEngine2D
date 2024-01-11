@@ -32,12 +32,12 @@ void anEditorState::Initialize()
 	mProjectName = anProjectManager::GetCurrentProject()->Name;
 
 	mProjectAssetsLocation = mProjectLocation / "assets";
-	
+											   
 	mAssetBrowserLocation = mProjectAssetsLocation;
-
+											   
 	mProjectStartScenePath = mProjectLocation / anProjectManager::GetCurrentProject()->StartScene;
 
-	if (!anProjectManager::GetCurrentProject()->StartScene.empty())
+	if (!anProjectManager::GetCurrentProject()->StartScene.empty() && anFileSystem::exists(mProjectStartScenePath))
 	{
 		mEditorScenePath = mProjectStartScenePath;
 		mEditorScene = mSceneSerializer.DeserializeScene(mProjectLocation, mProjectStartScenePath);
@@ -86,9 +86,9 @@ void anEditorState::Update(float dt)
 	my -= mViewportBounds[0].y;
 	anFloat2 viewportSize = mViewportBounds[1] - mViewportBounds[0];
 	my = viewportSize.y - my;
-	mViewportMousePosition = { (float)mx, (float)my };
+	mMousePosition = { (float)mx, (float)my };
 	mLastExactViewportMousePosition = mExactViewportMousePosition;
-	mExactViewportMousePosition = ((mViewportMousePosition - (mViewportBounds[1] - mViewportBounds[0]) * 0.5f) * anFloat2(1.0f, -1.0f)) + mEditorCamera.GetPosition();
+	mExactViewportMousePosition = ((mMousePosition - (mViewportBounds[1] - mViewportBounds[0]) * 0.5f) * anFloat2(1.0f, -1.0f)) + mEditorCamera.GetPosition();
 
 	if (SceneIsValid())
 	{
@@ -99,9 +99,9 @@ void anEditorState::Update(float dt)
 			mGizmoSystem.UpdateGizmos(dt, mExactViewportMousePosition);
 			anRenderer2D::Get().End();
 
-			if (mViewportMousePosition.x >= 0 && mViewportMousePosition.y >= 0 && mViewportMousePosition.x < viewportSize.x && mViewportMousePosition.y < viewportSize.y && mDragEditorCamera && !mGizmoSystem.IsUsing())
+			if (mMousePosition.x >= 0 && mMousePosition.y >= 0 && mMousePosition.x < viewportSize.x && mMousePosition.y < viewportSize.y && mDragEditorCamera && !mGizmoSystem.IsUsing())
 			{
-				mEditorCamera.Move((mViewportLastMousePosition - mViewportMousePosition) * mEditorCameraSpeed * anFloat2(1.0f, -1.0f));
+				mEditorCamera.Move((mLastMousePosition - mMousePosition) * mEditorCameraSpeed * anFloat2(1.0f, -1.0f));
 			}
 		}
 
@@ -115,13 +115,19 @@ void anEditorState::Update(float dt)
 		}
 	}
 
-	mViewportLastMousePosition = mViewportMousePosition;
+	mLastMousePosition = mMousePosition;
 
 	mFramebuffer->Unbind();
 }
 
 void anEditorState::OnEvent(const anEvent& event)
 {
+	if (event.Type == anEvent::Drop)
+	{
+		for (const auto path : event.DropedFiles)
+			anFileSystem::copy_file(path, mAssetBrowserLocation / path.filename());
+	}
+
 	if (SceneIsValid())
 	{
 		mGizmoSystem.OnEvent(event);
@@ -251,6 +257,34 @@ void anEditorState::OnImGuiRender()
 
 	ImGui::Image(reinterpret_cast<void*>(mFramebuffer->GetTextureID()), { mViewportSize.x, mViewportSize.y }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+		{
+			const wchar_t* path = (const wchar_t*)payload->Data;
+			anFileSystem::path filePath(path);
+			const anFileSystem::path extension = filePath.extension();
+			if (extension == ".png" || extension == ".jpg" || extension == ".jpeg" || 
+				extension == ".bmp" || extension == ".hdr" || extension == ".psd" || 
+				extension == ".tga" || extension == ".gif" || extension == ".pic" || 
+				extension == ".psd")
+			{
+				anTexture* texture = anLoadTexture(filePath.string());
+				texture->SetScenePath(filePath.lexically_relative(anProjectManager::GetCurrentProject()->Location).string());
+
+				anEntity entity = mEditorScene->NewEntity(mNewEntityName);
+				auto& transform = entity.GetComponent<anTransformComponent>();
+				transform.Position = mExactViewportMousePosition;
+				transform.Size.x = float(int(texture->GetWidth()));
+				transform.Size.y = float(int(texture->GetHeight()));
+
+				auto& sprite = entity.AddComponent<anSpriteRendererComponent>();
+				sprite.Texture = texture;
+			}
+		}
+		ImGui::EndDragDropTarget();
+	}
+
 	ImGui::End();
 
 	ImGui::Begin("Asset Browser");
@@ -301,15 +335,15 @@ void anEditorState::OnImGuiRender()
 		{
 			if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 			{
-				if (entry.is_directory())
-					mAssetBrowserLocation /= entry.path().filename();
-
-				if (entry.path().extension().string() == ".anScene")
+				if (mLeftCtrl || mRightCtrl)
+					anFileSystem::remove_all(entry.path());
+				else
 				{
-					mEditorScenePath = entry.path().string();
-					mEditorScene = mSceneSerializer.DeserializeScene(mProjectLocation, mEditorScenePath);
-					mApplication->GetWindow()->SetTitle("anEngine2D Editor - " + mProjectName + " - " + fileName);
-					mNoScene = false;
+					if (entry.is_directory())
+						mAssetBrowserLocation /= entry.path().filename();
+
+					if (entry.path().extension() == ".anScene")
+						OpenScene(entry.path());
 				}
 			}
 		}
@@ -442,7 +476,7 @@ void anEditorState::OnScenePanel()
 		if (ImGui::BeginPopupContextWindow(0, 1))
 		{
 			if (ImGui::MenuItem("New Entity"))
-				mSelectedEntity = mEditorScene->NewEntity("Entity");
+				mSelectedEntity = mEditorScene->NewEntity(mNewEntityName);
 
 			ImGui::EndPopup();
 		}
@@ -528,7 +562,7 @@ static void DrawComponent(const anString& name, anEntity entity, UIFunction uiFu
 
 		if (open)
 		{
-			uiFunction(component);
+			uiFunction(component, entity);
 			ImGui::TreePop();
 		}
 
@@ -660,19 +694,19 @@ void anEditorState::DrawComponents(anEntity entity)
 
 	ImGui::PopItemWidth();
 
-	DrawComponent<anTransformComponent>("Transform", entity, [](auto& component)
+	DrawComponent<anTransformComponent>("Transform", entity, [](auto& component, auto& entity)
 		{
 			DrawVec2Node("Translation", component.Position);
 			DrawVec2Node("Scale", component.Size, 1.0f);
 			DrawFloatNode("Rotation", component.Rotation);
 		});
 
-	DrawComponent<anCameraComponent>("Camera", entity, [](auto& component)
+	DrawComponent<anCameraComponent>("Camera", entity, [](auto& component, auto& entity)
 		{
 			ImGui::Checkbox("Main Camera", &component.Current);
 		});
 
-	DrawComponent<anSpriteRendererComponent>("Sprite Renderer", entity, [](auto& component)	
+	DrawComponent<anSpriteRendererComponent>("Sprite Renderer", entity, [](auto& component, auto& entity)	
 		{
 			float colors[4];
 			colors[0] = (float)component.Color.R / 255.0f;
@@ -697,6 +731,9 @@ void anEditorState::DrawComponents(anEntity entity)
 					anTexture* texture = anLoadTexture(texturePath.string());
 					texture->SetScenePath(texturePath.lexically_relative(anProjectManager::GetCurrentProject()->Location).string());
 					component.Texture = texture;
+					auto& size = entity.GetComponent<anTransformComponent>().Size;
+					size.x = float(int(texture->GetWidth()));
+					size.y = float(int(texture->GetHeight()));
 				}
 				ImGui::EndDragDropTarget();
 			}
@@ -799,4 +836,12 @@ void anEditorState::CloseScene()
 bool anEditorState::SceneIsValid() const
 {
 	return mNoScene != true && mEditorScene != nullptr;
+}
+
+void anEditorState::OpenScene(const anFileSystem::path& path)
+{
+	mEditorScenePath = path;
+	mEditorScene = mSceneSerializer.DeserializeScene(mProjectLocation, mEditorScenePath);
+	mApplication->GetWindow()->SetTitle("anEngine2D Editor - " + mProjectName + " - " + path.filename().string());
+	mNoScene = false;
 }

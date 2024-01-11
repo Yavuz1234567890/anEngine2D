@@ -1,8 +1,2 @@
 ﻿<?xml version="1.0"?>
-<Scene>
-    <Entity>
-        <Tag tag="Camera"/>
-        <Transform px="-67" py="-281" sx="1" sy="1" rot="0"/>
-        <Camera current="true"/>
-    </Entity>
-</Scene>
+<Scene/>

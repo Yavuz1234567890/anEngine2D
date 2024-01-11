@@ -3,6 +3,7 @@
 
 #include "anTypes.h"
 #include "Math/anFloat2.h"
+#include "anFileSystem.h"
 
 struct anEvent
 {
@@ -16,7 +17,8 @@ struct anEvent
 		MouseWheel,
 		WindowMove,
 		WindowSize,
-		WindowClose
+		WindowClose,
+		Drop
 	};
 
 	anUInt32 Type = 0;
@@ -28,6 +30,7 @@ struct anEvent
 	int WindowY = 0;
 	int WindowWidth = 0;
 	int WindowHeight = 0;
+	anVector<anFileSystem::path> DropedFiles;
 };
 
 typedef anFunction<void(const anEvent&)> anEventCallback;

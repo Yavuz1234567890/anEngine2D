@@ -58,18 +58,18 @@ void anProjectSelectorState::OnImGuiRender()
 	if (opt_fullscreen)
 		ImGui::PopStyleVar(2);
 
+	ImGui::SetCursorPosY(60);
+	ImGui::SetCursorPosX((ImGui::GetContentRegionMax().x - ImGui::CalcTextSize(anString("Project Folder: " + mProjectFolder).c_str()).x - 150.0f) * 0.5f);
 	ImGui::Text("Project Folder: %s", mProjectFolder.c_str());
 	ImGui::SameLine();
-	if (ImGui::Button("Browse"))
-	{
+	if (ImGui::Button("Browse", { 150, 30 }))
 		anSelectFolderDialog(mProjectFolder, "Select Project Folder", mProjectFolder);
-	}
-;
+
+	ImGui::SetCursorPosX((ImGui::GetContentRegionMax().x - ImGui::CalcTextSize("Create Project Folder").x + 30.0f) * 0.5f);
 	ImGui::Checkbox("Create Project Folder", &mCreateProjectFolder);
-
-	ImGui::SameLine();
-
-	if (ImGui::Button("New Project"))
+	
+	ImGui::SetCursorPosX((ImGui::GetContentRegionMax().x - 75) * 0.5f);
+	if (ImGui::Button("New Project", { 150, 30 }))
 	{
 		anString name = "anEngine2D Project";
 		if (anShowInputBox(name, "New Project", "Project Name", name))
@@ -87,9 +87,7 @@ void anProjectSelectorState::OnImGuiRender()
 					mApplication->SetCurrentState<anEditorState>();
 				}
 				else
-				{
 					anShowMessageBox("Error", name + " project existing", anMessageBoxDialogType::Ok, anMessageBoxIconType::Error);
-				}
 			}
 			else
 			{
@@ -103,9 +101,8 @@ void anProjectSelectorState::OnImGuiRender()
 		}
 	}
 
-	ImGui::SameLine();
-
-	if (ImGui::Button("Open Project"))
+	ImGui::SetCursorPosX((ImGui::GetContentRegionMax().x - 75) * 0.5f);
+	if (ImGui::Button("Open Project", { 150, 30 }))
 	{
 		anString file;
 		if (anOpenFileDialog(file, "Open Project", mProjectExtension, "anEngine2D Project File"))

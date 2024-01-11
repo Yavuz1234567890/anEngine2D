@@ -39,12 +39,14 @@ public:
 	void SaveScene();
 	void CloseScene();
 	bool SceneIsValid() const;
+	void OpenScene(const anFileSystem::path& path);
 	
 	anEntity& GetSelectedEntity();
 
 	template<typename T>
 	void DisplayAddComponentEntry(const anString& entryName);
 private:
+	const anString mNewEntityName = "Entity";
 	anScene* mEditorScene = nullptr;
 	anCamera2D mEditorCamera;
 	anFileSystem::path mEditorScenePath;
@@ -63,13 +65,13 @@ private:
 	anFloat2 mViewportSize;
 	
 	anUInt32 mSceneState = anSceneState::Edit;
-
+	
 	anFloat2 mViewportBounds[2];
 
-	anFloat2 mViewportMousePosition;
+	anFloat2 mMousePosition;
 	anFloat2 mExactViewportMousePosition;
 	anFloat2 mLastExactViewportMousePosition;
-	anFloat2 mViewportLastMousePosition;
+	anFloat2 mLastMousePosition;
 
 	bool mDragEditorCamera = false;
 

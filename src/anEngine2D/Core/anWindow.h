@@ -165,6 +165,19 @@ public:
 		mIsRunning = false;
 	}
 
+	void OnDrop(int count, const char** paths)
+	{
+		anVector<anFileSystem::path> vpaths;
+		for (int i = 0; i < count; i++)
+			vpaths.push_back(paths[i]);
+
+		anEvent event;
+		memset(&event, 0, sizeof(anEvent));
+		event.Type = anEvent::Drop;
+		event.DropedFiles = vpaths;
+		CallEventCallback(event);
+	}
+
 protected:
 	void CallEventCallback(const anEvent& event)
 	{

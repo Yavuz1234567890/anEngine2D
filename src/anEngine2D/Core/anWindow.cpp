@@ -109,6 +109,13 @@ public:
 
 				wnd->OnWindowClose();
 			});
+
+		glfwSetDropCallback(mHandle, [](GLFWwindow* window, int count, const char** paths)
+			{
+				anGLFWWindow* wnd = (anGLFWWindow*)glfwGetWindowUserPointer(window);
+
+				wnd->OnDrop(count, paths);
+			});
 	}
 
 	~anGLFWWindow()
