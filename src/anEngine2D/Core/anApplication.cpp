@@ -3,6 +3,7 @@
 #include "Device/anTexture.h"
 #include "anFont.h"
 #include "State/anStateManager.h"
+#include "anInputSystem.h"
 
 anApplication::anApplication(const anApplicationCreationDescription& desc)
 	: mFramesPerSecond(0)
@@ -30,6 +31,8 @@ void anApplication::Start()
 	mControllerDevice.Initialize();
 	mImGui.Initialize(mWindow);
 	anRenderer2D::Get().Initialize();
+	anInputSystem::Initialize();
+	anScriptSystem::Initialize();
 	Initialize();
 
 	int fps = 0;
@@ -49,6 +52,7 @@ void anApplication::Start()
 		mControllerDevice.Update(dt);
 		mStateManager->Update(dt);
 		Update(dt);
+		anInputSystem::Update(dt);
 
 		mImGui.Start();
 		OnImGui();
@@ -63,6 +67,7 @@ void anApplication::Start()
 void anApplication::AOnEvent(const anEvent& event)
 {
 	mStateManager->OnEvent(event);
+	anInputSystem::OnEvent(event);
 	OnEvent(event);
 }
 

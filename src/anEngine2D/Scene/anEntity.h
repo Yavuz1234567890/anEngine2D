@@ -2,6 +2,7 @@
 #define AN_ENTITY_H_
 
 #include "anScene.h"
+#include "Script/anLuaScript.h"
 #include "anComponents.h"
 
 #include <entt.hpp>
@@ -37,7 +38,11 @@ public:
 		mScene->GetRegistry().remove<T>(mHandle);
 	}
 
-	const anString GetTag();
+	operator entt::entity();
+	anTransformComponent& GetTransform();
+	anString& GetTag();
+	anScene* GetScene();
+	void Destroy();
 	entt::entity GetHandle() const;
 	bool operator==(const anEntity& ent) const;
 	bool operator!=(const anEntity& ent) const;

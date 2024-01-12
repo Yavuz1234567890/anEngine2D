@@ -17,14 +17,14 @@ void anGameState::Initialize()
 	anProjectManager::LoadProject("Application.anProj");
 	mApplication->GetWindow()->SetTitle(anProjectManager::GetCurrentProject()->Name);
 
-	mScene = mSceneSerializer.DeserializeScene(anFileSystem::current_path(), anProjectManager::GetCurrentProject()->StartScene);
-	mScene->RuntimeInitialize();
-
 	const anFloat2 monitorSize = mApplication->GetWindow()->GetMonitorSize();
 	const int width = (int)monitorSize.x;
 	const int height = (int)monitorSize.y;
 
+	mScene = mSceneSerializer.DeserializeScene(anFileSystem::current_path(), anProjectManager::GetCurrentProject()->StartScene);
 	mScene->OnViewportSize((anUInt32)width, (anUInt32)height);
+	
+	mScene->RuntimeInitialize();
 }
 
 void anGameState::Update(float dt)

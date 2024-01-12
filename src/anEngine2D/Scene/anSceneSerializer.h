@@ -11,7 +11,7 @@ public:
 	~anSceneSerializer();
 
 	anScene* DeserializeScene(const anFileSystem::path& location, const anFileSystem::path& filePath);
-	void SerializeScene(anScene* scene, const anFileSystem::path& filePath);
+	void SerializeScene(const anFileSystem::path& location, anScene* scene, const anFileSystem::path& filePath);
 };
 
 #endif

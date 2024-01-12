@@ -26,6 +26,8 @@ workspace "anEngine2D"
 		"thirdparty/entt/include",
 		"thirdparty/tinyxml2",
 		"thirdparty/tinyfiledialogs",
+		"thirdparty/sol2/include",
+		"thirdparty/lua",
 		"src/anEngine2D"
 	}
 
@@ -49,6 +51,37 @@ workspace "anEngine2D"
 		{
 			"thirdparty/imgui/**.cpp",
 			"thirdparty/imgui/**.h"
+		}
+
+		filter "system:windows"
+			systemversion "latest"
+
+		filter "configurations:Debug"
+			defines "C_DEBUG"
+			runtime "Debug"
+			symbols "on"
+
+		filter "configurations:Release"
+			defines "C_RELEASE"
+			runtime "Release"
+			optimize "on"
+
+	project "Lua"
+		location "thirdparty/lua"
+		kind "StaticLib"
+		language "C++"
+		cppdialect "C++17"
+		staticruntime "off"
+
+		targetdir "bin"
+		objdir "obj"
+
+		files
+		{
+			"thirdparty/sol2/include/**.hpp",
+
+			"thirdparty/lua/**.c",
+			"thirdparty/lua/**.h"
 		}
 
 		filter "system:windows"
@@ -95,7 +128,8 @@ workspace "anEngine2D"
 
 		links
 		{
-			"ImGui"
+			"ImGui",
+			"Lua"
 		}
 
 		filter "system:windows"

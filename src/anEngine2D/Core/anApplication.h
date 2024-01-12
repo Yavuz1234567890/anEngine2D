@@ -8,6 +8,7 @@
 #include "Core/anSound.h"
 #include "anControllerDevice.h"
 #include "ImGui/anImGuiDevice.h"
+#include "Script/anScriptSystem.h"
 
 class anStateManager;
 class anState;

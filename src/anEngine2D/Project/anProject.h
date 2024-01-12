@@ -2,13 +2,14 @@
 #define AN_PROJECT_H_
 
 #include "Core/anTypes.h"
+#include "Core/anFileSystem.h"
 
 struct anProject
 {
 	anString Name;
 	anString StartScene;
-	anString Location;
-	anString FullPath;
+	anFileSystem::path Location;
+	anFileSystem::path FullPath;
 };
 
 class anProjectManager

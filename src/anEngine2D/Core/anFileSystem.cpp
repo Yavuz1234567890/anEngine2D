@@ -89,3 +89,10 @@ void anSetCurrentFolder(const anString& dir)
 	SetCurrentDirectoryA(dir.c_str());
 #endif
 }
+
+void anShellExecuteOpen(const anString& location)
+{
+#ifdef PLATFORM_WINDOWS
+	ShellExecuteA(NULL, "open", location.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+#endif
+}

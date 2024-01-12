@@ -127,4 +127,6 @@
 #define anKeyRightSuper			347
 #define anKeyMenu               348
 
+#define anKeyLast anKeyMenu
+
 #endif

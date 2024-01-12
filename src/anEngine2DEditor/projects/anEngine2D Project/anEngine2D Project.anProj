@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0"?>
 <Application>
     <Name value="anEngine2D Project"/>
-    <StartScene path="assets\test.anScene"/>
+    <StartScene path="assets\Scene.anScene"/>
 </Application>

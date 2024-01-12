@@ -18,9 +18,24 @@ anEntity::anEntity(const anEntity& other)
 {
 }
 
-const anString anEntity::GetTag()
+anEntity::operator entt::entity()
+{
+	return mHandle;
+}
+
+anTransformComponent& anEntity::GetTransform()
+{
+	return GetComponent<anTransformComponent>();
+}
+
+anString& anEntity::GetTag()
 {
 	return GetComponent<anTagComponent>().Tag;
+}
+
+anScene* anEntity::GetScene()
+{
+	return mScene;
 }
 
 entt::entity anEntity::GetHandle() const
@@ -36,4 +51,9 @@ bool anEntity::operator==(const anEntity& ent) const
 bool anEntity::operator!=(const anEntity& ent) const
 {
 	return mHandle != ent.mHandle || mScene != ent.mScene;
+}
+
+void anEntity::Destroy()
+{
+	mScene->GetRegistry().destroy(mHandle);
 }

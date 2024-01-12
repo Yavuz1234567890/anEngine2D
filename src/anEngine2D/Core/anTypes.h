@@ -50,6 +50,7 @@ using anFunction = std::function<F>;
 
 typedef std::ifstream anInputFile;
 typedef std::ofstream anOutputFile;
+typedef std::stringstream anStringStream;
 
 struct anColor
 {

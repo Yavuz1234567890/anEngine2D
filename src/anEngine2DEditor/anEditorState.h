@@ -40,7 +40,8 @@ public:
 	void CloseScene();
 	bool SceneIsValid() const;
 	void OpenScene(const anFileSystem::path& path);
-	
+	static bool IsImageFile(const anString& extension);
+
 	anEntity& GetSelectedEntity();
 
 	template<typename T>
@@ -48,6 +49,7 @@ public:
 private:
 	const anString mNewEntityName = "Entity";
 	anScene* mEditorScene = nullptr;
+	anScene* mRuntimeScene = nullptr;
 	anCamera2D mEditorCamera;
 	anFileSystem::path mEditorScenePath;
 	anEntity mSelectedEntity;
@@ -90,9 +92,8 @@ private:
 	bool mNoScene = true;
 
 	anFileSystem::path mAssetBrowserLocation;
-	
-	bool mLeftCtrl = false;
-	bool mRightCtrl = false;
+
+	bool mCtrl = false;
 };
 
 #endif

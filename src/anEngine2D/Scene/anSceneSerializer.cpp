@@ -75,8 +75,23 @@ anScene* anSceneSerializer::DeserializeScene(const anFileSystem::path& location,
 						
 						anString scenePath = child->Attribute("path");
 						anFileSystem::path path = location / scenePath;
-						component.Texture = path.empty() ? nullptr : anLoadTexture(path.string());
-						component.Texture->SetScenePath(scenePath);
+						component.Texture = scenePath.empty() ? nullptr : anLoadTexture(path.string());
+						if (component.Texture != nullptr)
+							component.Texture->SetScenePath(scenePath);
+
+						continue;
+					}
+
+					if (strcmp(child->Value(), "LuaScript") == 0)
+					{
+						auto& component = entity.AddComponent<anLuaScriptComponent>();
+
+						anString scriptPath = child->Attribute("path");
+						if (!scriptPath.empty())
+						{
+							component.Script = new anLuaScript();
+							component.Script->LoadScript(location / scriptPath, scriptPath);
+						}
 
 						continue;
 					}
@@ -90,7 +105,7 @@ anScene* anSceneSerializer::DeserializeScene(const anFileSystem::path& location,
 	return nullptr;
 }
 
-void anSceneSerializer::SerializeScene(anScene* scene, const anFileSystem::path& filePath)
+void anSceneSerializer::SerializeScene(const anFileSystem::path& location, anScene* scene, const anFileSystem::path& filePath)
 {
 	FILE* file;
 	fopen_s(&file, filePath.string().c_str(), "w");
@@ -151,7 +166,20 @@ void anSceneSerializer::SerializeScene(anScene* scene, const anFileSystem::path&
 				printer.PushAttribute("b", component.Color.B);
 				printer.PushAttribute("a", component.Color.A);
 
-				printer.PushAttribute("path", component.Texture->GetScenePath().c_str());
+				printer.PushAttribute("path", component.Texture == nullptr ? "" : component.Texture->GetScenePath().c_str());
+
+				printer.CloseElement();
+			}
+
+			if (entity.HasComponent<anLuaScriptComponent>())
+			{
+				auto& component = entity.GetComponent<anLuaScriptComponent>();
+
+				printer.OpenElement("LuaScript");
+
+				anString path = component.Script ? component.Script->GetEditorPath().string() : "";
+				printer.PushAttribute("path", path.c_str());
+
 				printer.CloseElement();
 			}
 

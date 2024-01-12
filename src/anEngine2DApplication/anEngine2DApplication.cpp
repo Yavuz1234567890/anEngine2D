@@ -5,15 +5,15 @@
 #include "Math/anMath.h"
 #include "anGameState.h"
 
-class anEngine2DEditorApplication : public anApplication
+class anEngine2DApplication : public anApplication
 {
 public:
-	anEngine2DEditorApplication()
+	anEngine2DApplication()
 		: anApplication({ "anEngine2D Application", 1200, 700, false, false })
 	{
 	}
 
-	~anEngine2DEditorApplication()
+	~anEngine2DApplication()
 	{
 	}
 
@@ -42,7 +42,7 @@ public:
 
 int anStartApplication(char** args, int argc)
 {
-	anEngine2DEditorApplication* app = new anEngine2DEditorApplication();
+	anEngine2DApplication* app = new anEngine2DApplication();
 	app->Start();
 
 	return 0;

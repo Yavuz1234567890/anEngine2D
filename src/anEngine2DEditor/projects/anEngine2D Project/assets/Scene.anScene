@@ -1,9 +1,10 @@
 ﻿<?xml version="1.0"?>
 <Scene>
     <Entity>
-        <Tag tag="Entity"/>
-        <Transform px="269" py="52" sx="450" sy="588" rot="0"/>
-        <SpriteRenderer r="255" g="255" b="255" a="255" path="assets\english2.png"/>
+        <Tag tag="Player"/>
+        <Transform px="-210" py="-132" sx="77" sy="79" rot="0"/>
+        <SpriteRenderer r="255" g="255" b="255" a="255" path=""/>
+        <LuaScript path="assets\Player Movement.lua"/>
     </Entity>
     <Entity>
         <Tag tag="Camera"/>

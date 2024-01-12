@@ -50,10 +50,29 @@ void anScene::EditorUpdate(float dt, anCamera2D& camera, anTexture* cameraIcon)
 
 void anScene::RuntimeInitialize()
 {
+	{
+		auto view = mRegistry.view<anLuaScriptComponent>();
+		for (auto entity : view)
+		{
+			auto script = view.get<anLuaScriptComponent>(entity);
+			if (script.Script)
+				script.Script->Initialize({ entity, this });
+		}
+	}
 }
 
 bool anScene::RuntimeUpdate(float dt)
 {
+	{
+		auto view = mRegistry.view<anLuaScriptComponent>();
+		for (auto entity : view)
+		{
+			auto script = view.get<anLuaScriptComponent>(entity);
+			if (script.Script)
+				script.Script->Update(dt);
+		}
+	}
+
 	anCamera2D* cam = nullptr;
 	anMatrix4 cameraView;
 	{
@@ -91,6 +110,9 @@ bool anScene::RuntimeUpdate(float dt)
 
 void anScene::OnViewportSize(anUInt32 width, anUInt32 height)
 {
+	mViewportWidth = width;
+	mViewportHeight = height;
+
 	int iWidth = (int)width;
 	int iHeight = (int)height;
 
@@ -103,7 +125,32 @@ void anScene::OnViewportSize(anUInt32 width, anUInt32 height)
 	}
 }
 
+anEntity anScene::FindEntityWithTag(const anString& tag)
+{
+	auto view = mRegistry.view<anTagComponent>();
+	for (auto entity : view)
+	{
+		const anTagComponent& tc = view.get<anTagComponent>(entity);
+		if (tc.Tag == tag)
+			return anEntity{ entity, this };
+	}
+	return {};
+}
+
 entt::registry& anScene::GetRegistry()
 {
 	return mRegistry;
+}
+
+void anScene::ReloadScripts()
+{
+	{
+		auto view = mRegistry.view<anLuaScriptComponent>();
+		for (auto entity : view)
+		{
+			auto script = view.get<anLuaScriptComponent>(entity);
+			if (script.Script)
+				script.Script->LoadScript(script.Script->GetPath(), script.Script->GetEditorPath());
+		}
+	}
 }

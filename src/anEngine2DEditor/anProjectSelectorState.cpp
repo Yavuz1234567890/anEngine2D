@@ -17,7 +17,7 @@ anProjectSelectorState::~anProjectSelectorState()
 void anProjectSelectorState::Initialize()
 {
 	mApplication->GetWindow()->SetTitle("anEngine2D Editor - Project Selector");
-	mProjectFolder = anFileSystem::current_path().string() + "\\projects";
+	mProjectFolder = anFileSystem::current_path() / "projects";
 }
 
 void anProjectSelectorState::Update(float dt)
@@ -59,11 +59,15 @@ void anProjectSelectorState::OnImGuiRender()
 		ImGui::PopStyleVar(2);
 
 	ImGui::SetCursorPosY(60);
-	ImGui::SetCursorPosX((ImGui::GetContentRegionMax().x - ImGui::CalcTextSize(anString("Project Folder: " + mProjectFolder).c_str()).x - 150.0f) * 0.5f);
-	ImGui::Text("Project Folder: %s", mProjectFolder.c_str());
+	ImGui::SetCursorPosX((ImGui::GetContentRegionMax().x - ImGui::CalcTextSize(anString("Project Folder: " + mProjectFolder.string()).c_str()).x - 150.0f) * 0.5f);
+	ImGui::Text("Project Folder: %s", mProjectFolder.string().c_str());
 	ImGui::SameLine();
 	if (ImGui::Button("Browse", { 150, 30 }))
-		anSelectFolderDialog(mProjectFolder, "Select Project Folder", mProjectFolder);
+	{
+		anString in;
+		if (anSelectFolderDialog(in, "Select Project Folder", mProjectFolder.string()))
+			mProjectFolder = in;
+	}
 
 	ImGui::SetCursorPosX((ImGui::GetContentRegionMax().x - ImGui::CalcTextSize("Create Project Folder").x + 30.0f) * 0.5f);
 	ImGui::Checkbox("Create Project Folder", &mCreateProjectFolder);
@@ -74,16 +78,16 @@ void anProjectSelectorState::OnImGuiRender()
 		anString name = "anEngine2D Project";
 		if (anShowInputBox(name, "New Project", "Project Name", name))
 		{
-			const anString projectFolder = mCreateProjectFolder ? (mProjectFolder + "\\" + name + "\\") : (mProjectFolder + "\\");
+			const anFileSystem::path projectFolder = mCreateProjectFolder ? mProjectFolder / name : mProjectFolder;
 			if (mCreateProjectFolder)
 			{
 				if (anFileSystem::create_directory(projectFolder))
 				{
 					anProjectManager::SetCurrentProject(new anProject());
-					anProjectManager::GetCurrentProject()->FullPath = projectFolder + name + ".anProj";
+					anProjectManager::GetCurrentProject()->FullPath = projectFolder / (name + ".anProj");
 					anProjectManager::GetCurrentProject()->Location = projectFolder;
 					anProjectManager::GetCurrentProject()->Name = name;
-					anProjectManager::SaveProject(anProjectManager::GetCurrentProject()->FullPath);
+					anProjectManager::SaveProject(anProjectManager::GetCurrentProject()->FullPath.string());
 					mApplication->SetCurrentState<anEditorState>();
 				}
 				else
@@ -92,10 +96,10 @@ void anProjectSelectorState::OnImGuiRender()
 			else
 			{
 				anProjectManager::SetCurrentProject(new anProject());
-				anProjectManager::GetCurrentProject()->FullPath = projectFolder + name + ".anProj";
+				anProjectManager::GetCurrentProject()->FullPath = projectFolder / (name + ".anProj");
 				anProjectManager::GetCurrentProject()->Location = projectFolder;
 				anProjectManager::GetCurrentProject()->Name = name;
-				anProjectManager::SaveProject(anProjectManager::GetCurrentProject()->FullPath);
+				anProjectManager::SaveProject(anProjectManager::GetCurrentProject()->FullPath.string());
 				mApplication->SetCurrentState<anEditorState>();
 			}
 		}

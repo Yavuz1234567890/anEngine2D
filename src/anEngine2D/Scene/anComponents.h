@@ -6,6 +6,8 @@
 #include "Device/anTexture.h"
 #include "Renderer/anCamera2D.h"
 
+class anLuaScript;
+
 struct anTagComponent
 {
 	anString Tag;
@@ -51,6 +53,14 @@ struct anCameraComponent
 
 	anCameraComponent() = default;
 	anCameraComponent(const anCameraComponent&) = default;
+};
+
+struct anLuaScriptComponent
+{
+	anLuaScript* Script;
+
+	anLuaScriptComponent() = default;
+	anLuaScriptComponent(const anLuaScriptComponent&) = default;
 };
 
 #endif

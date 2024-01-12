@@ -9,15 +9,15 @@
 
 #include <imgui/imgui.h>
 
-class anEngine2DEditorApplication : public anApplication
+class anEngine2DApplication : public anApplication
 {
 public:
-	anEngine2DEditorApplication()
+	anEngine2DApplication()
 		: anApplication({ "anEngine2D Editor", 1200, 700, true, true })
 	{
 	}
 
-	~anEngine2DEditorApplication()
+	~anEngine2DApplication()
 	{
 	}
 
@@ -98,7 +98,7 @@ public:
 
 int anStartApplication(char** args, int argc)
 {
-	anEngine2DEditorApplication* app = new anEngine2DEditorApplication();
+	anEngine2DApplication* app = new anEngine2DApplication();
 	app->Start();
 
 	return 0;

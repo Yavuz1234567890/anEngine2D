@@ -14,7 +14,7 @@ public:
 	void OnEvent(const anEvent& event) override;
 	void OnImGuiRender() override;
 private:
-	anString mProjectFolder;
+	anFileSystem::path mProjectFolder;
 	anVector<const char*> mProjectExtension = { ".anProj" };
 	bool mCreateProjectFolder = true;
 };

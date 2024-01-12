@@ -41,6 +41,7 @@ bool anSaveFileDialog(anString& in, const anString& title, const anVector<const 
 bool anOpenFileDialog(anString& in, const anString& title, const anVector<const char*>& exts, const anString& extDesc, const anString& defaultPathAndFile = "");
 bool anSelectFolderDialog(anString& in, const anString& title, const anString& defPath = "");
 void anSetCurrentFolder(const anString& dir);
+void anShellExecuteOpen(const anString& location);
 
 #include <filesystem>
 

@@ -20,10 +20,13 @@ public:
 	void RuntimeInitialize();
 	bool RuntimeUpdate(float dt);
 	void OnViewportSize(anUInt32 width, anUInt32 height);
-	
+	anEntity FindEntityWithTag(const anString& tag);
 	entt::registry& GetRegistry();
+	void ReloadScripts();
 private:
 	entt::registry mRegistry;
+	anUInt32 mViewportWidth;
+	anUInt32 mViewportHeight;
 };
 
 #endif
