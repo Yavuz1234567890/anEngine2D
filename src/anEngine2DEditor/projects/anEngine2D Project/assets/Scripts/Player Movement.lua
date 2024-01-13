@@ -29,11 +29,3 @@ function PlayerMovement.update(self, dt)
 		closeApplication()
 	end
 end
-
-
-
-
-
-
-
-

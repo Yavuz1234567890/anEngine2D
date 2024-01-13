@@ -77,6 +77,7 @@ public:
 	void StartScene();
 	void StopScene();
 	void LoadScene(const anString& path);
+	anString GetExactTextEditorSource();
 
 	anEntity& GetSelectedEntity();
 

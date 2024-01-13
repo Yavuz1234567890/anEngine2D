@@ -7,8 +7,6 @@
 #include "Core/anInputSystem.h"
 #include "Editor/anEditorFunctions.h"
 
-
-
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
@@ -283,7 +281,7 @@ void anEditorState::OnImGuiRender()
 	const anFileSystem::path& fileName = mTextEditorCurrentFilePath.filename();
 	if (!fileName.empty())
 	{
-		mIsTextEditorFileSaved = mTextEditorFileSourceCode == mTextEditor.GetText();
+		mIsTextEditorFileSaved = mTextEditorFileSourceCode == GetExactTextEditorSource();
 		ImGui::Text("Row: %d Column: %-d, %6d Lines  %s%s", cpos.mLine + 1, cpos.mColumn + 1, mTextEditor.GetTotalLines(),
 			fileName.string().c_str(),
 			!mIsTextEditorFileSaved ? "*" : " ");
@@ -1217,7 +1215,7 @@ void anEditorState::LoadScriptToTextEditor(const anFileSystem::path& path)
 	mTextEditorFileSourceCode = stream.str();
 
 	mTextEditor.SetText(mTextEditorFileSourceCode);
-	mTextEditorFileSourceCode = mTextEditor.GetText();
+	mTextEditorFileSourceCode = GetExactTextEditorSource();
 
 	mTextEditor.SetHandleKeyboardInputs(true);
 	mTextEditor.SetHandleMouseInputs(true);
@@ -1227,10 +1225,12 @@ void anEditorState::SaveTextEditorFile()
 {
 	if (IsTextEditorHaveFile())
 	{
-		mTextEditorFileSourceCode = mTextEditor.GetText();
-
+		const anString src = GetExactTextEditorSource();
+		
+		mTextEditorFileSourceCode = src;
+		
 		anOutputFile file{ mTextEditorCurrentFilePath };
-		file << mTextEditor.GetText();
+		file << src;
 	}
 }
 
@@ -1328,4 +1328,13 @@ void anEditorState::LoadScene(const anString& path)
 	mEditorScenePath = path;
 	mEditorScene = mSceneSerializer.DeserializeScene(mProjectLocation, anFileSystem::path{ path });
 	mNoScene = false;
+}
+
+anString anEditorState::GetExactTextEditorSource()
+{
+	anString src = mTextEditor.GetText();
+	if (src.back() == '\n')
+		src.pop_back();
+
+	return src;
 }
