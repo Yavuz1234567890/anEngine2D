@@ -1,7 +1,5 @@
 #include "anEditorFunctions.h"
 
-#ifdef AN_EDITOR
-
 namespace anEditorFunctions
 {
 	static struct
@@ -31,6 +29,10 @@ namespace anEditorFunctions
 		if (sFunctions.LoadSceneFunction)
 			sFunctions.LoadSceneFunction(scene);
 	}
-}
 
-#endif
+	void DefineEditorFunctions(sol::state& state)
+	{
+		state.set_function("closeApplication", [&]() { anEditorFunctions::CloseApplication(); });
+		state.set_function("loadScene", [&](const char* msg) { anEditorFunctions::LoadScene(msg); });
+	}
+}

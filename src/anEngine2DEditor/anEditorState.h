@@ -1,8 +1,6 @@
 #ifndef AN_EDITOR_STATE_H_
 #define AN_EDITOR_STATE_H_
 
-#define EDITOR
-
 #include "State/anState.h"
 #include "Scene/anScene.h"
 #include "Device/anFramebuffer.h"

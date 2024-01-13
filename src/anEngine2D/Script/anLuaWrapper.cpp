@@ -103,10 +103,7 @@ void anLuaWrapper::WrapEngine()
 	mLua.set_function("logError", [&](const char* msg) { anUserError(msg); });
 	mLua.set_function("logWarning", [&](const char* msg) { anUserWarning(msg); });
 
-#ifdef EDITOR
-	mLua.set_function("closeApplication", [&]() { anEditorFunctions::CloseApplication(); });
-	mLua.set_function("loadScene", [&](const char* msg) { anEditorFunctions::LoadScene(msg); });
-#endif
+	anEditorFunctions::DefineEditorFunctions(mLua);
 
 	auto transform = mLua.new_usertype<anTransformComponent>(
 		"anTransform",
