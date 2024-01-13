@@ -151,6 +151,30 @@ entt::registry& anScene::GetRegistry()
 	return mRegistry;
 }
 
+template<typename... Component>
+static void CopyComponentIfExists(anEntity dst, anEntity src)
+{
+	([&]()
+		{
+			if (src.HasComponent<Component>())
+				dst.AddOrReplaceComponent<Component>(src.GetComponent<Component>());
+		}(), ...);
+}
+
+template<typename... Component>
+static void CopyComponentIfExists(anComponentGroup<Component...>, anEntity dst, anEntity src)
+{
+	CopyComponentIfExists<Component...>(dst, src);
+}
+
+anEntity anScene::CopyEntity(anEntity entity)
+{
+	const anString tag = entity.GetTag();
+	anEntity ent = NewEntity(tag);
+	CopyComponentIfExists(anAllComponents{}, ent, entity);
+	return ent;
+}
+
 void anScene::ReloadScripts()
 {
 	{

@@ -1,11 +1,14 @@
 PlayerMovement = {}
 
+scriptScene = {}
+
 function PlayerMovement.setup()
 	local obj = {}
 	return obj
 end
 
 function PlayerMovement.initialize(self)
+	scriptScene = self.owner:scene()
 end
 
 function PlayerMovement.update(self, dt)
@@ -26,6 +29,8 @@ function PlayerMovement.update(self, dt)
 	end
 
 	if (isKeyDown(32)) then
-		closeApplication()
+		entity = scriptScene:findEntity("Entity")
+		newEntity = entity:copy()
+		newEntity:transform().position = self.owner:transform().position
 	end
 end

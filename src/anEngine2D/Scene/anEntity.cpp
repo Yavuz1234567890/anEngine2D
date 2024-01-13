@@ -62,3 +62,8 @@ void anEntity::Destroy()
 {
 	mScene->DestroyEntity(*this);
 }
+
+anEntity anEntity::Copy()
+{
+	return mScene->CopyEntity(*this);
+}

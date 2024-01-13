@@ -122,7 +122,8 @@ void anLuaWrapper::WrapEngine()
 		"tag", &anEntity::GetTag,
 		"transform", &anEntity::GetTransform,
 		"scene", &anEntity::GetScene,
-		"destroy", &anEntity::Destroy
+		"destroy", &anEntity::Destroy,
+		"copy", &anEntity::Copy
 	);
 }
 

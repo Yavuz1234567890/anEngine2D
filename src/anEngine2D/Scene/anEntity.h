@@ -20,6 +20,12 @@ public:
 		return mScene->GetRegistry().emplace<T>(mHandle, std::forward<Args>(args)...);;
 	}
 
+	template<typename T, typename... Args>
+	T& AddOrReplaceComponent(Args&&... args)
+	{
+		return mScene->GetRegistry().emplace_or_replace<T>(mHandle, std::forward<Args>(args)...);
+	}
+
 	template<typename T>
 	T& GetComponent()
 	{
@@ -44,6 +50,7 @@ public:
 	anString& GetTag();
 	anScene* GetScene();
 	void Destroy();
+	anEntity Copy();
 	entt::entity GetHandle() const;
 	bool operator==(const anEntity& ent) const;
 	bool operator!=(const anEntity& ent) const;

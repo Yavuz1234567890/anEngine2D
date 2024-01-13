@@ -25,6 +25,7 @@ public:
 	anEntity FindEntityWithTag(const anString& tag);
 	entt::registry& GetRegistry();
 	void ReloadScripts();
+	anEntity CopyEntity(anEntity entity);
 	
 	static anScene* Copy(anScene* ref);
 private:

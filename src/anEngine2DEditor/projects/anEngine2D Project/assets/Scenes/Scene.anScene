@@ -1,16 +1,22 @@
 ﻿<?xml version="1.0"?>
 <Scene>
     <Entity>
-        <UUID uuid="1391393102916834223"/>
+        <UUID uuid="11405274601954494688"/>
+        <Tag tag="Entity"/>
+        <Transform px="0" py="0" sx="10" sy="10" rot="0"/>
+        <SpriteRenderer r="255" g="0" b="0" a="255" path=""/>
+    </Entity>
+    <Entity>
+        <UUID uuid="2485098640474"/>
+        <Tag tag="Camera"/>
+        <Transform px="0" py="0" sx="1" sy="1" rot="0"/>
+        <Camera current="true"/>
+    </Entity>
+    <Entity>
+        <UUID uuid="2485098640181"/>
         <Tag tag="Sprite"/>
         <Transform px="0" py="0" sx="50" sy="50" rot="0"/>
         <SpriteRenderer r="255" g="255" b="255" a="255" path=""/>
         <LuaScript path="assets\Scripts\Player Movement.lua"/>
-    </Entity>
-    <Entity>
-        <UUID uuid="3604533363023638163"/>
-        <Tag tag="Camera"/>
-        <Transform px="0" py="0" sx="1" sy="1" rot="0"/>
-        <Camera current="true"/>
     </Entity>
 </Scene>
