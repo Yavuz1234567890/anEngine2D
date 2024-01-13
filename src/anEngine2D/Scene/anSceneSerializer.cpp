@@ -77,7 +77,7 @@ anScene* anSceneSerializer::DeserializeScene(const anFileSystem::path& location,
 						anFileSystem::path path = location / scenePath;
 						component.Texture = scenePath.empty() ? nullptr : anLoadTexture(path.string());
 						if (component.Texture != nullptr)
-							component.Texture->SetScenePath(scenePath);
+							component.Texture->SetEditorPath(scenePath);
 
 						continue;
 					}
@@ -166,7 +166,7 @@ void anSceneSerializer::SerializeScene(const anFileSystem::path& location, anSce
 				printer.PushAttribute("b", component.Color.B);
 				printer.PushAttribute("a", component.Color.A);
 
-				printer.PushAttribute("path", component.Texture == nullptr ? "" : component.Texture->GetScenePath().c_str());
+				printer.PushAttribute("path", component.Texture == nullptr ? "" : component.Texture->GetEditorPath().c_str());
 
 				printer.CloseElement();
 			}

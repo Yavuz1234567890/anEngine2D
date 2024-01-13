@@ -6,6 +6,10 @@ bool anInputSystem::sKeys[anKeyLast];
 bool anInputSystem::sKeysDown[anKeyLast];
 bool anInputSystem::sKeysUp[anKeyLast];
 
+bool anInputSystem::sMouseButtons[8];
+bool anInputSystem::sMouseButtonsDown[8];
+bool anInputSystem::sMouseButtonsUp[8];
+
 void anInputSystem::Initialize()
 {
 	for (int i = 0; i < anKeyLast; i++)
@@ -13,6 +17,13 @@ void anInputSystem::Initialize()
 		sKeys[i] = false;
 		sKeysDown[i] = false;
 		sKeysUp[i] = false;
+	}
+
+	for (int i = 0; i < 8; i++)
+	{
+		sMouseButtons[i] = false;
+		sMouseButtonsDown[i] = false;
+		sMouseButtonsUp[i] = false;
 	}
 }
 
@@ -22,6 +33,12 @@ void anInputSystem::Update(float dt)
 	{
 		sKeysDown[i] = false;
 		sKeysUp[i] = false;
+	}
+
+	for (int i = 0; i < 8; i++)
+	{
+		sMouseButtonsDown[i] = false;
+		sMouseButtonsUp[i] = false;
 	}
 }
 
@@ -41,6 +58,18 @@ void anInputSystem::OnEvent(const anEvent& event)
 		sKeys[event.KeyCode] = false;
 		sKeysUp[event.KeyCode] = true;
 	}
+
+	if (event.Type == anEvent::MouseDown)
+	{
+		sMouseButtons[event.MouseButton] = true;
+		sMouseButtonsDown[event.MouseButton] = true;
+	}
+
+	if (event.Type == anEvent::MouseUp)
+	{
+		sMouseButtons[event.MouseButton] = false;
+		sMouseButtonsUp[event.MouseButton] = true;
+	}
 }
 
 bool anInputSystem::IsKey(int key)
@@ -56,6 +85,21 @@ bool anInputSystem::IsKeyDown(int key)
 bool anInputSystem::IsKeyUp(int key)
 {
 	return sKeysUp[key];
+}
+
+bool anInputSystem::IsMouseButton(int button)
+{
+	return sMouseButtons[button];
+}
+
+bool anInputSystem::IsMouseButtonDown(int button)
+{
+	return sMouseButtonsDown[button];
+}
+
+bool anInputSystem::IsMouseButtonUp(int button)
+{
+	return sMouseButtonsUp[button];
 }
 
 anFloat2 anInputSystem::GetMousePosition()

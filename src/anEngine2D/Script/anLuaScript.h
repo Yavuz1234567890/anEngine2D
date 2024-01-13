@@ -17,6 +17,7 @@ public:
 	void Update(float dt);
 	const anFileSystem::path& GetPath() const;
 	const anFileSystem::path& GetEditorPath() const;
+	void SetEditorPath(const anFileSystem::path& path);
 private:
 	anFileSystem::path mScriptPath;
 	anFileSystem::path mEditorPath;

@@ -1,7 +1,7 @@
 #include "anGameState.h"
-
 #include "Project/anProject.h"
 #include "Device/anGPUCommands.h"
+#include "Editor/anEditorFunctions.h"
 
 anGameState::anGameState(anApplication* app)
 	: anState(app)
@@ -14,6 +14,14 @@ anGameState::~anGameState()
 
 void anGameState::Initialize()
 {
+	{
+		auto closeApplication = [this]() { mApplication->GetWindow()->Close(); };
+		auto loadScene = [this](const anString& path) { mScene = mSceneSerializer.DeserializeScene(anFileSystem::current_path(), path); };
+
+		anEditorFunctions::SetCloseApplication(closeApplication);
+		anEditorFunctions::SetLoadScene(loadScene);
+	}
+
 	anProjectManager::LoadProject("Application.anProj");
 	mApplication->GetWindow()->SetTitle(anProjectManager::GetCurrentProject()->Name);
 

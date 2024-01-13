@@ -84,11 +84,6 @@ public:
 
 	void OnEvent(const anEvent& event) override
 	{
-		if (event.Type == anEvent::KeyDown)
-		{
-			if (event.KeyCode == anKeyEscape)
-				mWindow->Close();
-		}
 	}
 
 	void OnImGuiRender() override

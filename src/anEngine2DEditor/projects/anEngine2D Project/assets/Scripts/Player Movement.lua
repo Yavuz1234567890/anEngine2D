@@ -2,7 +2,6 @@ PlayerMovement = {}
 
 function PlayerMovement.setup()
 	local obj = {}
-
 	return obj
 end
 
@@ -25,4 +24,16 @@ function PlayerMovement.update(self, dt)
 	if (isKey(68)) then
 		self.owner:transform().position.x = self.owner:transform().position.x + 1
 	end
+
+	if (isKeyDown(32)) then
+		closeApplication()
+	end
 end
+
+
+
+
+
+
+
+

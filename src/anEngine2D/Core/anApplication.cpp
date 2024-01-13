@@ -4,10 +4,15 @@
 #include "anFont.h"
 #include "State/anStateManager.h"
 #include "anInputSystem.h"
+#include "anMessage.h"
+
+static anApplication* sInstance = nullptr;
 
 anApplication::anApplication(const anApplicationCreationDescription& desc)
 	: mFramesPerSecond(0)
 {
+	sInstance = this;
+
 	mApplicationDesc = desc;
 	mLogFile.open(desc.Title + ".log");
 }
@@ -21,6 +26,19 @@ void anApplication::Start()
 	mStateManager = new anStateManager(this);
 
 	auto onEvent = [this](const anEvent& event) { AOnEvent(event); };
+
+	{
+		auto editorInfo = [this](const anString& msg) { EditorInfo(msg); };
+		auto editorError = [this](const anString& msg) { EditorError(msg); };
+		auto editorWarning = [this](const anString& msg) { EditorWarning(msg); };
+
+		auto userInfo = [this](const anString& msg) { UserInfo(msg); };
+		auto userError = [this](const anString& msg) { UserError(msg); };
+		auto userWarning = [this](const anString& msg) { UserWarning(msg); };
+
+		anSetDefaultEditorLogCallback({ editorInfo, editorError, editorWarning });
+		anSetDefaultUserLogCallback({ userInfo, userError, userWarning });
+	}
 
 	mWindow = anCreateWindow(mApplicationDesc.Title, mApplicationDesc.Width, mApplicationDesc.Height, onEvent, mApplicationDesc.WindowResizable, mApplicationDesc.WindowMaximized);
 	anTexture::Initialize();
@@ -108,4 +126,51 @@ int anApplication::GetFramesPerSecond() const
 anControllerDevice anApplication::GetControllerDevice()
 {
 	return mControllerDevice;
+}
+
+void anApplication::EditorInfo(const anString& msg)
+{
+	const anString s = "[Info] From: Editor, " + msg;
+	anMessage(s);
+	LogWrite(s);
+}
+
+void anApplication::EditorError(const anString& msg)
+{
+	const anString s = "[Error] From: Editor, " + msg;
+	anMessage(s);
+	LogWrite(s);
+}
+
+void anApplication::EditorWarning(const anString& msg)
+{
+	const anString s = "[Warning] From: Editor, " + msg;
+	anMessage(s);
+	LogWrite(s);
+}
+
+void anApplication::UserInfo(const anString& msg)
+{
+	const anString s = "[Info] From: User, " + msg;
+	anMessage(s);
+	LogWrite(s);
+}
+
+void anApplication::UserError(const anString& msg)
+{
+	const anString s = "[Error] From: User, " + msg;
+	anMessage(s);
+	LogWrite(s);
+}
+
+void anApplication::UserWarning(const anString& msg)
+{
+	const anString s = "[Warning] From: User, " + msg;
+	anMessage(s);
+	LogWrite(s);
+}
+
+anApplication* anApplication::Get()
+{
+	return sInstance;
 }

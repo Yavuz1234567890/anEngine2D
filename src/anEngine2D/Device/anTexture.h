@@ -57,15 +57,15 @@ public:
 	anUInt32 GetFormat() const;
 	const void* GetData() const;
 	void SetID(anUInt32 id);
-	anString GetScenePath() const;
-	void SetScenePath(const anString& path);
+	anString GetEditorPath() const;
+	void SetEditorPath(const anString& path);
 public:
 	static void Initialize();
 	static anTexture* GetWhiteTexture();
 private:
 	anUInt32 mID;
 	anTextureCreationSpecification mSpecification;
-	anString mScenePath;
+	anString mEditorPath;
 };
 
 anTexture* anLoadTexture(const anString& path);

@@ -9,6 +9,7 @@
 #include "anControllerDevice.h"
 #include "ImGui/anImGuiDevice.h"
 #include "Script/anScriptSystem.h"
+#include "anLog.h"
 
 class anStateManager;
 class anState;
@@ -42,6 +43,7 @@ public:
 	int GetFramesPerSecond() const;
 	void SetCurrentState(anState* state);
 	anState* GetCurrentState();
+	static anApplication* Get();
 
 	template<class T>
 	void SetCurrentState()
@@ -49,6 +51,13 @@ public:
 		SetCurrentState(new T(this));
 	}
 
+private:
+	void EditorInfo(const anString& msg);
+	void EditorError(const anString& msg);
+	void EditorWarning(const anString& msg);
+	void UserInfo(const anString& msg);
+	void UserError(const anString& msg);
+	void UserWarning(const anString& msg);
 private:
 	anImGuiDevice mImGui;
 protected:

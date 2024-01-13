@@ -5,9 +5,22 @@
 #include "Project/anProject.h"
 #include "Core/anMessage.h"
 #include "Core/anInputSystem.h"
+#include "Editor/anEditorFunctions.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+
+static anString LogTypeToString(anUInt32 type)
+{
+	switch (type)
+	{
+	case anLogType::Error: return "Error";
+	case anLogType::Info: return "Info";
+	case anLogType::Warning: return "Warning";
+	}
+
+	return "";
+}
 
 anEditorState::anEditorState(anApplication* app)
 	: anState(app)
@@ -20,6 +33,14 @@ anEditorState::~anEditorState()
 
 void anEditorState::Initialize()
 {
+	{
+		auto closeApplication = [this]() { if (mSceneState == anSceneState::Runtime)StopScene(); };
+		auto loadScene = [this](const anString& path) { LoadScene(path); };
+
+		anEditorFunctions::SetCloseApplication(closeApplication);
+		anEditorFunctions::SetLoadScene(loadScene);
+	}
+
 	mPlayButtonTexture = anLoadTexture("icons/playbutton.png");
 	mStopButtonTexture = anLoadTexture("icons/stopbutton.png");
 	mCameraIconTexture = anLoadTexture("icons/cameraicon.png");
@@ -60,6 +81,26 @@ void anEditorState::Initialize()
 	}
 
 	mGizmoSystem.Initialize(this);
+
+	mTextEditor.SetLanguageDefinition(TextEditor::LanguageDefinition::Lua());
+	mTextEditor.SetHandleKeyboardInputs(false);
+	mTextEditor.SetHandleMouseInputs(false);
+
+	{
+		auto editorInfo = [this](const anString& msg) { EditorInfo(msg); };
+		auto editorError = [this](const anString& msg) { EditorError(msg); };
+		auto editorWarning = [this](const anString& msg) { EditorWarning(msg); };
+
+		auto userInfo = [this](const anString& msg) { UserInfo(msg); };
+		auto userError = [this](const anString& msg) { UserError(msg); };
+		auto userWarning = [this](const anString& msg) { UserWarning(msg); };
+
+		anSetEditorLogCallback({ editorInfo, editorError, editorWarning });
+		anSetEditorUserLogCallback({ userInfo, userError, userWarning });
+	}
+
+	anEditorInfo("Engine initialized");
+	anEditorInfo("Welcome to anEngine2D");
 }
 
 void anEditorState::Update(float dt)
@@ -140,13 +181,23 @@ void anEditorState::OnEvent(const anEvent& event)
 			if (event.KeyCode == anKeyS)
 			{
 				if (mCtrl)
-					SaveScene();
+				{
+					if (mTextEditor.IsTextBoxFocused())
+						SaveTextEditorFile();
+					else
+						SaveScene();
+				}
 			}
 
 			if (event.KeyCode == anKeyW)
 			{
 				if (mCtrl)
-					CloseScene();
+				{
+					if (mTextEditor.IsTextBoxFocused())
+						CloseTextEditorScript();
+					else
+						CloseScene();
+				}
 			}
 
 			if (event.KeyCode == anKeyR)
@@ -157,7 +208,7 @@ void anEditorState::OnEvent(const anEvent& event)
 
 			if (event.KeyCode == anKeyDelete)
 			{
-				if (GImGui->ActiveId == 0)
+				if (GImGui->ActiveId == 0 && (mSceneWindowFocused || mViewportWindowFocused || mEntityWindowFocused))
 				{
 					anEntity ent = mSelectedEntity;
 					if (ent.GetHandle() != entt::null)
@@ -199,11 +250,7 @@ void anEditorState::OnImGuiRender()
 				if (mNoScene)
 					anShowMessageBox("Error", "The current scene is fresh scene", anMessageBoxDialogType::OkCancel, anMessageBoxIconType::Error);
 				else
-				{
-					mProjectStartScenePath = mEditorScenePath.lexically_relative(mProjectLocation);
-					anProjectManager::GetCurrentProject()->StartScene = mProjectStartScenePath.string();
-					anProjectManager::SaveProject(anProjectManager::GetCurrentProject()->FullPath.string());
-				}
+					SetStartingScene(mEditorScenePath.lexically_relative(mProjectLocation));
 			}
 
 			ImGui::EndMenu();
@@ -226,7 +273,43 @@ void anEditorState::OnImGuiRender()
 		ImGui::EndMenuBar();
 	}
 
+	ImGui::Begin("Script Editor");
+	mTextEditorWindowFocused = ImGui::IsWindowFocused() || mTextEditor.IsTextBoxFocused();
+
+	auto cpos = mTextEditor.GetCursorPosition();
+
+	const anFileSystem::path& fileName = mTextEditorCurrentFilePath.filename();
+	if (!fileName.empty())
+	{
+		mIsTextEditorFileSaved = mTextEditorFileSourceCode == mTextEditor.GetText();
+		ImGui::Text("Row: %d Column: %-d, %6d Lines  %s%s", cpos.mLine + 1, cpos.mColumn + 1, mTextEditor.GetTotalLines(),
+			fileName.string().c_str(),
+			!mIsTextEditorFileSaved ? "*" : " ");
+
+		ImGui::SameLine();
+
+		ImGui::Checkbox("Is Readonly", &mIsTextEditorFileReadonly);
+		mTextEditor.SetReadOnly(mIsTextEditorFileReadonly);
+	}
+
+	mTextEditor.Render("ScriptEditor");
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+		{
+			const wchar_t* path = (const wchar_t*)payload->Data;
+			anFileSystem::path filePath(path);
+			const anFileSystem::path extension = filePath.extension();
+			if (extension == ".lua")
+				LoadScriptToTextEditor(filePath);
+		}
+		ImGui::EndDragDropTarget();
+	}
+
+	ImGui::End();
+
 	ImGui::Begin("Scene");
+	mSceneWindowFocused = ImGui::IsWindowFocused();
 	if (SceneIsValid())
 	{
 		DrawToolbar();
@@ -236,12 +319,36 @@ void anEditorState::OnImGuiRender()
 	ImGui::End();
 
 	ImGui::Begin("Entity");
+	mEntityWindowFocused = ImGui::IsWindowFocused();
+
 	if (SceneIsValid())
 		OnEntityPanel();
 
 	ImGui::End();
 
+	ImGui::Begin("Console");
+	if (ImGui::Button("Clear", { 60, 30 }))
+		mLogs.clear();
+
+	ImGui::Separator();
+
+	for (const auto data : mLogs)
+	{
+		switch (data.Type)
+		{
+		case anLogType::Error: ImGui::PushStyleColor(ImGuiCol_Text, {1.0f, 0.0f, 0.0f, 1.0f}); break;
+		case anLogType::Info: ImGui::PushStyleColor(ImGuiCol_Text, { 0.0f, 1.0f, 0.0f, 1.0f }); break;
+		case anLogType::Warning: ImGui::PushStyleColor(ImGuiCol_Text, { 0.9f, 0.9f, 0.0f, 1.0f }); break;
+		}
+
+		ImGui::Text("[%s] From: %s, %s", LogTypeToString(data.Type).c_str(), data.From.c_str(), data.Message.c_str());
+		ImGui::PopStyleColor();
+	}
+
+	ImGui::End();
+
 	ImGui::Begin("Viewport");
+	mViewportWindowFocused = ImGui::IsWindowFocused();
 
 	auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
 	auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
@@ -264,7 +371,7 @@ void anEditorState::OnImGuiRender()
 			if (IsImageFile(extension.string()))
 			{
 				anTexture* texture = anLoadTexture(filePath.string());
-				texture->SetScenePath(filePath.lexically_relative(anProjectManager::GetCurrentProject()->Location).string());
+				texture->SetEditorPath(filePath.lexically_relative(anProjectManager::GetCurrentProject()->Location).string());
 
 				anEntity entity = mEditorScene->NewEntity(mNewEntityName);
 				auto& transform = entity.GetComponent<anTransformComponent>();
@@ -282,6 +389,7 @@ void anEditorState::OnImGuiRender()
 	ImGui::End();
 
 	ImGui::Begin("Asset Browser");
+	mAssetBrowserWindowFocused = ImGui::IsWindowFocused();
 
 	if (mAssetBrowserLocation != mProjectAssetsLocation)
 	{
@@ -294,7 +402,9 @@ void anEditorState::OnImGuiRender()
 			{
 				const wchar_t* path = (const wchar_t*)payload->Data;
 				anFileSystem::path filePath(path);
-				anFileSystem::rename(filePath, mAssetBrowserLocation.parent_path() / filePath.filename());
+				const anFileSystem::path newPath = mAssetBrowserLocation.parent_path() / filePath.filename();
+				MoveFileItem(filePath, mAssetBrowserLocation.parent_path());
+				OnAssetBrowserItemMove(filePath, newPath);
 			}
 			ImGui::EndDragDropTarget();
 		}
@@ -333,7 +443,9 @@ void anEditorState::OnImGuiRender()
 				{
 					const wchar_t* path = (const wchar_t*)payload->Data;
 					anFileSystem::path filePath(path);
-					anFileSystem::rename(filePath, entry.path() / filePath.filename());
+					const anFileSystem::path newPath = entry.path() / filePath.filename();
+					MoveFileItem(filePath, entry.path());
+					OnAssetBrowserItemMove(filePath, newPath);
 				}
 				ImGui::EndDragDropTarget();
 			}
@@ -354,7 +466,10 @@ void anEditorState::OnImGuiRender()
 			if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 			{
 				if (mCtrl)
+				{
+					OnAssetBrowserItemRemove(entry.path());
 					anFileSystem::remove_all(entry.path());
+				}
 				else
 				{
 					if (entry.is_directory())
@@ -362,6 +477,11 @@ void anEditorState::OnImGuiRender()
 
 					if (entry.path().extension() == ".anScene")
 						OpenScene(entry.path());
+					else if(entry.path().extension() == ".lua")
+					{
+						LoadScriptToTextEditor(entry.path());
+						mEditorScene->ReloadScripts();
+					}
 				}
 			}
 		}
@@ -770,7 +890,7 @@ void anEditorState::DrawComponents(anEntity entity)
 					transform.Size.x = float(int(texture->GetWidth()));
 					transform.Size.y = float(int(texture->GetHeight()));
 
-					texture->SetScenePath(filePath.lexically_relative(anProjectManager::GetCurrentProject()->Location).string());
+					texture->SetEditorPath(filePath.lexically_relative(anProjectManager::GetCurrentProject()->Location).string());
 					component.Texture = texture;
 				}
 			}
@@ -838,7 +958,7 @@ void anEditorState::DrawComponents(anEntity entity)
 					if (IsImageFile(extension.string()))
 					{
 						anTexture* texture = anLoadTexture(texturePath.string());
-						texture->SetScenePath(texturePath.lexically_relative(anProjectManager::GetCurrentProject()->Location).string());
+						texture->SetEditorPath(texturePath.lexically_relative(anProjectManager::GetCurrentProject()->Location).string());
 						component.Texture = texture;
 						auto& size = entity.GetComponent<anTransformComponent>().Size;
 						size.x = float(int(texture->GetWidth()));
@@ -849,7 +969,7 @@ void anEditorState::DrawComponents(anEntity entity)
 			}
 
 			ImGui::SameLine();
-			ImGui::Text(component.Texture == nullptr ? "No Texture" : component.Texture->GetScenePath().c_str());
+			ImGui::Text(component.Texture == nullptr ? "No Texture" : component.Texture->GetEditorPath().c_str());
 		});
 
 	DrawComponent<anLuaScriptComponent>("Lua Script", entity, [](auto& component, auto& entity)
@@ -913,16 +1033,9 @@ void anEditorState::DrawToolbar()
 	if (ImGui::ImageButton((ImTextureID)(uint64_t)icon->GetID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f)) && toolbarEnabled)
 	{
 		if (mSceneState == anSceneState::Edit)
-		{
-			mRuntimeScene = mEditorScene;
-			mEditorScene->RuntimeInitialize();
-			mSceneState = anSceneState::Runtime;
-		}
+			StartScene();
 		else if (mSceneState == anSceneState::Runtime)
-		{
-			mEditorScene = mRuntimeScene;
-			mSceneState = anSceneState::Edit;
-		}
+			StopScene();
 	}
 
 	ImGui::SameLine();
@@ -988,4 +1101,229 @@ bool anEditorState::IsImageFile(const anString& extension)
 		extension == ".bmp" || extension == ".hdr" || extension == ".psd" ||
 		extension == ".tga" || extension == ".gif" || extension == ".pic" ||
 		extension == ".psd";
+}
+
+void anEditorState::OnAssetBrowserItemMove(const anFileSystem::path& oldPath, const anFileSystem::path& newPath)
+{
+	const anFileSystem::path& oldEditorPath = oldPath.lexically_relative(mProjectLocation);
+	const anFileSystem::path& newEditorPath = newPath.lexically_relative(mProjectLocation);
+	if (IsImageFile(oldEditorPath.extension().string()))
+	{
+		auto view = mEditorScene->GetRegistry().view<anSpriteRendererComponent>();
+		for(auto entity : view)
+		{
+			auto& component = view.get<anSpriteRendererComponent>(entity);
+			if (!component.Texture)
+				continue;
+
+			if (component.Texture->GetEditorPath() == oldEditorPath)
+				component.Texture->SetEditorPath(newEditorPath.string());
+		}
+	}
+	else if (oldEditorPath.extension() == ".lua")
+	{
+		auto view = mEditorScene->GetRegistry().view<anLuaScriptComponent>();
+		for (auto entity : view)
+		{
+			auto& component = view.get<anLuaScriptComponent>(entity);
+			if (!component.Script)
+				continue;
+
+			if (component.Script->GetEditorPath() == oldEditorPath)
+				component.Script->SetEditorPath(newEditorPath);
+		}
+	}
+	else if (oldEditorPath.extension() == ".anScene")
+	{
+		if (mEditorScenePath == oldPath)
+			mEditorScenePath = newPath;
+
+		if (anProjectManager::GetCurrentProject()->StartScene == oldEditorPath)
+			SetStartingScene(newEditorPath);
+	}
+}
+
+void anEditorState::MoveFileItem(const anFileSystem::path& fileName, const anFileSystem::path& newFolder)
+{
+	const anFileSystem::path newPath = newFolder / fileName.filename();
+	if (anFileSystem::exists(newPath))
+		anShowMessageBox("Error", newPath.filename().string() + " is exist item", anMessageBoxDialogType::OkCancel, anMessageBoxIconType::Error);
+	else
+		anFileSystem::rename(fileName, newPath);
+}
+
+void anEditorState::OnAssetBrowserItemRemove(const anFileSystem::path& fileName)
+{
+	const anFileSystem::path path = fileName.lexically_relative(mProjectLocation);
+	if (IsImageFile(path.extension().string()))
+	{
+		auto view = mEditorScene->GetRegistry().view<anSpriteRendererComponent>();
+		for (auto entity : view)
+		{
+			auto& component = view.get<anSpriteRendererComponent>(entity);
+			if (!component.Texture)
+				continue;
+	
+			if (component.Texture->GetEditorPath() == path)
+				component.Texture = nullptr;
+		}
+	}
+	else if (path.extension() == ".lua")
+	{
+		if (mTextEditorCurrentFilePath == path)
+			CloseTextEditorScript();
+
+		auto view = mEditorScene->GetRegistry().view<anLuaScriptComponent>();
+		for (auto entity : view)
+		{
+			auto& component = view.get<anLuaScriptComponent>(entity);
+			if (!component.Script)
+				continue;
+	
+			if (component.Script->GetEditorPath() == path)
+				component.Script = nullptr;
+		}
+	}
+	else if (path.extension() == ".anScene")
+	{
+		if (mEditorScenePath == fileName)
+			CloseScene();
+	
+		if (anProjectManager::GetCurrentProject()->StartScene == path)
+			SetStartingScene("");
+	}
+}
+
+void anEditorState::SetStartingScene(const anFileSystem::path& path)
+{
+	mProjectStartScenePath = path;
+	anProjectManager::GetCurrentProject()->StartScene = mProjectStartScenePath.string();
+	anProjectManager::SaveProject(anProjectManager::GetCurrentProject()->FullPath.string());
+}
+
+void anEditorState::LoadScriptToTextEditor(const anFileSystem::path& path)
+{
+	mTextEditorCurrentFilePath = path;
+
+	anInputFile file{ path };
+	if (!file.good())
+		anShowMessageBox("Error", path.string() + " couldn't opened", anMessageBoxDialogType::OkCancel, anMessageBoxIconType::Error);
+
+	anStringStream stream;
+	stream << file.rdbuf();
+
+	mTextEditorFileSourceCode = stream.str();
+
+	mTextEditor.SetText(mTextEditorFileSourceCode);
+	mTextEditorFileSourceCode = mTextEditor.GetText();
+
+	mTextEditor.SetHandleKeyboardInputs(true);
+	mTextEditor.SetHandleMouseInputs(true);
+}
+
+void anEditorState::SaveTextEditorFile()
+{
+	if (IsTextEditorHaveFile())
+	{
+		mTextEditorFileSourceCode = mTextEditor.GetText();
+
+		anOutputFile file{ mTextEditorCurrentFilePath };
+		file << mTextEditor.GetText();
+	}
+}
+
+bool anEditorState::IsTextEditorHaveFile()
+{
+	return mTextEditorCurrentFilePath.empty() == false;
+}
+
+void anEditorState::CloseTextEditorScript()
+{
+	if (IsTextEditorHaveFile())
+	{
+		mTextEditor.SetText("");
+		mTextEditorCurrentFilePath.clear();
+	}
+}
+
+void anEditorState::EditorInfo(const anString& msg)
+{
+	anLogData data;
+	data.Type = anLogType::Info;
+	data.From = "Editor";
+	data.Message = msg;
+
+	mLogs.push_back(data);
+}
+
+void anEditorState::EditorError(const anString& msg)
+{
+	anLogData data;
+	data.Type = anLogType::Error;
+	data.From = "Editor";
+	data.Message = msg;
+
+	mLogs.push_back(data);
+}
+
+void anEditorState::EditorWarning(const anString& msg)
+{
+	anLogData data;
+	data.Type = anLogType::Warning;
+	data.From = "Editor";
+	data.Message = msg;
+
+	mLogs.push_back(data);
+}
+
+void anEditorState::UserInfo(const anString& msg)
+{
+	anLogData data;
+	data.Type = anLogType::Info;
+	data.From = "User";
+	data.Message = msg;
+
+	mLogs.push_back(data);
+}
+
+void anEditorState::UserError(const anString& msg)
+{
+	anLogData data;
+	data.Type = anLogType::Error;
+	data.From = "User";
+	data.Message = msg;
+
+	mLogs.push_back(data);
+}
+
+void anEditorState::UserWarning(const anString& msg)
+{
+	anLogData data;
+	data.Type = anLogType::Warning;
+	data.From = "User";
+	data.Message = msg;
+
+	mLogs.push_back(data);
+}
+
+void anEditorState::StartScene()
+{
+	mEditorScene->ReloadScripts();
+
+	mRuntimeScene = mEditorScene;
+	mEditorScene->RuntimeInitialize();
+	mSceneState = anSceneState::Runtime;
+}
+
+void anEditorState::StopScene()
+{
+	mEditorScene = mRuntimeScene;
+	mSceneState = anSceneState::Edit;
+}
+
+void anEditorState::LoadScene(const anString& path)
+{
+	mEditorScenePath = path;
+	mEditorScene = mSceneSerializer.DeserializeScene(mProjectLocation, anFileSystem::path{ path });
+	mNoScene = false;
 }

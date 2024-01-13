@@ -1,6 +1,8 @@
 #ifndef AN_GAME_STATE_H_
 #define AN_GAME_STATE_H_
 
+#define EDITOR
+
 #include "State/anState.h"
 #include "Scene/anScene.h"
 #include "Scene/anSceneSerializer.h"

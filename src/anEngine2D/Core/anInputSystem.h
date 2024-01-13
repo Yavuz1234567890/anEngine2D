@@ -15,11 +15,18 @@ public:
 	static bool IsKey(int key);
 	static bool IsKeyDown(int key);
 	static bool IsKeyUp(int key);
+	static bool IsMouseButton(int button);
+	static bool IsMouseButtonDown(int button);
+	static bool IsMouseButtonUp(int button);
 	static anFloat2 GetMousePosition();
 private:
 	static bool sKeys[anKeyLast];
 	static bool sKeysDown[anKeyLast];
 	static bool sKeysUp[anKeyLast];
+
+	static bool sMouseButtons[8];
+	static bool sMouseButtonsDown[8];
+	static bool sMouseButtonsUp[8];
 
 	static anFloat2 sMousePosition;
 };

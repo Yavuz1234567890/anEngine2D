@@ -1,5 +1,7 @@
 #include "anLuaWrapper.h"
 #include "Core/anInputSystem.h"
+#include "Core/anLog.h"
+#include "Editor/anEditorFunctions.h"
 
 anLuaWrapper::anLuaWrapper()
 {
@@ -93,7 +95,18 @@ void anLuaWrapper::WrapEngine()
 	mLua.set_function("isKey", [&](int key) { return anInputSystem::IsKey(key); });
 	mLua.set_function("isKeyDown", [&](int key) { return anInputSystem::IsKeyDown(key); });
 	mLua.set_function("isKeyUp", [&](int key) { return anInputSystem::IsKeyUp(key); });
+	mLua.set_function("isMouseButton", [&](int button) { return anInputSystem::IsMouseButton(button); });
+	mLua.set_function("isMouseButtonDown", [&](int button) { return anInputSystem::IsMouseButtonUp(button); });
+	mLua.set_function("isMouseButtonUp", [&](int button) { return anInputSystem::IsMouseButtonDown(button); });
 	mLua.set_function("getMousePosition", [&]() { return anInputSystem::GetMousePosition(); });
+	mLua.set_function("logInfo", [&](const char* msg) { anUserInfo(msg); });
+	mLua.set_function("logError", [&](const char* msg) { anUserError(msg); });
+	mLua.set_function("logWarning", [&](const char* msg) { anUserWarning(msg); });
+
+#ifdef EDITOR
+	mLua.set_function("closeApplication", [&]() { anEditorFunctions::CloseApplication(); });
+	mLua.set_function("loadScene", [&](const char* msg) { anEditorFunctions::LoadScene(msg); });
+#endif
 
 	auto transform = mLua.new_usertype<anTransformComponent>(
 		"anTransform",

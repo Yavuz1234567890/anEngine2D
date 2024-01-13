@@ -28,6 +28,7 @@ workspace "anEngine2D"
 		"thirdparty/tinyfiledialogs",
 		"thirdparty/sol2/include",
 		"thirdparty/lua",
+		"thirdparty/ImGuiColorTextEdit",
 		"src/anEngine2D"
 	}
 
@@ -79,6 +80,7 @@ workspace "anEngine2D"
 		files
 		{
 			"thirdparty/sol2/include/**.hpp",
+			"thirdparty/sol2/include/**.h",
 
 			"thirdparty/lua/**.c",
 			"thirdparty/lua/**.h"
@@ -123,7 +125,10 @@ workspace "anEngine2D"
 			"thirdparty/tinyxml2/tinyxml2.cpp",
 
 			"thirdparty/tinyfiledialogs/tinyfiledialogs.h",
-			"thirdparty/tinyfiledialogs/tinyfiledialogs.c"
+			"thirdparty/tinyfiledialogs/tinyfiledialogs.c",
+
+			"thirdparty/ImGuiColorTextEdit/ImGuiColorTextEdit/TextEditor.cpp",
+			"thirdparty/ImGuiColorTextEdit/ImGuiColorTextEdit/TextEditor.h"
 		}
 
 		links

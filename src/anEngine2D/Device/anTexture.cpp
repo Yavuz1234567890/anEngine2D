@@ -184,12 +184,12 @@ anTexture* anLoadTexture(const anString& path)
 	return texture;
 }
 
-anString anTexture::GetScenePath() const
+anString anTexture::GetEditorPath() const
 {
-	return mScenePath;
+	return mEditorPath;
 }
 
-void anTexture::SetScenePath(const anString& path)
+void anTexture::SetEditorPath(const anString& path)
 {
-	mScenePath = path;
+	mEditorPath = path;
 }
