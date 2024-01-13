@@ -16,6 +16,7 @@ typedef signed char anInt8;
 #include <vector>
 #include <functional>
 #include <fstream>
+#include <unordered_map>
 
 typedef std::string anString;
 
@@ -44,6 +45,9 @@ using anVector = std::vector<T>;
 
 template<typename K, typename V>
 using anMap = std::map<K, V>;
+
+template<typename K, typename V>
+using anUnorderedMap = std::unordered_map<K, V>;
 
 template<typename F>
 using anFunction = std::function<F>;

@@ -28,6 +28,11 @@ anTransformComponent& anEntity::GetTransform()
 	return GetComponent<anTransformComponent>();
 }
 
+anUUID& anEntity::GetUUID()
+{
+	return GetComponent<anUUIDComponent>().UUID;
+}
+
 anString& anEntity::GetTag()
 {
 	return GetComponent<anTagComponent>().Tag;
@@ -55,5 +60,5 @@ bool anEntity::operator!=(const anEntity& ent) const
 
 void anEntity::Destroy()
 {
-	mScene->GetRegistry().destroy(mHandle);
+	mScene->DestroyEntity(*this);
 }

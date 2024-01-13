@@ -5,8 +5,19 @@
 #include "Math/anMatrix4.h"
 #include "Device/anTexture.h"
 #include "Renderer/anCamera2D.h"
+#include "Core/anUUID.h"
 
 class anLuaScript;
+
+struct anUUIDComponent
+{
+	anUUID UUID;
+
+	anUUIDComponent() = default;
+	anUUIDComponent(const anUUIDComponent&) = default;
+
+	static anString GetComponentName() { return "UUIDComponent"; }
+};
 
 struct anTagComponent
 {
@@ -16,6 +27,8 @@ struct anTagComponent
 	anTagComponent(const anTagComponent&) = default;
 	anTagComponent(const anString& tag)
 		: Tag(tag) {}
+
+	static anString GetComponentName() { return "TagComponent"; }
 };
 
 struct anTransformComponent
@@ -33,6 +46,8 @@ struct anTransformComponent
 			* glm::rotate(anMatrix4(1.0f), glm::radians(Rotation), { 0.0f, 0.0f, 1.0f })
 			* glm::scale(anMatrix4(1.0f), { Size.x, Size.y, 1.0f });
 	}
+
+	static anString GetComponentName() { return "TransformComponent"; }
 };
 
 struct anSpriteRendererComponent
@@ -44,6 +59,8 @@ struct anSpriteRendererComponent
 	anSpriteRendererComponent(const anSpriteRendererComponent&) = default;
 	anSpriteRendererComponent(const anColor& color)
 		: Color(color) {}
+
+	static anString GetComponentName() { return "SpriteRendererComponent"; }
 };
 
 struct anCameraComponent
@@ -53,6 +70,8 @@ struct anCameraComponent
 
 	anCameraComponent() = default;
 	anCameraComponent(const anCameraComponent&) = default;
+
+	static anString GetComponentName() { return "CameraComponent"; }
 };
 
 struct anLuaScriptComponent
@@ -61,6 +80,16 @@ struct anLuaScriptComponent
 
 	anLuaScriptComponent() = default;
 	anLuaScriptComponent(const anLuaScriptComponent&) = default;
+
+	static anString GetComponentName() { return "LuaScriptComponent"; }
 };
+
+template<typename... Component>
+struct anComponentGroup
+{
+};
+
+using anAllComponents = anComponentGroup<anTransformComponent, anSpriteRendererComponent,
+	anLuaScriptComponent, anCameraComponent, anTagComponent, anUUIDComponent>;
 
 #endif

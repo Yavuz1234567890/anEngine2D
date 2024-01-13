@@ -5,6 +5,7 @@ class anEntity;
 
 #include "Core/anTypes.h"
 #include "Renderer/anRenderer2D.h"
+#include "Core/anUUID.h"
 
 #include <entt.hpp>
 
@@ -15,6 +16,7 @@ public:
 	~anScene();
 
 	anEntity NewEntity(const anString& tag);
+	anEntity NewEntity(anUUID uuid, const anString& tag);
 	void DestroyEntity(anEntity entity);
 	void EditorUpdate(float dt, anCamera2D& camera, anTexture* cameraIcon = nullptr);
 	void RuntimeInitialize();
@@ -23,10 +25,14 @@ public:
 	anEntity FindEntityWithTag(const anString& tag);
 	entt::registry& GetRegistry();
 	void ReloadScripts();
+	
+	static anScene* Copy(anScene* ref);
 private:
 	entt::registry mRegistry;
 	anUInt32 mViewportWidth;
 	anUInt32 mViewportHeight;
+
+	anUnorderedMap<anUUID, entt::entity> mEntityMap;
 };
 
 #endif

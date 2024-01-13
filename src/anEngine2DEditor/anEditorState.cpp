@@ -741,8 +741,11 @@ static void DrawComponent(const anString& name, anEntity entity, UIFunction uiFu
 		bool removeComponent = false;
 		if (ImGui::BeginPopup("ComponentSettings"))
 		{
-			if (ImGui::MenuItem("Remove Component"))
-				removeComponent = true;
+			if (T::GetComponentName() != "TransformComponent" && T::GetComponentName() != "UUIDComponent" && T::GetComponentName() != "TagComponent")
+			{
+				if (ImGui::MenuItem("Remove Component"))
+					removeComponent = true;
+			}
 
 			ImGui::EndPopup();
 		}
@@ -1310,9 +1313,10 @@ void anEditorState::UserWarning(const anString& msg)
 
 void anEditorState::StartScene()
 {
+	mSelectedEntity = {};
 	mEditorScene->ReloadScripts();
 
-	mRuntimeScene = mEditorScene;
+	mRuntimeScene = anScene::Copy(mEditorScene);
 	mEditorScene->RuntimeInitialize();
 	mSceneState = anSceneState::Runtime;
 }

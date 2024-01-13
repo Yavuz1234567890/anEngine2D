@@ -37,6 +37,13 @@ anScene* anSceneSerializer::DeserializeScene(const anFileSystem::path& location,
 				anEntity entity = scene->NewEntity("");
 				for (tinyxml2::XMLElement* child = e->FirstChildElement(); child != nullptr; child = child->NextSiblingElement())
 				{
+					if (strcmp(child->Value(), "UUID") == 0)
+					{
+						auto& component = entity.GetComponent<anUUIDComponent>();
+						component.UUID = anUUID((anUInt64)child->Attribute("uuid"));
+						continue;
+					}
+
 					if (strcmp(child->Value(), "Tag") == 0)
 					{
 						auto& component = entity.GetComponent<anTagComponent>();
@@ -123,6 +130,16 @@ void anSceneSerializer::SerializeScene(const anFileSystem::path& location, anSce
 				return;
 
 			printer.OpenElement("Entity");
+
+			if (entity.HasComponent<anUUIDComponent>())
+			{
+				auto& component = entity.GetComponent<anUUIDComponent>();
+
+				printer.OpenElement("UUID");
+				printer.PushAttribute("uuid", (anUInt64)component.UUID);
+				printer.CloseElement();
+			}
+
 			if (entity.HasComponent<anTagComponent>())
 			{
 				auto& component = entity.GetComponent<anTagComponent>();

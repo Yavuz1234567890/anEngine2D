@@ -11,15 +11,24 @@ anScene::~anScene()
 
 anEntity anScene::NewEntity(const anString& tag)
 {
+	return NewEntity(anUUID(), tag);
+}
+
+anEntity anScene::NewEntity(anUUID uuid, const anString& tag)
+{
 	anEntity entity = { mRegistry.create(), this };
 	entity.AddComponent<anTransformComponent>();
+	entity.AddComponent<anUUIDComponent>(uuid);
 	auto& tagComp = entity.AddComponent<anTagComponent>();
 	tagComp.Tag = tag.empty() ? "New Entity" : tag;
+
+	mEntityMap[uuid] = entity;
 	return entity;
 }
 
 void anScene::DestroyEntity(anEntity entity)
 {
+	mEntityMap.erase(entity.GetUUID());
 	mRegistry.destroy(entity.GetHandle());
 }
 
@@ -153,4 +162,51 @@ void anScene::ReloadScripts()
 				script.Script->LoadScript(script.Script->GetPath(), script.Script->GetEditorPath());
 		}
 	}
+}
+
+template<typename... Component>
+static void CopyComponent(entt::registry& dst, entt::registry& src, const anUnorderedMap<anUUID, entt::entity>& enttMap)
+{
+	([&]()
+		{
+			auto view = src.view<Component>();
+			for (auto srcEntity : view)
+			{
+				entt::entity dstEntity = enttMap.at(src.get<anUUIDComponent>(srcEntity).UUID);
+
+				auto& srcComponent = src.get<Component>(srcEntity);
+				dst.emplace_or_replace<Component>(dstEntity, srcComponent);
+			}
+		}(), ...);
+}
+
+template<typename... Component>
+static void CopyComponent(anComponentGroup<Component...>, entt::registry& dst, entt::registry& src, const anUnorderedMap<anUUID, entt::entity>& enttMap)
+{
+	CopyComponent<Component...>(dst, src, enttMap);
+}
+
+anScene* anScene::Copy(anScene* ref)
+{
+	anScene* newScene = new anScene();
+
+	newScene->mViewportWidth = ref->mViewportWidth;
+	newScene->mViewportHeight = ref->mViewportHeight;
+
+	auto& srcSceneRegistry = ref->mRegistry;
+	auto& dstSceneRegistry = newScene->mRegistry;
+	anUnorderedMap<anUUID, entt::entity> enttMap;
+
+	auto idView = srcSceneRegistry.view<anUUIDComponent>();
+	for (auto e : idView)
+	{
+		anUUID uuid = srcSceneRegistry.get<anUUIDComponent>(e).UUID;
+		const auto& name = srcSceneRegistry.get<anTagComponent>(e).Tag;
+		anEntity newEntity = newScene->NewEntity(uuid, name);
+		enttMap[uuid] = (entt::entity)newEntity;
+	}
+
+	CopyComponent(anAllComponents{}, dstSceneRegistry, srcSceneRegistry, enttMap);
+
+	return newScene;
 }

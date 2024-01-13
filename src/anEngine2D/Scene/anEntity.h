@@ -40,6 +40,7 @@ public:
 
 	operator entt::entity();
 	anTransformComponent& GetTransform();
+	anUUID& GetUUID();
 	anString& GetTag();
 	anScene* GetScene();
 	void Destroy();
