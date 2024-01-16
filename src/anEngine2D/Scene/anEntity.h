@@ -33,7 +33,7 @@ public:
 	}
 
 	template<typename T>
-	bool HasComponent()
+	bool HasComponent() const
 	{
 		return mScene->GetRegistry().has<T>(mHandle);
 	}
@@ -50,10 +50,18 @@ public:
 	anString& GetTag();
 	anScene* GetScene();
 	void Destroy();
-	anEntity Copy();
+	anEntity Copy(const anString& tag);
 	entt::entity GetHandle() const;
+	void LookAt(float x, float y);
 	bool operator==(const anEntity& ent) const;
 	bool operator!=(const anEntity& ent) const;
+
+	//for lua scripting
+	bool HasSpriteRenderer() const;
+	anSpriteRendererComponent& GetSpriteRenderer();
+	//-----------------
+
+	static void RegisterLuaAPI(sol::state& state);
 private:
 	entt::entity mHandle = entt::null;
 	anScene* mScene;

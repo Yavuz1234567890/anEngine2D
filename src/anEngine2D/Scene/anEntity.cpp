@@ -1,4 +1,5 @@
 #include "anEntity.h"
+#include "Math/anMath.h"
 
 anEntity::anEntity()
 	: mHandle(entt::null)
@@ -63,7 +64,38 @@ void anEntity::Destroy()
 	mScene->DestroyEntity(*this);
 }
 
-anEntity anEntity::Copy()
+anEntity anEntity::Copy(const anString& tag)
 {
-	return mScene->CopyEntity(*this);
+	return mScene->CopyEntity(*this, tag);
+}
+
+void anEntity::LookAt(float x, float y)
+{
+	anTransformComponent& component = GetTransform();
+	component.Rotation = anRadiansToDegrees(atan2f(component.Position.y - y, component.Position.x - x));
+}
+
+bool anEntity::HasSpriteRenderer() const
+{
+	return HasComponent<anSpriteRendererComponent>();
+}
+
+anSpriteRendererComponent& anEntity::GetSpriteRenderer()
+{
+	return GetComponent<anSpriteRendererComponent>();
+}
+
+void anEntity::RegisterLuaAPI(sol::state& state)
+{
+	auto entity = state.new_usertype<anEntity>(
+		"anEntity",
+		"tag", &anEntity::GetTag,
+		"transform", &anEntity::GetTransform,
+		"scene", &anEntity::GetScene,
+		"destroy", &anEntity::Destroy,
+		"copy", &anEntity::Copy,
+		"lookAt", &anEntity::LookAt,
+		"hasSpriteRenderer", &anEntity::HasSpriteRenderer,
+		"getSpriteRenderer", &anEntity::GetSpriteRenderer
+	);
 }

@@ -25,16 +25,16 @@ void anClear()
 {
 	sDeviceData.ClearColor = { 0, 0, 0, 255 };
 
-	glClear(GL_COLOR_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void anClearColor(const anColor& color)
 {
 	sDeviceData.ClearColor = color;
 
-	glClear(GL_COLOR_BUFFER_BIT);
 	glClearColor((float)color.R / 255.0f, (float)color.G / 255.0f, (float)color.B / 255.0f, (float)color.A / 255.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void anSetViewport(const anFloat2& pos, const anFloat2& size)

@@ -130,9 +130,11 @@ private:
 
 	anFileSystem::path mAssetBrowserLocation;
 
-	bool mCtrl = false;
+	bool mLeftCtrl = false;
+	bool mRightCtrl = false;
 
 	bool mViewportWindowFocused = false;
+	bool mViewportWindowHovered = false;
 	bool mSceneWindowFocused = false;
 	bool mEntityWindowFocused = false;
 	bool mAssetBrowserWindowFocused = false;

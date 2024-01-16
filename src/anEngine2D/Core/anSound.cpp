@@ -1,4 +1,5 @@
 #include "anSound.h"
+#include "Core/anLog.h"
 
 #include <fmod.h>
 #include <fmod_common.h>
@@ -40,11 +41,15 @@ void anSound::ShutdownFMOD()
     FMOD_System_Release(sFMOD.System);
 }
 
-void anSound::Load(const anString& path)
+void anSound::Load(const anFileSystem::path& path, const anFileSystem::path& editorPath)
 {
-    FMOD_System_CreateSound(sFMOD.System, path.c_str(), FMOD_DEFAULT, 0, &mSound);
+    if (FMOD_System_CreateSound(sFMOD.System, path.string().c_str(), FMOD_DEFAULT, 0, &mSound) != FMOD_OK)
+        anEditorError("Couldn't load sound: " + path.string());
+
     FMOD_Sound_GetLength(mSound, &mDuration, FMOD_TIMEUNIT_MS);
     FMOD_Sound_SetMode(mSound, 0);
+
+    mEditorPath = editorPath;
 }
 
 void anSound::Play()
@@ -100,4 +105,14 @@ anUInt32 anSound::GetDuration() const
 float anSound::GetVolume() const
 {
     return mVolume;
+}
+
+const anFileSystem::path& anSound::GetEditorPath() const
+{
+    return mEditorPath;
+}
+
+void anSound::SetEditorPath(const anFileSystem::path& path)
+{
+    mEditorPath = path;
 }

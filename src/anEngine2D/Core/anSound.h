@@ -2,6 +2,7 @@
 #define AN_SOUND_H_
 
 #include "anTypes.h"
+#include "Core/anFileSystem.h"
 
 struct FMOD_SOUND;
 struct FMOD_CHANNEL;
@@ -24,7 +25,7 @@ public:
 	
 	static void InitializeFMOD();
 	static void ShutdownFMOD();
-	void Load(const anString& path);
+	void Load(const anFileSystem::path& path, const anFileSystem::path& editorPath);
 	void Play();
 	void SetPaused(bool paused);
 	void Stop();
@@ -35,7 +36,10 @@ public:
 	void SetLoopType(anUInt32 type);
 	anUInt32 GetDuration() const;
 	float GetVolume() const;
+	const anFileSystem::path& GetEditorPath() const;
+	void SetEditorPath(const anFileSystem::path& path);
 private:
+	anFileSystem::path mEditorPath;
 	FMOD_SOUND* mSound = nullptr;
 	FMOD_CHANNEL* mChannel = nullptr;
 	unsigned int mDuration = 0;

@@ -6,6 +6,7 @@
 #include "Device/anTexture.h"
 #include "Renderer/anCamera2D.h"
 #include "Core/anUUID.h"
+#include "Core/anSound.h"
 
 class anLuaScript;
 
@@ -37,6 +38,21 @@ struct anTransformComponent
 	anFloat2 Size = { 1.0f, 1.0f };
 	float Rotation = 0.0f;
 
+	void IncreasePosition(float x, float y)
+	{
+		Position += anFloat2(x, y);
+	}
+
+	void IncreaseSize(float x, float y)
+	{
+		Size += anFloat2(x, y);
+	}
+
+	void IncreaseRotation(float rot)
+	{
+		Rotation += rot;
+	}
+
 	anTransformComponent() = default;
 	anTransformComponent(const anTransformComponent&) = default;
 
@@ -48,12 +64,25 @@ struct anTransformComponent
 	}
 
 	static anString GetComponentName() { return "TransformComponent"; }
+	static void RegisterLuaAPI(sol::state& state)
+	{
+		auto transform = state.new_usertype<anTransformComponent>(
+			"anTransform",
+			"position", &anTransformComponent::Position,
+			"size", &anTransformComponent::Size,
+			"rotation", &anTransformComponent::Rotation,
+			"increasePosition", &anTransformComponent::IncreasePosition,
+			"increaseSize", &anTransformComponent::IncreaseSize,
+			"increaseRotation", &anTransformComponent::IncreaseRotation
+		);
+	}
 };
 
 struct anSpriteRendererComponent
 {
 	anTexture* Texture;
 	anColor Color = { 255, 255, 255 };
+	int LayerNumber = 0;
 
 	anSpriteRendererComponent() = default;
 	anSpriteRendererComponent(const anSpriteRendererComponent&) = default;
@@ -61,6 +90,15 @@ struct anSpriteRendererComponent
 		: Color(color) {}
 
 	static anString GetComponentName() { return "SpriteRendererComponent"; }
+
+	static void RegisterLuaAPI(sol::state& state)
+	{
+		auto spriteRenderer = state.new_usertype<anSpriteRendererComponent>(
+			"anSpriteRenderer",
+			"color", &anSpriteRendererComponent::Color,
+			"layerNumber", &anSpriteRendererComponent::LayerNumber
+		);
+	}
 };
 
 struct anCameraComponent

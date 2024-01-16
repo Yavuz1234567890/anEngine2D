@@ -4,7 +4,7 @@
 #include "Math/anMath.h"
 #include "Project/anProject.h"
 #include "Core/anMessage.h"
-#include "Core/anInputSystem.h"
+#include "Core/anUserInputSystem.h"
 #include "Editor/anEditorFunctions.h"
 
 #include <imgui/imgui.h>
@@ -35,7 +35,7 @@ void anEditorState::Initialize()
 {
 	{
 		auto closeApplication = [this]() { if (mSceneState == anSceneState::Runtime)StopScene(); };
-		auto loadScene = [this](const anString& path) { LoadScene(path); };
+		auto loadScene = [this](const anString& path) { LoadScene((mProjectAssetsLocation / path).string()); };
 
 		anEditorFunctions::SetCloseApplication(closeApplication);
 		anEditorFunctions::SetLoadScene(loadScene);
@@ -120,7 +120,7 @@ void anEditorState::Update(float dt)
 
 	mFramebuffer->Bind();
 
-	anClear();
+	anClearColor(SceneIsValid() ? mEditorScene->GetClearColor() : anColor(0, 0, 0));
 	anEnableBlend();
 
 	auto [mx, my] = ImGui::GetMousePos();
@@ -130,7 +130,22 @@ void anEditorState::Update(float dt)
 	my = viewportSize.y - my;
 	mMousePosition = { (float)mx, (float)my };
 	mLastExactViewportMousePosition = mExactViewportMousePosition;
-	mExactViewportMousePosition = ((mMousePosition - (mViewportBounds[1] - mViewportBounds[0]) * 0.5f) * anFloat2(1.0f, -1.0f)) + mEditorCamera.GetPosition();
+
+	anFloat2 camPos = { 0.0f, 0.0f };
+	if (SceneIsValid())
+	{
+		if (mSceneState == anSceneState::Runtime)
+		{
+			if (mEditorScene->HasCamera())
+				camPos = mEditorScene->GetCurrentCameraPosition();
+		}
+		else if (mSceneState == anSceneState::Edit)
+			camPos = mEditorCamera.GetPosition();
+	}
+
+	mExactViewportMousePosition = ((mMousePosition - (mViewportBounds[1] - mViewportBounds[0]) * 0.5f) * anFloat2(1.0f, -1.0f)) + camPos;
+	anUserInputSystem::SetMousePosition(mExactViewportMousePosition);
+	anUserInputSystem::SetLocked(!mViewportWindowHovered);
 
 	if (SceneIsValid())
 	{
@@ -170,7 +185,23 @@ void anEditorState::OnEvent(const anEvent& event)
 			anFileSystem::copy_file(path, mAssetBrowserLocation / path.filename());
 	}
 
-	mCtrl = anInputSystem::IsKey(anKeyLeftControl) || anInputSystem::IsKey(anKeyRightControl);
+	if (event.Type == anEvent::KeyDown)
+	{
+		if (event.KeyCode == anKeyLeftControl)
+			mLeftCtrl = true;
+
+		if (event.KeyCode == anKeyRightControl)
+			mRightCtrl = true;
+	}
+
+	if (event.Type == anEvent::KeyUp)
+	{
+		if (event.KeyCode == anKeyLeftControl)
+			mLeftCtrl = false;
+
+		if (event.KeyCode == anKeyRightControl)
+			mRightCtrl = false;
+	}
 
 	if (SceneIsValid())
 	{
@@ -180,7 +211,7 @@ void anEditorState::OnEvent(const anEvent& event)
 		{
 			if (event.KeyCode == anKeyS)
 			{
-				if (mCtrl)
+				if (mLeftCtrl || mRightCtrl)
 				{
 					if (mTextEditor.IsTextBoxFocused())
 						SaveTextEditorFile();
@@ -191,7 +222,7 @@ void anEditorState::OnEvent(const anEvent& event)
 
 			if (event.KeyCode == anKeyW)
 			{
-				if (mCtrl)
+				if (mLeftCtrl || mRightCtrl)
 				{
 					if (mTextEditor.IsTextBoxFocused())
 						CloseTextEditorScript();
@@ -202,7 +233,7 @@ void anEditorState::OnEvent(const anEvent& event)
 
 			if (event.KeyCode == anKeyR)
 			{
-				if (mCtrl)
+				if (mLeftCtrl || mRightCtrl)
 					mEditorScene->ReloadScripts();
 			}
 
@@ -349,6 +380,7 @@ void anEditorState::OnImGuiRender()
 
 	ImGui::Begin("Viewport");
 	mViewportWindowFocused = ImGui::IsWindowFocused();
+	mViewportWindowHovered = ImGui::IsWindowHovered();
 
 	auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
 	auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
@@ -465,7 +497,7 @@ void anEditorState::OnImGuiRender()
 		{
 			if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 			{
-				if (mCtrl)
+				if (mLeftCtrl || mRightCtrl)
 				{
 					OnAssetBrowserItemRemove(entry.path());
 					anFileSystem::remove_all(entry.path());
@@ -648,26 +680,28 @@ void anEditorState::OnScenePanel()
 		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 			mSelectedEntity = {};
 
-		if (ImGui::BeginPopupContextWindow(0, 1))
+		if (mSceneState != anSceneState::Runtime)
 		{
-			if (ImGui::MenuItem("New Entity"))
-				mSelectedEntity = mEditorScene->NewEntity(mNewEntityName);
-
-			if (ImGui::MenuItem("New Camera"))
+			if (ImGui::BeginPopupContextWindow(0, 1))
 			{
-				mSelectedEntity = mEditorScene->NewEntity("Camera");
-				mSelectedEntity.AddComponent<anCameraComponent>();
-			}
+				if (ImGui::MenuItem("New Entity"))
+					mSelectedEntity = mEditorScene->NewEntity(mNewEntityName);
 
-			if (ImGui::MenuItem("New Sprite Renderer"))
-			{
-				mSelectedEntity = mEditorScene->NewEntity("Sprite");
-				mSelectedEntity.AddComponent<anSpriteRendererComponent>();
-			}
+				if (ImGui::MenuItem("New Camera"))
+				{
+					mSelectedEntity = mEditorScene->NewEntity("Camera");
+					mSelectedEntity.AddComponent<anCameraComponent>();
+				}
 
-			ImGui::EndPopup();
+				if (ImGui::MenuItem("New Sprite Renderer"))
+				{
+					mSelectedEntity = mEditorScene->NewEntity("Sprite");
+					mSelectedEntity.AddComponent<anSpriteRendererComponent>();
+				}
+
+				ImGui::EndPopup();
+			}
 		}
-
 	}
 }
 
@@ -678,7 +712,7 @@ void anEditorState::DrawEntityToScenePanel(anEntity entity)
 	ImGuiTreeNodeFlags flags = ((mSelectedEntity == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 	flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 	bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity.GetHandle(), flags, tag.c_str());
-	if (ImGui::IsItemClicked())
+	if (ImGui::IsItemClicked() && mSceneState != anSceneState::Runtime)
 		mSelectedEntity = entity;
 
 	bool entityDeleted = false;
@@ -973,6 +1007,8 @@ void anEditorState::DrawComponents(anEntity entity)
 
 			ImGui::SameLine();
 			ImGui::Text(component.Texture == nullptr ? "No Texture" : component.Texture->GetEditorPath().c_str());
+		
+			ImGui::InputInt("Layer Number", &component.LayerNumber);
 		});
 
 	DrawComponent<anLuaScriptComponent>("Lua Script", entity, [](auto& component, auto& entity)

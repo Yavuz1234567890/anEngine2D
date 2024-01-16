@@ -5,7 +5,9 @@
 #include "anKeyCodes.h"
 #include "Math/anFloat2.h"
 
-class anInputSystem
+#include <sol/sol.hpp>
+
+class anUserInputSystem
 {
 public:
 	static void Initialize();
@@ -19,6 +21,13 @@ public:
 	static bool IsMouseButtonDown(int button);
 	static bool IsMouseButtonUp(int button);
 	static anFloat2 GetMousePosition();
+	static void SetMousePosition(const anFloat2& position);
+	static void SetLocked(bool locked);
+	static bool IsLocked();
+	static float GetHorizontalAxis();
+	static float GetVerticalAxis();
+	
+	static void RegisterLuaAPI(sol::state& state);
 private:
 	static bool sKeys[anKeyLast];
 	static bool sKeysDown[anKeyLast];
@@ -28,7 +37,12 @@ private:
 	static bool sMouseButtonsDown[8];
 	static bool sMouseButtonsUp[8];
 
+	static float sHorizontalAxis;
+	static float sVerticalAxis;
+
 	static anFloat2 sMousePosition;
+
+	static bool sLocked;
 };
 
 #endif

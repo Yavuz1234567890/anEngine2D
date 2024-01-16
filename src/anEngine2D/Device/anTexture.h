@@ -3,6 +3,8 @@
 
 #include "Core/anTypes.h"
 
+#include <sol/sol.hpp>
+
 namespace anTextureFormat
 {
 	enum : anUInt32
@@ -46,6 +48,7 @@ class anTexture
 {
 public:
 	anTexture(const anTextureCreationSpecification& spec);
+	anTexture(const anString& path);
 	~anTexture();
 
 	void SetTextureSwizzle(anUInt32 r, anUInt32 g, anUInt32 b, anUInt32 a);

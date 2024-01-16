@@ -3,7 +3,7 @@
 #include "Device/anTexture.h"
 #include "anFont.h"
 #include "State/anStateManager.h"
-#include "anInputSystem.h"
+#include "anUserInputSystem.h"
 #include "anMessage.h"
 
 static anApplication* sInstance = nullptr;
@@ -49,7 +49,7 @@ void anApplication::Start()
 	mControllerDevice.Initialize();
 	mImGui.Initialize(mWindow);
 	anRenderer2D::Get().Initialize();
-	anInputSystem::Initialize();
+	anUserInputSystem::Initialize();
 	anScriptSystem::Initialize();
 	Initialize();
 
@@ -70,7 +70,7 @@ void anApplication::Start()
 		mControllerDevice.Update(dt);
 		mStateManager->Update(dt);
 		Update(dt);
-		anInputSystem::Update(dt);
+		anUserInputSystem::Update(dt);
 
 		mImGui.Start();
 		OnImGui();
@@ -85,7 +85,7 @@ void anApplication::Start()
 void anApplication::AOnEvent(const anEvent& event)
 {
 	mStateManager->OnEvent(event);
-	anInputSystem::OnEvent(event);
+	anUserInputSystem::OnEvent(event);
 	OnEvent(event);
 }
 

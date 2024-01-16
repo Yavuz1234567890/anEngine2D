@@ -1,5 +1,5 @@
 #include "anTexture.h"
-#include "Core/anMessage.h"
+#include "Core/anLog.h"
 
 #include <GL/glew.h>
 #include <stb_image.h>
@@ -87,6 +87,73 @@ anTexture::anTexture(const anTextureCreationSpecification& spec)
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+anTexture::anTexture(const anString& path)
+{
+	int channels = 0;
+	int width = 0;
+	int height = 0;
+
+	stbi_uc* data = stbi_load(path.c_str(), &width, &height, &channels, 4);
+	if (!data)
+		anEditorError("Couldn't find texture '" + path + "'");
+
+	anUInt32 format = 0;
+	if (channels == 4)
+		format = anTextureFormat::RGBA;
+	if (channels == 3)
+		format = anTextureFormat::RGB;
+	if (channels == 2)
+		format = anTextureFormat::Red;
+
+	anTextureCreationSpecification spec;
+	spec.Data = data;
+	spec.Width = width;
+	spec.Height = height;
+	spec.Format = format;
+	spec.MinFilter = anTextureParameter::Nearest;
+	spec.MagFilter = anTextureParameter::Nearest;
+	spec.WrapS = anTextureParameter::Repeat;
+	spec.WrapT = anTextureParameter::Repeat;
+
+	mSpecification = spec;
+
+	GLenum internalFormat = 0;
+	GLenum dataFormat = 0;
+
+	if (spec.Format == anTextureFormat::RGB)
+	{
+		internalFormat = GL_RGB8;
+		dataFormat = GL_RGB;
+	}
+
+	if (spec.Format == anTextureFormat::RGBA)
+	{
+		internalFormat = GL_RGBA8;
+		dataFormat = GL_RGBA;
+	}
+
+	if (spec.Format == anTextureFormat::Red)
+	{
+		internalFormat = GL_R8;
+		dataFormat = GL_RED;
+	}
+
+	glGenTextures(1, &mID);
+	glBindTexture(GL_TEXTURE_2D, mID);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, _anGetTextureParameter<float>(spec.MinFilter));
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, _anGetTextureParameter<float>(spec.MagFilter));
+
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _anGetTextureParameter<int>(spec.WrapS));
+	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _anGetTextureParameter<int>(spec.WrapT));
+
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, spec.Width, spec.Height, 0, dataFormat, GL_UNSIGNED_BYTE, spec.Data);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	stbi_image_free(data);
+}
+
 anTexture::~anTexture()
 {
 	glDeleteTextures(1, &mID);
@@ -158,7 +225,7 @@ anTexture* anLoadTexture(const anString& path)
 
 	stbi_uc* data = stbi_load(path.c_str(), &width, &height, &channels, 4);
 	if (!data)
-		anShowInformation("Couldn't find texture '" + path + "'");
+		anEditorError("Couldn't find texture '" + path + "'");
 
 	anUInt32 format = 0;
 	if (channels == 4)

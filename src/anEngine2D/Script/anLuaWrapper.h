@@ -15,7 +15,7 @@ public:
 	void WrapEngine();
 	sol::state& GetState();
 private:
-	sol::state mLua;
+	sol::state mState;
 };
 
 #endif

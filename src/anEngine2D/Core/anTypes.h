@@ -18,6 +18,8 @@ typedef signed char anInt8;
 #include <fstream>
 #include <unordered_map>
 
+#include <sol/sol.hpp>
+
 typedef std::string anString;
 
 inline anString anToString(float val)
@@ -71,12 +73,32 @@ struct anColor
 	{
 	}
 
-	anColor(int r, int g, int b, int a = 255)
+	anColor(int r, int g, int b)
+		: R(r)
+		, G(g)
+		, B(b)
+		, A(255)
+	{
+	}
+
+	anColor(int r, int g, int b, int a)
 		: R(r)
 		, G(g)
 		, B(b)
 		, A(a)
 	{
+	}
+
+	static void RegisterLuaAPI(sol::state& state)
+	{
+		auto col = state.new_usertype<anColor>(
+			"anColor",
+			sol::constructors<anColor(), anColor(int, int, int), anColor(int, int, int, int)>(),
+			"r", &anColor::R,
+			"g", &anColor::G,
+			"b", &anColor::B,
+			"a", &anColor::A
+		);
 	}
 };
 

@@ -1,5 +1,6 @@
 #include "anScene.h"
 #include "anEntity.h"
+#include "Core/anUserInputSystem.h"
 
 anScene::anScene()
 {
@@ -37,13 +38,7 @@ void anScene::EditorUpdate(float dt, anCamera2D& camera, anTexture* cameraIcon)
 	anRenderer2D::Get().Start(camera);
 
 	{
-		auto group = mRegistry.group<anTransformComponent>(entt::get<anSpriteRendererComponent>);
-		for (auto entity : group)
-		{
-			auto [transform, sprite] = group.get<anTransformComponent, anSpriteRendererComponent>(entity);
-
-			anRenderer2D::Get().DrawTexture(sprite.Texture, transform.GetTransformationMatrix(), sprite.Color);
-		}
+		DrawDrawables();
 
 		auto view = mRegistry.view<anTransformComponent, anCameraComponent>();
 		for (auto entity : view)
@@ -72,6 +67,8 @@ void anScene::RuntimeInitialize()
 
 bool anScene::RuntimeUpdate(float dt)
 {
+	mHasCamera = false;
+
 	{
 		auto view = mRegistry.view<anLuaScriptComponent>();
 		for (auto entity : view)
@@ -93,7 +90,9 @@ bool anScene::RuntimeUpdate(float dt)
 			if (camera.Current)
 			{
 				cam = &camera.Camera;
+				mHasCamera = true;
 				cameraView = transform.GetTransformationMatrix();
+				mCurrentCameraPosition = transform.Position;
 				break;
 			}
 		}
@@ -103,16 +102,7 @@ bool anScene::RuntimeUpdate(float dt)
 		return false;
 
 	anRenderer2D::Get().Start(*cam, cameraView);
-
-	{
-		auto group = mRegistry.group<anTransformComponent>(entt::get<anSpriteRendererComponent>);
-		for (auto entity : group)
-		{
-			auto [transform, sprite] = group.get<anTransformComponent, anSpriteRendererComponent>(entity);
-
-			anRenderer2D::Get().DrawTexture(sprite.Texture, transform.GetTransformationMatrix(), sprite.Color);
-		}
-	}
+	DrawDrawables();
 
 	return true;
 }
@@ -132,6 +122,16 @@ void anScene::OnViewportSize(anUInt32 width, anUInt32 height)
 		
 		cameraComponent.Camera.SetOrtho((float)-iWidth * 0.5f, (float)iWidth * 0.5f, (float)-iHeight * 0.5f, (float)iHeight * 0.5f);
 	}
+}
+
+anUInt32 anScene::GetViewportWidth() const
+{
+	return mViewportWidth;
+}
+
+anUInt32 anScene::GetViewportHeight() const
+{
+	return mViewportHeight;
 }
 
 anEntity anScene::FindEntityWithTag(const anString& tag)
@@ -167,9 +167,8 @@ static void CopyComponentIfExists(anComponentGroup<Component...>, anEntity dst, 
 	CopyComponentIfExists<Component...>(dst, src);
 }
 
-anEntity anScene::CopyEntity(anEntity entity)
+anEntity anScene::CopyEntity(anEntity entity, const anString& tag)
 {
-	const anString tag = entity.GetTag();
 	anEntity ent = NewEntity(tag);
 	CopyComponentIfExists(anAllComponents{}, ent, entity);
 	return ent;
@@ -233,4 +232,82 @@ anScene* anScene::Copy(anScene* ref)
 	CopyComponent(anAllComponents{}, dstSceneRegistry, srcSceneRegistry, enttMap);
 
 	return newScene;
+}
+
+const anFloat2& anScene::GetCurrentCameraPosition() const
+{
+	return mCurrentCameraPosition;
+}
+
+bool anScene::HasCamera() const
+{
+	return mHasCamera;
+}
+
+anColor& anScene::GetClearColor()
+{
+	return mClearColor;
+}
+
+void anScene::RegisterLuaAPI(sol::state& state)
+{
+	auto scene = state.new_usertype<anScene>(
+		"anScene",
+		"findEntity", &anScene::FindEntityWithTag,
+		"clearColor", &anScene::GetClearColor
+	);
+}
+
+void anScene::SortDrawableList()
+{
+	if (!mDrawables.empty())
+	{
+		for (anUInt64 i = 0; i < mDrawables.size() - 1; i++)
+		{
+			for (anUInt64 j = 0; j < mDrawables.size() - 1; j++)
+			{
+				if (mDrawables[j].LayerNumber > mDrawables[j + 1].LayerNumber)
+				{
+					const anSceneDrawable temp = mDrawables[j];
+					mDrawables[j] = mDrawables[j + 1];
+					mDrawables[j + 1] = temp;
+				}
+			}
+		}
+	}
+}
+
+void anScene::DrawDrawables()
+{
+	{
+		auto group = mRegistry.group<anTransformComponent>(entt::get<anSpriteRendererComponent>);
+		for (auto entity : group)
+		{
+			auto [transform, sprite] = group.get<anTransformComponent, anSpriteRendererComponent>(entity);
+
+			anSceneDrawable drawable;
+			drawable.Type = anSceneDrawableType::Sprite;
+			drawable.Transform = transform;
+			drawable.Sprite = sprite;
+			drawable.LayerNumber = sprite.LayerNumber;
+			mDrawables.push_back(drawable);
+		}
+	}
+
+	SortDrawableList();
+
+	if (!mDrawables.empty())
+	{
+		for (auto drawable : mDrawables)
+		{
+			switch (drawable.Type)
+			{
+			case anSceneDrawableType::Sprite:
+				anRenderer2D::Get().DrawTexture(drawable.Sprite.Texture, drawable.Transform.GetTransformationMatrix(), drawable.Sprite.Color);
+				break;
+			}
+		}
+
+		mDrawables.clear();
+	}
 }

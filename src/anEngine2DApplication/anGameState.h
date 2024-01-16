@@ -20,8 +20,12 @@ public:
 private:
 	anScene* mScene;
 	anSceneSerializer mSceneSerializer;
-	anString mScenesFolder = "scenes\\";
-	anString mAssetsFolder = "assets\\";
+
+	anFileSystem::path mCurrentPath;
+	anFileSystem::path mAssetsPath;
+
+	float mfWidth = 0.0f;
+	float mfHeight = 0.0f;
 };
 
 #endif

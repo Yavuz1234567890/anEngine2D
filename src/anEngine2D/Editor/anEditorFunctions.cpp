@@ -30,7 +30,7 @@ namespace anEditorFunctions
 			sFunctions.LoadSceneFunction(scene);
 	}
 
-	void DefineEditorFunctions(sol::state& state)
+	void RegisterLuaAPI(sol::state& state)
 	{
 		state.set_function("closeApplication", [&]() { anEditorFunctions::CloseApplication(); });
 		state.set_function("loadScene", [&](const char* msg) { anEditorFunctions::LoadScene(msg); });

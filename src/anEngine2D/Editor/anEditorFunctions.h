@@ -11,7 +11,7 @@ namespace anEditorFunctions
 	void SetLoadScene(const anFunction<void(const anString&)>& fn);
 	void CloseApplication();
 	void LoadScene(const anString& scene);
-	void DefineEditorFunctions(sol::state& state);
+	void RegisterLuaAPI(sol::state& state);
 }
 
 #endif

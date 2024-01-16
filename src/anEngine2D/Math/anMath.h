@@ -1,6 +1,8 @@
 #ifndef AN_MATH_H_
 #define AN_MATH_H_
 
+#include <sol/sol.hpp>
+
 #define AN_PI 3.14159265358979323846
 
 float anCos(float x);
@@ -19,5 +21,10 @@ int anRand(int max);
 int anRand(int min, int max);
 float anRandf(float max);
 float anRandf(float min, float max);
+
+namespace anMath
+{
+	void RegisterLuaAPI(sol::state& state);
+}
 
 #endif

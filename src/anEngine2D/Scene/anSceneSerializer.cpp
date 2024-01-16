@@ -86,6 +86,7 @@ anScene* anSceneSerializer::DeserializeScene(const anFileSystem::path& location,
 						if (component.Texture != nullptr)
 							component.Texture->SetEditorPath(scenePath);
 
+						component.LayerNumber = child->IntAttribute("layerNumber");
 						continue;
 					}
 
@@ -184,6 +185,8 @@ void anSceneSerializer::SerializeScene(const anFileSystem::path& location, anSce
 				printer.PushAttribute("a", component.Color.A);
 
 				printer.PushAttribute("path", component.Texture == nullptr ? "" : component.Texture->GetEditorPath().c_str());
+
+				printer.PushAttribute("layerNumber", component.LayerNumber);
 
 				printer.CloseElement();
 			}
