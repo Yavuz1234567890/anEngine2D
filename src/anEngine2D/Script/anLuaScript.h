@@ -18,6 +18,7 @@ public:
 	const anFileSystem::path& GetPath() const;
 	const anFileSystem::path& GetEditorPath() const;
 	void SetEditorPath(const anFileSystem::path& path);
+	void Reload();
 private:
 	anFileSystem::path mScriptPath;
 	anFileSystem::path mEditorPath;
@@ -26,6 +27,8 @@ private:
 	sol::protected_function mSetupFunction;
 	sol::protected_function mInitializeFunction;
 	sol::protected_function mUpdateFunction;
+
+	anString mFileSource;
 };
 
 #endif

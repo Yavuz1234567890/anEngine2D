@@ -223,7 +223,7 @@ anTexture* anLoadTexture(const anString& path)
 	int width = 0;
 	int height = 0;
 
-	stbi_uc* data = stbi_load(path.c_str(), &width, &height, &channels, 4);
+	stbi_uc* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
 	if (!data)
 		anEditorError("Couldn't find texture '" + path + "'");
 
@@ -240,8 +240,8 @@ anTexture* anLoadTexture(const anString& path)
 	spec.Width = width;
 	spec.Height = height;
 	spec.Format = format;
-	spec.MinFilter = anTextureParameter::Nearest;
-	spec.MagFilter = anTextureParameter::Nearest;
+	spec.MinFilter = anTextureParameter::Linear;
+	spec.MagFilter = anTextureParameter::Linear;
 	spec.WrapS = anTextureParameter::Repeat;
 	spec.WrapT = anTextureParameter::Repeat;
 	anTexture* texture = new anTexture(spec);

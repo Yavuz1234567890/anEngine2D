@@ -22,13 +22,13 @@ void anLuaScript::LoadScript(const anFileSystem::path& scriptLocation, const anF
 	anStringStream srcCodeStream;
 	srcCodeStream << file.rdbuf();
 	
-	anString srcCode = srcCodeStream.str();
+	mFileSource = srcCodeStream.str();
 	
 	auto& state = anScriptSystem::GetWrapper()->GetState();
 	
 	try 
 	{ 
-		state.script(srcCode); 
+		state.script(mFileSource); 
 
 		anString scriptName = scriptLocation.stem().string();
 		for (anUInt64 i = 0; i < scriptName.size(); i++)
@@ -88,4 +88,9 @@ const anFileSystem::path& anLuaScript::GetEditorPath() const
 void anLuaScript::SetEditorPath(const anFileSystem::path& path)
 {
 	mEditorPath = path;
+}
+
+void anLuaScript::Reload()
+{
+	LoadScript(mScriptPath, mEditorPath);
 }

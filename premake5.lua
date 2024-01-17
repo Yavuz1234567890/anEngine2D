@@ -45,8 +45,8 @@ workspace "anEngine2D"
 		cppdialect "C++17"
 		staticruntime "off"
 
-		targetdir "bin"
-		objdir "obj"
+		targetdir "bin/%{cfg.buildcfg}"
+		objdir "obj/%{cfg.buildcfg}"
 
 		files
 		{
@@ -74,8 +74,8 @@ workspace "anEngine2D"
 		cppdialect "C++17"
 		staticruntime "off"
 
-		targetdir "bin"
-		objdir "obj"
+		targetdir "bin/%{cfg.buildcfg}"
+		objdir "obj/%{cfg.buildcfg}"
 
 		files
 		{
@@ -106,8 +106,8 @@ workspace "anEngine2D"
 		cppdialect "C++17"
 		staticruntime "off"
 
-		targetdir "bin"
-		objdir "obj"
+		targetdir "bin/%{cfg.buildcfg}"
+		objdir "obj/%{cfg.buildcfg}"
 
 		files
 		{
@@ -174,8 +174,8 @@ workspace "anEngine2D"
 		cppdialect "C++17"
 		staticruntime "off"
 
-		targetdir "bin"
-		objdir "obj"
+		targetdir "bin/%{cfg.buildcfg}"
+		objdir "obj/%{cfg.buildcfg}"
 
 		files
 		{
@@ -208,8 +208,8 @@ workspace "anEngine2D"
 		cppdialect "C++17"
 		staticruntime "off"
 
-		targetdir "bin"
-		objdir "obj"
+		targetdir "bin/%{cfg.buildcfg}"
+		objdir "obj/%{cfg.buildcfg}"
 
 		files
 		{
@@ -242,8 +242,8 @@ workspace "anEngine2D"
 		cppdialect "C++17"
 		staticruntime "off"
 
-		targetdir "bin"
-		objdir "obj"
+		targetdir "bin/%{cfg.buildcfg}"
+		objdir "obj/%{cfg.buildcfg}"
 
 		files
 		{

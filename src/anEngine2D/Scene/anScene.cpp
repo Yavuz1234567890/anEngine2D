@@ -30,7 +30,7 @@ anEntity anScene::NewEntity(anUUID uuid, const anString& tag)
 void anScene::DestroyEntity(anEntity entity)
 {
 	mEntityMap.erase(entity.GetUUID());
-	mRegistry.destroy(entity.GetHandle());
+	mRegistry.destroy(entity);
 }
 
 void anScene::EditorUpdate(float dt, anCamera2D& camera, anTexture* cameraIcon)
@@ -167,10 +167,42 @@ static void CopyComponentIfExists(anComponentGroup<Component...>, anEntity dst, 
 	CopyComponentIfExists<Component...>(dst, src);
 }
 
+template<typename... Component>
+static void CopyComponentIfExistsIgnoreComponent(anEntity dst, anEntity src, const anString& ignore)
+{
+	([&]()
+		{
+			if (Component::GetComponentName() != ignore)
+			{
+				if (src.HasComponent<Component>())
+					dst.AddOrReplaceComponent<Component>(src.GetComponent<Component>());
+			}
+		}(), ...);
+}
+
+template<typename... Component>
+static void CopyComponentIfExistsIgnoreComponent(anComponentGroup<Component...>, anEntity dst, anEntity src, const anString& ignore)
+{
+	CopyComponentIfExistsIgnoreComponent<Component...>(dst, src, ignore);
+}
+
+
 anEntity anScene::CopyEntity(anEntity entity, const anString& tag)
 {
 	anEntity ent = NewEntity(tag);
-	CopyComponentIfExists(anAllComponents{}, ent, entity);
+	CopyComponentIfExistsIgnoreComponent(anAllComponents{}, ent, entity, "TagComponent");
+	if (ent.HasComponent<anLuaScriptComponent>())
+	{
+		auto& comp = ent.GetComponent<anLuaScriptComponent>();
+
+		const anFileSystem::path path = comp.Script->GetPath();
+		const anFileSystem::path editorPath = comp.Script->GetEditorPath();
+
+		comp.Script = new anLuaScript();
+		comp.Script->LoadScript(path, editorPath);
+		comp.Script->Initialize(ent);
+	}
+
 	return ent;
 }
 
