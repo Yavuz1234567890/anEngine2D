@@ -21,7 +21,6 @@ public:
 	{
 		anInitializeRandomDevice();
 
-		mWindow->SetVSync(true);
 		mWindow->MakeFullscreen();
 
 		SetCurrentState<anGameState>();

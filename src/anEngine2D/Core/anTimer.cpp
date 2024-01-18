@@ -51,3 +51,10 @@ anUInt64 anTimer::GetFrequency()
 #endif
 	return res;
 }
+
+void anTimer::Delay(float milis)
+{
+#ifdef PLATFORM_WINDOWS
+	Sleep(DWORD(milis));
+#endif
+}

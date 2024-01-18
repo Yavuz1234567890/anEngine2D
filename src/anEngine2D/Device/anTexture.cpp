@@ -76,14 +76,14 @@ anTexture::anTexture(const anTextureCreationSpecification& spec)
 	glGenTextures(1, &mID);
 	glBindTexture(GL_TEXTURE_2D, mID);
 
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, _anGetTextureParameter<float>(spec.MinFilter));
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, _anGetTextureParameter<float>(spec.MagFilter));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, _anGetTextureParameter<int>(spec.MinFilter));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, _anGetTextureParameter<int>(spec.MagFilter));
 	
-	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _anGetTextureParameter<int>(spec.WrapS));
-	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _anGetTextureParameter<int>(spec.WrapT));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _anGetTextureParameter<int>(spec.WrapS));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _anGetTextureParameter<int>(spec.WrapT));
 
 	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, spec.Width, spec.Height, 0, dataFormat, GL_UNSIGNED_BYTE, spec.Data);
-
+	
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
@@ -141,11 +141,11 @@ anTexture::anTexture(const anString& path)
 	glGenTextures(1, &mID);
 	glBindTexture(GL_TEXTURE_2D, mID);
 
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, _anGetTextureParameter<float>(spec.MinFilter));
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, _anGetTextureParameter<float>(spec.MagFilter));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, _anGetTextureParameter<int>(spec.MinFilter));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, _anGetTextureParameter<int>(spec.MagFilter));
 
-	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _anGetTextureParameter<int>(spec.WrapS));
-	glTextureParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _anGetTextureParameter<int>(spec.WrapT));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _anGetTextureParameter<int>(spec.WrapS));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _anGetTextureParameter<int>(spec.WrapT));
 
 	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, spec.Width, spec.Height, 0, dataFormat, GL_UNSIGNED_BYTE, spec.Data);
 
@@ -232,7 +232,7 @@ anTexture* anLoadTexture(const anString& path)
 		format = anTextureFormat::RGBA;
 	if (channels == 3)
 		format = anTextureFormat::RGB;
-	if (channels == 2)
+	if (channels == 1)
 		format = anTextureFormat::Red;
 
 	anTextureCreationSpecification spec;

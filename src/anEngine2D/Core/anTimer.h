@@ -15,6 +15,7 @@ public:
 public:
 	static anUInt64 GetCounter();
 	static anUInt64 GetFrequency();
+	static void Delay(float milis);
 private:
 	anUInt64 mFrequency;
 	anUInt64 mLastTick;

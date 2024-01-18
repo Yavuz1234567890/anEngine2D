@@ -3,6 +3,7 @@
 #include "Core/anLog.h"
 #include "Editor/anEditorFunctions.h"
 #include "Math/anMath.h"
+#include "Core/anTimer.h"
 
 anLuaWrapper::anLuaWrapper()
 {
@@ -27,6 +28,7 @@ void anLuaWrapper::WrapEngine()
 	mState.set_function("logInfo", [&](const char* msg) { anUserInfo(msg); });
 	mState.set_function("logError", [&](const char* msg) { anUserError(msg); });
 	mState.set_function("logWarning", [&](const char* msg) { anUserWarning(msg); });
+	mState.set_function("timeDelay", [&](float milis) { anTimer::Delay(milis); });
 
 	anColor::RegisterLuaAPI(mState);
 	anMath::RegisterLuaAPI(mState);
