@@ -10,6 +10,7 @@ class anEntity;
 
 #include <sol/sol.hpp>
 #include <entt.hpp>
+#include <box2d/box2d.h>
 
 namespace anSceneDrawableType
 {
@@ -37,20 +38,25 @@ public:
 	anEntity NewEntity(const anString& tag);
 	anEntity NewEntity(anUUID uuid, const anString& tag);
 	void DestroyEntity(anEntity entity);
-	void EditorUpdate(float dt, anCamera2D& camera, anTexture* cameraIcon = nullptr);
+	void EditorUpdate(float dt, anCamera2D& camera);
 	void RuntimeInitialize();
 	bool RuntimeUpdate(float dt);
+	void RuntimeStop();
 	void OnViewportSize(anUInt32 width, anUInt32 height);
 	anUInt32 GetViewportWidth() const;
 	anUInt32 GetViewportHeight() const;
 	anEntity FindEntityWithTag(const anString& tag);
 	entt::registry& GetRegistry();
 	void ReloadScripts();
+	void ReloadTextures();
+	void ReloadAssets();
 	anEntity CopyEntity(anEntity entity, const anString& tag);
 	const anFloat2& GetCurrentCameraPosition() const;
 	bool HasCamera() const;
 	anColor& GetClearColor();
-
+	void InitializePhysics();
+	void UpdatePhysics(float dt);
+	
 	static void RegisterLuaAPI(sol::state& state);
 	static anScene* Copy(anScene* ref);
 private:
@@ -69,6 +75,8 @@ private:
 	anVector<anSceneDrawable> mDrawables;
 
 	anColor mClearColor;
+
+	b2World* mPhysicsWorld;
 };
 
 #endif

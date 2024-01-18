@@ -14,7 +14,7 @@ public:
 		: mTitle(title)
 		, mStartWidth(width)
 		, mStartHeight(height)
-		, mIsVSync(true)
+		, mIsVSync(false)
 		, mIsRunning(true)
 		, mOnEventCallback(callback)
 	{ 

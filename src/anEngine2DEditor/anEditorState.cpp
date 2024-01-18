@@ -10,6 +10,30 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
+#include <glm/gtc/type_ptr.hpp>
+
+static bool ImGuiColorPicker(const char* label, anColor& in, bool use = true)
+{
+	float colors[4];
+	colors[0] = float(in.R) / 255.0f;
+	colors[1] = float(in.G) / 255.0f;
+	colors[2] = float(in.B) / 255.0f;
+	colors[3] = float(in.A) / 255.0f;
+
+	if (!ImGui::ColorPicker4(label, colors))
+		return false;
+
+	if (use)
+	{
+		in.R = int(colors[0] * 255.0f);
+		in.G = int(colors[1] * 255.0f);
+		in.B = int(colors[2] * 255.0f);
+		in.A = int(colors[3] * 255.0f);
+	}
+
+	return true;
+}
+
 static anString LogTypeToString(anUInt32 type)
 {
 	switch (type)
@@ -46,6 +70,7 @@ void anEditorState::Initialize()
 	mCameraIconTexture = anLoadTexture("icons/cameraicon.png");
 	mFolderIconTexture = anLoadTexture("icons/directoryicon.png");
 	mFileIconTexture = anLoadTexture("icons/fileicon.png");
+	mArrowIconTexture = anLoadTexture("icons/arrowicon.png");
 
 	if (!anProjectManager::GetCurrentProject())
 		mApplication->GetWindow()->Close();
@@ -118,6 +143,7 @@ void anEditorState::Update(float dt)
 	anClear();
 	anEnableBlend();
 
+	anRenderer2D::Get().ResetStats();
 	mFramebuffer->Bind();
 
 	anClearColor(SceneIsValid() ? mEditorScene->GetClearColor() : anColor(0, 0, 0));
@@ -151,15 +177,15 @@ void anEditorState::Update(float dt)
 	{
 		if (mSceneState == anSceneState::Edit)
 		{
-			mEditorScene->EditorUpdate(dt, mEditorCamera, mCameraIconTexture);
+			mEditorScene->EditorUpdate(dt, mEditorCamera);
 
+			RenderOverlays();
 			mGizmoSystem.UpdateGizmos(dt, mExactViewportMousePosition);
+
 			anRenderer2D::Get().End();
 
 			if (mMousePosition.x >= 0 && mMousePosition.y >= 0 && mMousePosition.x < viewportSize.x && mMousePosition.y < viewportSize.y && mDragEditorCamera && !mGizmoSystem.IsUsing())
-			{
 				mEditorCamera.Move((mLastMousePosition - mMousePosition) * mEditorCameraSpeed * anFloat2(1.0f, -1.0f));
-			}
 		}
 
 		if (mSceneState == anSceneState::Runtime)
@@ -234,7 +260,7 @@ void anEditorState::OnEvent(const anEvent& event)
 			if (event.KeyCode == anKeyR)
 			{
 				if (mLeftCtrl || mRightCtrl)
-					mEditorScene->ReloadScripts();
+					mEditorScene->ReloadAssets();
 			}
 
 			if (event.KeyCode == anKeyDelete)
@@ -295,14 +321,33 @@ void anEditorState::OnImGuiRender()
 			if (ImGui::MenuItem("Close Scene", "Ctrl+W"))
 				CloseScene();
 
-			if (ImGui::MenuItem("Reload Scripts", "Ctrl+R"))
-				mEditorScene->ReloadScripts();
+			if (ImGui::MenuItem("Reload Assets", "Ctrl+R"))
+				mEditorScene->ReloadAssets();
 
 			ImGui::EndMenu();
 		}
 
 		ImGui::EndMenuBar();
 	}
+
+	ImGui::Begin("Scene Options");
+
+	if (SceneIsValid())
+	{
+		ImGui::Checkbox("Show Physics Colliders", &mRenderPhysics);
+		ImGuiColorPicker("Clear Color", mEditorScene->GetClearColor(), mSceneState != anSceneState::Runtime);
+	}
+
+	ImGui::End();
+
+	ImGui::Begin("Renderer Stats");
+
+	ImGui::Text("Frames Per Second: %d", mApplication->GetFramesPerSecond());
+	ImGui::Text("Draw Calls: %d", anRenderer2D::Get().GetDrawCallCount());
+	ImGui::Text("Vertex Count: %d", anRenderer2D::Get().GetVertexCount());
+	ImGui::Text("Index Count: %d", anRenderer2D::Get().GetIndexCount());
+
+	ImGui::End();
 
 	ImGui::Begin("Script Editor");
 	mTextEditorWindowFocused = ImGui::IsWindowFocused() || mTextEditor.IsTextBoxFocused();
@@ -414,6 +459,8 @@ void anEditorState::OnImGuiRender()
 				auto& sprite = entity.AddComponent<anSpriteRendererComponent>();
 				sprite.Texture = texture;
 			}
+			else if (extension == ".anScene")
+				OpenScene(filePath);
 		}
 		ImGui::EndDragDropTarget();
 	}
@@ -425,7 +472,7 @@ void anEditorState::OnImGuiRender()
 
 	if (mAssetBrowserLocation != mProjectAssetsLocation)
 	{
-		if (ImGui::Button("<-"))
+		if (ImGui::ImageButton((ImTextureID)mArrowIconTexture->GetID(), { 16, 16 }, { 0, 0 }, { 1, 1 }))
 			mAssetBrowserLocation = mAssetBrowserLocation.parent_path();
 
 		if (ImGui::BeginDragDropTarget())
@@ -951,6 +998,8 @@ void anEditorState::DrawComponents(anEntity entity)
 		DisplayAddComponentEntry<anCameraComponent>("Camera");
 		DisplayAddComponentEntry<anSpriteRendererComponent>("Sprite Renderer");
 		DisplayAddComponentEntry<anLuaScriptComponent>("Lua Script");
+		DisplayAddComponentEntry<anRigidbodyComponent>("Rigidbody");
+		DisplayAddComponentEntry<anBoxColliderComponent>("Box Collider");
 		
 		ImGui::EndPopup();
 	}
@@ -971,18 +1020,7 @@ void anEditorState::DrawComponents(anEntity entity)
 
 	DrawComponent<anSpriteRendererComponent>("Sprite Renderer", entity, [](auto& component, auto& entity)	
 		{
-			float colors[4];
-			colors[0] = (float)component.Color.R / 255.0f;
-			colors[1] = (float)component.Color.G / 255.0f;
-			colors[2] = (float)component.Color.B / 255.0f;
-			colors[3] = (float)component.Color.A / 255.0f;
-
-			ImGui::ColorEdit4("Color", colors);
-
-			component.Color.R = colors[0] * 255;
-			component.Color.G = colors[1] * 255;
-			component.Color.B = colors[2] * 255;
-			component.Color.A = colors[3] * 255;
+			ImGuiColorPicker("Color", component.Color);
 
 			ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
 			if (ImGui::BeginDragDropTarget())
@@ -1031,6 +1069,41 @@ void anEditorState::DrawComponents(anEntity entity)
 
 			ImGui::SameLine();
 			ImGui::Text(component.Script == nullptr ? "No Script" : component.Script->GetEditorPath().string().c_str());
+		});
+
+	DrawComponent<anRigidbodyComponent>("Rigidbody", entity, [](auto& component, auto& entity)
+		{
+			const char* bodyTypeStrings[] = { "Static", "Dynamic", "Kinematic" };
+			const char* currentBodyTypeString = bodyTypeStrings[(int)component.Type];
+			if (ImGui::BeginCombo("Body Type", currentBodyTypeString))
+			{
+				for (int i = 0; i < 3; i++)
+				{
+					bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
+					if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
+					{
+						currentBodyTypeString = bodyTypeStrings[i];
+						component.Type = i;
+					}
+
+					if (isSelected)
+						ImGui::SetItemDefaultFocus();
+				}
+
+				ImGui::EndCombo();
+			}
+
+			ImGui::Checkbox("Fixed Rotation", &component.FixedRotation);
+		});
+
+	DrawComponent<anBoxColliderComponent>("Box Collider", entity, [](auto& component, auto& entity)
+		{
+			ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset));
+			ImGui::DragFloat2("Size", glm::value_ptr(component.Size));
+			ImGui::DragFloat("Density", &component.Density, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f);
+			ImGui::DragFloat("Restitution Threshold", &component.RestitutionThreshold, 0.01f, 0.0f);
 		});
 }
 
@@ -1107,18 +1180,24 @@ anEntity& anEditorState::GetSelectedEntity()
 
 void anEditorState::SaveScene()
 {
-	if (!SceneIsValid())
-		anShowMessageBox("Error", "You can't save the scene because there is no scene", anMessageBoxDialogType::OkCancel, anMessageBoxIconType::Error);
-	else
-		mSceneSerializer.SerializeScene(mProjectLocation, mEditorScene, mEditorScenePath);
+	if (mSceneState != anSceneState::Runtime)
+	{
+		if (!SceneIsValid())
+			anShowMessageBox("Error", "You can't save the scene because there is no scene", anMessageBoxDialogType::OkCancel, anMessageBoxIconType::Error);
+		else
+			mSceneSerializer.SerializeScene(mProjectLocation, mEditorScene, mEditorScenePath);
+	}
 }
 
 void anEditorState::CloseScene()
 {
-	mSelectedEntity = {};
-	mEditorScene = nullptr;
-	mNoScene = true;
-	mApplication->GetWindow()->SetTitle("anEngine2D Editor - " + mProjectName + " - No Scene");
+	if (mSceneState != anSceneState::Runtime)
+	{
+		mSelectedEntity = {};
+		mEditorScene = nullptr;
+		mNoScene = true;
+		mApplication->GetWindow()->SetTitle("anEngine2D Editor - " + mProjectName + " - No Scene");
+	}
 }
 
 bool anEditorState::SceneIsValid() const
@@ -1284,6 +1363,9 @@ void anEditorState::CloseTextEditorScript()
 	{
 		mTextEditor.SetText("");
 		mTextEditorCurrentFilePath.clear();
+
+		mTextEditor.SetHandleKeyboardInputs(false);
+		mTextEditor.SetHandleMouseInputs(false);
 	}
 }
 
@@ -1359,6 +1441,8 @@ void anEditorState::StartScene()
 
 void anEditorState::StopScene()
 {
+	mEditorScene->RuntimeStop();
+
 	mEditorScene = mRuntimeScene;
 	mSceneState = anSceneState::Edit;
 }
@@ -1377,4 +1461,39 @@ anString anEditorState::GetExactTextEditorSource()
 		src.pop_back();
 
 	return src;
+}
+
+void anEditorState::RenderOverlays()
+{
+	if (mRenderPhysics)
+	{
+		auto view = mEditorScene->GetRegistry().view<anTransformComponent, anBoxColliderComponent>();
+		for (auto entity : view)
+		{
+			auto [tc, bc2d] = view.get<anTransformComponent, anBoxColliderComponent>(entity);
+
+			anFloat2 translation = tc.Position + bc2d.Offset;
+			anFloat2 scale = tc.Size * bc2d.Size * 2.0f;
+
+			anMatrix4 transformation = glm::translate(glm::mat4(1.0f), { tc.Position, 0.0f })
+				* glm::rotate(glm::mat4(1.0f), glm::radians(tc.Rotation), { 0.0f, 0.0f, 1.0f })
+				* glm::translate(glm::mat4(1.0f), { bc2d.Offset, 0.0f })
+				* glm::scale(glm::mat4(1.0f), { scale, 1.0f });
+
+			anRenderer2D::Get().DrawQuad(transformation, { 0, 255, 0 }, false);
+		}
+	}
+
+	if (mSelectedEntity)
+		anRenderer2D::Get().DrawQuad(mSelectedEntity.GetTransform().GetTransformationMatrix(), { 0, 0, 255 }, false);
+
+	auto view = mEditorScene->GetRegistry().view<anTransformComponent, anCameraComponent>();
+	for (auto entity : view)
+	{
+		auto [transform, camera] = view.get<anTransformComponent, anCameraComponent>(entity);
+
+		int camW = (int)mCameraIconTexture->GetWidth();
+		int camH = (int)mCameraIconTexture->GetHeight();
+		anRenderer2D::Get().DrawTexture(mCameraIconTexture, transform.Position, { (float)camW, (float)camH }, { 255, 255, 255 }, false);
+	}
 }

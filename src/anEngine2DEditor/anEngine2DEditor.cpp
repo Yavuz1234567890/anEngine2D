@@ -71,8 +71,6 @@ public:
 
 		anInitializeRandomDevice();
 
-		mWindow->SetVSync(true);
-
 		anFileSystem::create_directory("projects");
 
 		SetCurrentState<anProjectSelectorState>();

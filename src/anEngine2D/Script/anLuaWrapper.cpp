@@ -33,6 +33,7 @@ void anLuaWrapper::WrapEngine()
 	anUserInputSystem::RegisterLuaAPI(mState);
 	anEditorFunctions::RegisterLuaAPI(mState);
 	anTransformComponent::RegisterLuaAPI(mState);
+	anRigidbodyComponent::RegisterLuaAPI(mState);
 	anSpriteRendererComponent::RegisterLuaAPI(mState);
 	anScene::RegisterLuaAPI(mState);
 	anEntity::RegisterLuaAPI(mState);

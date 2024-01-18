@@ -31,7 +31,7 @@ public:
 
 		mHandle = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
 		glfwMakeContextCurrent(mHandle);
-		glfwSwapInterval(mIsVSync ? 1 : 0);
+		SetVSync(true);
 
 		if (!sGLEWInitialized)
 		{
@@ -148,8 +148,7 @@ public:
 		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
 		glfwSetWindowMonitor(mHandle, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
-		glfwSwapInterval(mIsVSync ? 1 : 0);
-
+		
 		anSetViewport({ 0.0f, 0.0f }, { (float)mode->width, (float)mode->height });
 	}
 

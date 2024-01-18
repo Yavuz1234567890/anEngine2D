@@ -28,9 +28,9 @@ void anGizmoSystem::UpdateGizmos(float dt, anFloat2 exactMousePosition)
 
 		mGizmoBoxPosition = { mGizmoPosition.x + 0.5f + mGizmoRectSize * 0.5f, mGizmoPosition.y - 0.5f - mGizmoRectSize * 0.5f };
 
-		anRenderer2D::Get().DrawLine(mGizmoPosition, { mGizmoPosition.x, mGizmoPosition.y - mGizmoSize }, { 0, 255, 0 });
-		anRenderer2D::Get().DrawLine(mGizmoPosition, { mGizmoPosition.x + mGizmoSize, mGizmoPosition.y }, { 255, 0, 0 });
-		anRenderer2D::Get().DrawTexture(anTexture::GetWhiteTexture(), mGizmoBoxPosition, { mGizmoRectSize, mGizmoRectSize }, { 255, 100, 100 });
+		anRenderer2D::Get().DrawLine(mGizmoPosition, { mGizmoPosition.x, mGizmoPosition.y - mGizmoSize }, { 0, 255, 0 }, 0.5f, false);
+		anRenderer2D::Get().DrawLine(mGizmoPosition, { mGizmoPosition.x + mGizmoSize, mGizmoPosition.y }, { 255, 0, 0 }, 0.5f, false);
+		anRenderer2D::Get().DrawTexture(anTexture::GetWhiteTexture(), mGizmoBoxPosition, { mGizmoRectSize, mGizmoRectSize }, { 255, 100, 100 }, false);
 
 		if (!mGizmoHorizontalTick && !mGizmoVerticalTick)
 		{

@@ -120,7 +120,7 @@ void anRenderer2D::StartDraw()
 		Flush();
 }
 
-void anRenderer2D::DrawLine(const anFloat2& start, const anFloat2& end, const anColor& color, float width)
+void anRenderer2D::DrawLine(const anFloat2& start, const anFloat2& end, const anColor& color, float width, bool addToStats)
 {
 	StartDraw();
 	anFloat2 normal = glm::normalize(anFloat2(end.y - start.y, -(end.x - start.x))) * width;
@@ -154,18 +154,24 @@ void anRenderer2D::DrawLine(const anFloat2& start, const anFloat2& end, const an
 	mTextureVertices.push_back(v3);
 
 	mTextureIndexCount += 6;
+
+	if (addToStats)
+	{
+		mVertexCount += 4;
+		mIndexCount += 6;
+	}
 }
 
-void anRenderer2D::DrawQuad(const anFloat2& pos, const anFloat2& size, const anColor& color)
+void anRenderer2D::DrawQuad(const anFloat2& pos, const anFloat2& size, const anColor& color, bool addToStats)
 {
 	anFloat2 vertices[4];
 	for (anUInt32 i = 0; i < 4; i++)
 		vertices[i] = { pos.x + mQuadPositions[i].x * size.x, pos.y + mQuadPositions[i].y * size.y };
 	
-	DrawLineVertices(vertices, 4, color);
+	DrawLineVertices(vertices, 4, color, addToStats);
 }
 
-void anRenderer2D::DrawQuad(const anMatrix4& transform, const anColor& color)
+void anRenderer2D::DrawQuad(const anMatrix4& transform, const anColor& color, bool addToStats)
 {
 	anFloat2 vertices[4];
 	for (anUInt32 i = 0; i < 4; i++)
@@ -176,19 +182,19 @@ void anRenderer2D::DrawQuad(const anMatrix4& transform, const anColor& color)
 		vertices[i].y = vert.y;
 	}
 
-	DrawLineVertices(vertices, 4, color);
+	DrawLineVertices(vertices, 4, color, addToStats);
 }
 
-void anRenderer2D::DrawQuad(const anFloat2& pos, const anFloat2& size, float rot, const anColor& color)
+void anRenderer2D::DrawQuad(const anFloat2& pos, const anFloat2& size, float rot, const anColor& color, bool addToStats)
 {
 	anMatrix4 transform = glm::translate(anMatrix4(1.0f), { pos.x, pos.y, 0.0f })
 		* glm::rotate(anMatrix4(1.0f), glm::radians(rot), { 0.0f, 0.0f, 1.0f })
 		* glm::scale(anMatrix4(1.0f), { size.x, size.y, 1.0f });
 
-	DrawQuad(transform, color);
+	DrawQuad(transform, color, addToStats);
 }
 
-void anRenderer2D::DrawTexture(anTexture* texture, const anFloat2& pos, const anFloat2& size, const anColor& color)
+void anRenderer2D::DrawTexture(anTexture* texture, const anFloat2& pos, const anFloat2& size, const anColor& color, bool addToStats)
 {
 	StartDraw();
 
@@ -205,9 +211,15 @@ void anRenderer2D::DrawTexture(anTexture* texture, const anFloat2& pos, const an
 	}
 
 	mTextureIndexCount += 6;
+
+	if (addToStats)
+	{
+		mVertexCount += 4;
+		mIndexCount += 6;
+	}
 }
 
-void anRenderer2D::DrawTexture(anTexture* texture, const anMatrix4& transform, const anColor& color)
+void anRenderer2D::DrawTexture(anTexture* texture, const anMatrix4& transform, const anColor& color, bool addToStats)
 {
 	StartDraw();
 
@@ -223,18 +235,24 @@ void anRenderer2D::DrawTexture(anTexture* texture, const anMatrix4& transform, c
 	}
 
 	mTextureIndexCount += 6;
+
+	if (addToStats)
+	{
+		mVertexCount += 4;
+		mIndexCount += 6;
+	}
 }
 
-void anRenderer2D::DrawTexture(anTexture* texture, const anFloat2& pos, const anFloat2& size, float rot, const anColor& color)
+void anRenderer2D::DrawTexture(anTexture* texture, const anFloat2& pos, const anFloat2& size, float rot, const anColor& color, bool addToStats)
 {
 	anMatrix4 transform = glm::translate(anMatrix4(1.0f), { pos.x, pos.y, 0.0f })
 		* glm::rotate(anMatrix4(1.0f), glm::radians(rot), { 0.0f, 0.0f, 1.0f })
 		* glm::scale(anMatrix4(1.0f), { size.x, size.y, 1.0f });
 
-	DrawTexture(texture, transform, color);
+	DrawTexture(texture, transform, color, addToStats);
 }
 
-void anRenderer2D::DrawTextureSub(anTexture* texture, const anMatrix4& transform, const anFloat2& spos, const anFloat2& ssize, const anColor& color)
+void anRenderer2D::DrawTextureSub(anTexture* texture, const anMatrix4& transform, const anFloat2& spos, const anFloat2& ssize, const anColor& color, bool addToStats)
 {
 	StartDraw();
 
@@ -253,18 +271,24 @@ void anRenderer2D::DrawTextureSub(anTexture* texture, const anMatrix4& transform
 	}
 
 	mTextureIndexCount += 6;
+
+	if (addToStats)
+	{
+		mVertexCount += 4;
+		mIndexCount += 6;
+	}
 }
 
-void anRenderer2D::DrawTextureSub(anTexture* texture, const anFloat2& pos, const anFloat2& size, const anFloat2& spos, const anFloat2& ssize, float rot, const anColor& color)
+void anRenderer2D::DrawTextureSub(anTexture* texture, const anFloat2& pos, const anFloat2& size, const anFloat2& spos, const anFloat2& ssize, float rot, const anColor& color, bool addToStats)
 {
 	anMatrix4 transform = glm::translate(anMatrix4(1.0f), { pos.x, pos.y, 0.0f })
 		* glm::rotate(anMatrix4(1.0f), glm::radians(rot), { 0.0f, 0.0f, 1.0f })
 		* glm::scale(anMatrix4(1.0f), { size.x, size.y, 1.0f });
 
-	DrawTextureSub(texture, transform, spos, ssize, color);
+	DrawTextureSub(texture, transform, spos, ssize, color, addToStats);
 }
 
-void anRenderer2D::DrawString(const anFont& font, const anFloat2& pos, const anString& str, const anColor& color)
+void anRenderer2D::DrawString(const anFont& font, const anFloat2& pos, const anString& str, const anColor& color, bool addToStats)
 {
 	anUInt32 spaceAdvance = font.GetCharacter(' ').Advance;
 	anUInt32 tabAdvance = spaceAdvance * 4;
@@ -339,6 +363,9 @@ void anRenderer2D::DrawString(const anFont& font, const anFloat2& pos, const anS
 		x += ch.Advance >> 6;
 
 		mTextureIndexCount += 6;
+
+		mVertexCount += 4;
+		mIndexCount += 6;
 	}
 }
 
@@ -350,12 +377,12 @@ void anRenderer2D::SetQuadPositions(const anFloat4& p0, const anFloat4& p1, cons
 	mQuadPositions[3] = p3;
 }
 
-void anRenderer2D::DrawLineVertices(anFloat2* vertices, anUInt32 size, const anColor& color)
+void anRenderer2D::DrawLineVertices(anFloat2* vertices, anUInt32 size, const anColor& color, bool addToStats)
 {
 	for (anUInt32 i = 0; i < size - 1; i++)
-		DrawLine(vertices[i], vertices[i + 1], color);
+		DrawLine(vertices[i], vertices[i + 1], color, 0.5f, addToStats);
 
-	DrawLine(vertices[size - 1], vertices[0], color);
+	DrawLine(vertices[size - 1], vertices[0], color, 0.5f, addToStats);
 }
 
 anUInt32 anRenderer2D::GetTextureIndex(anTexture* texture)
@@ -383,10 +410,22 @@ anUInt32 anRenderer2D::GetDrawCallCount() const
 
 anUInt32 anRenderer2D::GetIndexCount() const
 {
-	return mTextureIndexCount;
+	return mIndexCount;
+}
+
+anUInt32 anRenderer2D::GetVertexCount() const
+{
+	return mVertexCount;
 }
 
 anCamera2D& anRenderer2D::GetCamera()
 {
 	return mCamera;
+}
+
+void anRenderer2D::ResetStats()
+{
+	mDrawCallCount = 0;
+	mIndexCount = 0;
+	mVertexCount = 0;
 }

@@ -29,6 +29,7 @@ workspace "anEngine2D"
 		"thirdparty/sol2/include",
 		"thirdparty/lua",
 		"thirdparty/ImGuiColorTextEdit",
+		"thirdparty/box2d/include",
 		"src/anEngine2D"
 	}
 
@@ -37,6 +38,42 @@ workspace "anEngine2D"
 		{
 			"PLATFORM_WINDOWS"
 		}
+
+	project "Box2D"
+		location "thirdparty/box2d"
+		kind "StaticLib"
+		language "C++"
+		cppdialect "C++11"
+		staticruntime "off"
+
+		targetdir "bin/%{cfg.buildcfg}"
+		objdir "obj/%{cfg.buildcfg}"
+
+		files
+		{
+			"thirdparty/box2d/include/**.h",
+
+			"thirdparty/box2d/src/**.cpp",
+			"thirdparty/box2d/src/**.h"
+		}
+
+		includedirs
+		{
+			"thirdparty/box2d/src"
+		}
+
+		filter "system:windows"
+			systemversion "latest"
+
+		filter "configurations:Debug"
+			defines "C_DEBUG"
+			runtime "Debug"
+			symbols "on"
+
+		filter "configurations:Release"
+			defines "C_RELEASE"
+			runtime "Release"
+			optimize "on"
 
 	project "ImGui"
 		location "thirdparty/imgui"
@@ -134,7 +171,8 @@ workspace "anEngine2D"
 		links
 		{
 			"ImGui",
-			"Lua"
+			"Lua",
+			"Box2D"
 		}
 
 		filter "system:windows"

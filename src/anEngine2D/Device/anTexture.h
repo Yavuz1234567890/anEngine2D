@@ -62,6 +62,8 @@ public:
 	void SetID(anUInt32 id);
 	anString GetEditorPath() const;
 	void SetEditorPath(const anString& path);
+	anString GetPath() const;
+	void SetPath(const anString& path);
 public:
 	static void Initialize();
 	static anTexture* GetWhiteTexture();
@@ -69,6 +71,7 @@ private:
 	anUInt32 mID;
 	anTextureCreationSpecification mSpecification;
 	anString mEditorPath;
+	anString mPath;
 };
 
 anTexture* anLoadTexture(const anString& path);

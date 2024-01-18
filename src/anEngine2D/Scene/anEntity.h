@@ -44,6 +44,7 @@ public:
 		mScene->GetRegistry().remove<T>(mHandle);
 	}
 
+	operator bool() const;
 	operator entt::entity();
 	anTransformComponent& GetTransform();
 	anUUID& GetUUID();
@@ -59,6 +60,8 @@ public:
 	//for lua scripting
 	bool HasSpriteRenderer() const;
 	anSpriteRendererComponent& GetSpriteRenderer();
+	bool HasRigidbody() const;
+	anRigidbodyComponent& GetRigidbody();
 	//-----------------
 
 	static void RegisterLuaAPI(sol::state& state);

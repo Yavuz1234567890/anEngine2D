@@ -60,6 +60,7 @@ private:
 	void UserWarning(const anString& msg);
 private:
 	anImGuiDevice mImGui;
+	bool mMinimized = false;
 protected:
 	anApplicationCreationDescription mApplicationDesc;
 	anWindow* mWindow;

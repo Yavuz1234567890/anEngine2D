@@ -6,6 +6,7 @@
 #include "anUserInputSystem.h"
 #include "anMessage.h"
 
+
 static anApplication* sInstance = nullptr;
 
 anApplication::anApplication(const anApplicationCreationDescription& desc)
@@ -67,14 +68,17 @@ void anApplication::Start()
 		}
 		++fps;
 		
-		mControllerDevice.Update(dt);
-		mStateManager->Update(dt);
-		Update(dt);
-		anUserInputSystem::Update(dt);
+		if (!mMinimized)
+		{
+			mControllerDevice.Update(dt);
+			mStateManager->Update(dt);
+			Update(dt);
+			anUserInputSystem::Update(dt);
 
-		mImGui.Start();
-		OnImGui();
-		mImGui.End();
+			mImGui.Start();
+			OnImGui();
+			mImGui.End();
+		}
 
 		mWindow->Present();
 	}
@@ -84,6 +88,9 @@ void anApplication::Start()
 
 void anApplication::AOnEvent(const anEvent& event)
 {
+	if (event.Type == anEvent::WindowSize)
+		mMinimized = event.WindowWidth == 0 || event.WindowHeight == 0;
+
 	mStateManager->OnEvent(event);
 	anUserInputSystem::OnEvent(event);
 	OnEvent(event);

@@ -19,6 +19,11 @@ anEntity::anEntity(const anEntity& other)
 {
 }
 
+anEntity::operator bool() const
+{
+	return mHandle != entt::null;
+}
+
 anEntity::operator entt::entity()
 {
 	return mHandle;
@@ -85,6 +90,16 @@ anSpriteRendererComponent& anEntity::GetSpriteRenderer()
 	return GetComponent<anSpriteRendererComponent>();
 }
 
+bool anEntity::HasRigidbody() const
+{
+	return HasComponent<anRigidbodyComponent>();
+}
+
+anRigidbodyComponent& anEntity::GetRigidbody()
+{
+	return GetComponent<anRigidbodyComponent>();
+}
+
 void anEntity::RegisterLuaAPI(sol::state& state)
 {
 	auto entity = state.new_usertype<anEntity>(
@@ -96,6 +111,8 @@ void anEntity::RegisterLuaAPI(sol::state& state)
 		"copy", &anEntity::Copy,
 		"lookAt", &anEntity::LookAt,
 		"hasSpriteRenderer", &anEntity::HasSpriteRenderer,
-		"getSpriteRenderer", &anEntity::GetSpriteRenderer
+		"getSpriteRenderer", &anEntity::GetSpriteRenderer,
+		"hasRigidbody", &anEntity::HasRigidbody,
+		"getRigidbody", &anEntity::GetRigidbody
 	);
 }

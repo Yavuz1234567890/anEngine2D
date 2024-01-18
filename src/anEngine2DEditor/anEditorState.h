@@ -78,8 +78,8 @@ public:
 	void StopScene();
 	void LoadScene(const anString& path);
 	anString GetExactTextEditorSource();
-
 	anEntity& GetSelectedEntity();
+	void RenderOverlays();
 
 	template<typename T>
 	void DisplayAddComponentEntry(const anString& entryName);
@@ -121,6 +121,7 @@ private:
 	anTexture* mCameraIconTexture;
 	anTexture* mFolderIconTexture;
 	anTexture* mFileIconTexture;
+	anTexture* mArrowIconTexture;
 
 	anGizmoSystem mGizmoSystem;
 
@@ -147,6 +148,8 @@ private:
 	anString mTextEditorFileSourceCode;
 
 	anVector<anLogData> mLogs;
+
+	bool mRenderPhysics = true;
 };
 
 #endif

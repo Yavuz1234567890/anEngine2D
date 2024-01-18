@@ -122,12 +122,74 @@ struct anLuaScriptComponent
 	static anString GetComponentName() { return "LuaScriptComponent"; }
 };
 
+namespace anRigidbodyType
+{
+	enum : anUInt32
+	{
+		Static,
+		Dynamic,
+		Kinematic
+	};
+}
+
+struct anRigidbodyComponent
+{
+	anUInt32 Type = anRigidbodyType::Static;
+	bool FixedRotation = false;
+
+	void* Body = nullptr;
+
+	anRigidbodyComponent() = default;
+	anRigidbodyComponent(const anRigidbodyComponent&) = default;
+
+	static anString GetComponentName() { return "RigidbodyComponent"; }
+
+	void ApplyLinearImpulse(const anFloat2& impulse, const anFloat2& point, bool wake);
+	void ApplyLinearImpulseToCenter(const anFloat2& impulse, bool wake);
+	anFloat2 GetLinearVelocity() const;
+	anUInt32 GetType() const;
+	void SetType(anUInt32 type);
+	float GetMass() const;
+
+	static void RegisterLuaAPI(sol::state& state)
+	{
+		auto rigidbody = state.new_usertype<anRigidbodyComponent>(
+			"anRigidbody",
+			"applyLinearImpulse", &anRigidbodyComponent::ApplyLinearImpulse,
+			"applyLinearImpulseToCenter", &anRigidbodyComponent::ApplyLinearImpulseToCenter,
+			"getLinearVelocity", &anRigidbodyComponent::GetLinearVelocity,
+			"getType", &anRigidbodyComponent::GetType,
+			"setType", &anRigidbodyComponent::SetType,
+			"getMass", &anRigidbodyComponent::GetMass
+		);
+	}
+};
+
+struct anBoxColliderComponent
+{
+	anFloat2 Offset = { 0.0f, 0.0f };
+	anFloat2 Size = { 0.5f, 0.5f };
+
+	float Density = 1.0f;
+	float Friction = 0.5f;
+	float Restitution = 0.0f;
+	float RestitutionThreshold = 0.5f;
+
+	void* Fixture = nullptr;
+
+	anBoxColliderComponent() = default;
+	anBoxColliderComponent(const anBoxColliderComponent&) = default;
+
+	static anString GetComponentName() { return "BoxColliderComponent"; }
+};
+
 template<typename... Component>
 struct anComponentGroup
 {
 };
 
 using anAllComponents = anComponentGroup<anTransformComponent, anSpriteRendererComponent,
-	anLuaScriptComponent, anCameraComponent, anTagComponent, anUUIDComponent>;
+	anLuaScriptComponent, anCameraComponent, anTagComponent, anUUIDComponent, anBoxColliderComponent,
+	anRigidbodyComponent>;
 
 #endif

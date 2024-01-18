@@ -245,7 +245,8 @@ anTexture* anLoadTexture(const anString& path)
 	spec.WrapS = anTextureParameter::Repeat;
 	spec.WrapT = anTextureParameter::Repeat;
 	anTexture* texture = new anTexture(spec);
-	
+	texture->SetPath(path);
+
 	stbi_image_free(data);
 	
 	return texture;
@@ -259,4 +260,14 @@ anString anTexture::GetEditorPath() const
 void anTexture::SetEditorPath(const anString& path)
 {
 	mEditorPath = path;
+}
+
+anString anTexture::GetPath() const
+{
+	return mPath;
+}
+
+void anTexture::SetPath(const anString& path)
+{
+	mPath = path;
 }

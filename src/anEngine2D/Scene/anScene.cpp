@@ -1,6 +1,7 @@
 #include "anScene.h"
 #include "anEntity.h"
 #include "Core/anUserInputSystem.h"
+#include "anPhysicsTypes.h"
 
 anScene::anScene()
 {
@@ -33,23 +34,11 @@ void anScene::DestroyEntity(anEntity entity)
 	mRegistry.destroy(entity);
 }
 
-void anScene::EditorUpdate(float dt, anCamera2D& camera, anTexture* cameraIcon)
+void anScene::EditorUpdate(float dt, anCamera2D& camera)
 {
 	anRenderer2D::Get().Start(camera);
-
-	{
-		DrawDrawables();
-
-		auto view = mRegistry.view<anTransformComponent, anCameraComponent>();
-		for (auto entity : view)
-		{
-			auto [transform, camera] = view.get<anTransformComponent, anCameraComponent>(entity);
-
-			int camW = (int)cameraIcon->GetWidth();
-			int camH = (int)cameraIcon->GetHeight();
-			anRenderer2D::Get().DrawTexture(cameraIcon, transform.Position, { (float)camW, (float)camH }, { 255, 255, 255 });
-		}
-	}
+	
+	DrawDrawables();
 }
 
 void anScene::RuntimeInitialize()
@@ -63,6 +52,8 @@ void anScene::RuntimeInitialize()
 				script.Script->Initialize({ entity, this });
 		}
 	}
+
+	InitializePhysics();
 }
 
 bool anScene::RuntimeUpdate(float dt)
@@ -78,6 +69,8 @@ bool anScene::RuntimeUpdate(float dt)
 				script.Script->Update(dt);
 		}
 	}
+
+	UpdatePhysics(dt);
 
 	anCamera2D* cam = nullptr;
 	anMatrix4 cameraView;
@@ -105,6 +98,12 @@ bool anScene::RuntimeUpdate(float dt)
 	DrawDrawables();
 
 	return true;
+}
+
+void anScene::RuntimeStop()
+{
+	delete mPhysicsWorld;
+	mPhysicsWorld = nullptr;
 }
 
 void anScene::OnViewportSize(anUInt32 width, anUInt32 height)
@@ -219,6 +218,25 @@ void anScene::ReloadScripts()
 	}
 }
 
+void anScene::ReloadTextures()
+{
+	{
+		auto view = mRegistry.view<anSpriteRendererComponent>();
+		for (auto entity : view)
+		{
+			auto sprite = view.get<anSpriteRendererComponent>(entity);
+			if (sprite.Texture)
+				sprite.Texture = anLoadTexture(sprite.Texture->GetPath());
+		}
+	}
+}
+
+void anScene::ReloadAssets()
+{
+	ReloadScripts();
+	ReloadTextures();
+}
+
 template<typename... Component>
 static void CopyComponent(entt::registry& dst, entt::registry& src, const anUnorderedMap<anUUID, entt::entity>& enttMap)
 {
@@ -244,6 +262,8 @@ static void CopyComponent(anComponentGroup<Component...>, entt::registry& dst, e
 anScene* anScene::Copy(anScene* ref)
 {
 	anScene* newScene = new anScene();
+
+	newScene->mClearColor = ref->mClearColor;
 
 	newScene->mViewportWidth = ref->mViewportWidth;
 	newScene->mViewportHeight = ref->mViewportHeight;
@@ -341,5 +361,63 @@ void anScene::DrawDrawables()
 		}
 
 		mDrawables.clear();
+	}
+}
+
+void anScene::InitializePhysics()
+{
+	mPhysicsWorld = new b2World({ 0.0f, 9.8f });
+
+	auto view = mRegistry.view<anRigidbodyComponent>();
+	for (auto e : view)
+	{
+		anEntity entity = { e, this };
+		auto& transform = entity.GetComponent<anTransformComponent>();
+		auto& rb2d = entity.GetComponent<anRigidbodyComponent>();
+
+		b2BodyDef bodyDef;
+		bodyDef.type = anPhysicsTypes::RigidbodyTypeToBox2DBodyType(rb2d.Type);
+		bodyDef.position.Set(transform.Position.x, transform.Position.y);
+		bodyDef.angle = glm::radians(transform.Rotation);
+
+		b2Body* body = mPhysicsWorld->CreateBody(&bodyDef);
+		body->SetFixedRotation(rb2d.FixedRotation);
+		rb2d.Body = body;
+
+		if (entity.HasComponent<anBoxColliderComponent>())
+		{
+			auto& bc2d = entity.GetComponent<anBoxColliderComponent>();
+
+			b2PolygonShape boxShape;
+			boxShape.SetAsBox(bc2d.Size.x * transform.Size.x, bc2d.Size.y * transform.Size.y, b2Vec2(bc2d.Offset.x, bc2d.Offset.y), 0.0f);
+
+			b2FixtureDef fixtureDef;
+			fixtureDef.shape = &boxShape;
+			fixtureDef.density = bc2d.Density;
+			fixtureDef.friction = bc2d.Friction;
+			fixtureDef.restitution = bc2d.Restitution;
+			fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
+			bc2d.Fixture = body->CreateFixture(&fixtureDef);
+		}
+	}
+}
+
+void anScene::UpdatePhysics(float dt)
+{
+	mPhysicsWorld->Step(dt, 6, 2);
+
+	auto view = mRegistry.view<anRigidbodyComponent>();
+	for (auto e : view)
+	{
+		anEntity entity = { e, this };
+		auto& transform = entity.GetComponent<anTransformComponent>();
+		auto& rb2d = entity.GetComponent<anRigidbodyComponent>();
+
+		b2Body* body = (b2Body*)rb2d.Body;
+		
+		const auto& position = body->GetPosition();
+		transform.Position.x = position.x;
+		transform.Position.y = position.y;
+		transform.Rotation = glm::degrees(body->GetAngle());
 	}
 }
