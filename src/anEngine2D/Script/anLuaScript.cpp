@@ -37,9 +37,10 @@ void anLuaScript::LoadScript(const anFileSystem::path& scriptLocation, const anF
 				scriptName.erase(scriptName.begin() + i);
 		}
 
-		mSetupFunction = state[scriptName]["setup"];
-		mInitializeFunction = state[scriptName]["initialize"];
-		mUpdateFunction = state[scriptName]["update"];
+		mScriptClass = state[scriptName];
+		mSetupFunction = mScriptClass["setup"];
+		mInitializeFunction = mScriptClass["initialize"];
+		mUpdateFunction = mScriptClass["update"];
 		if (!mInitializeFunction.valid() || !mUpdateFunction.valid() || !mSetupFunction.valid())
 			return;
 
@@ -93,4 +94,9 @@ void anLuaScript::SetEditorPath(const anFileSystem::path& path)
 void anLuaScript::Reload()
 {
 	LoadScript(mScriptPath, mEditorPath);
+}
+
+sol::table& anLuaScript::GetScriptClass()
+{
+	return mScriptClass;
 }

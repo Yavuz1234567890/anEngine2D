@@ -19,10 +19,12 @@ public:
 	const anFileSystem::path& GetEditorPath() const;
 	void SetEditorPath(const anFileSystem::path& path);
 	void Reload();
+	sol::table& GetScriptClass();
 private:
 	anFileSystem::path mScriptPath;
 	anFileSystem::path mEditorPath;
 	sol::table mSelf;
+	sol::table mScriptClass;
 
 	sol::protected_function mSetupFunction;
 	sol::protected_function mInitializeFunction;

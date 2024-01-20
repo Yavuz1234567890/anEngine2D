@@ -100,6 +100,16 @@ anRigidbodyComponent& anEntity::GetRigidbody()
 	return GetComponent<anRigidbodyComponent>();
 }
 
+bool anEntity::HasLuaScript() const
+{
+	return HasComponent<anLuaScriptComponent>();
+}
+
+sol::table& anEntity::GetLuaScriptClass()
+{
+	return GetComponent<anLuaScriptComponent>().Script->GetScriptClass();
+}
+
 void anEntity::RegisterLuaAPI(sol::state& state)
 {
 	auto entity = state.new_usertype<anEntity>(
@@ -113,6 +123,8 @@ void anEntity::RegisterLuaAPI(sol::state& state)
 		"hasSpriteRenderer", &anEntity::HasSpriteRenderer,
 		"getSpriteRenderer", &anEntity::GetSpriteRenderer,
 		"hasRigidbody", &anEntity::HasRigidbody,
-		"getRigidbody", &anEntity::GetRigidbody
+		"getRigidbody", &anEntity::GetRigidbody,
+		"hasLuaScript", &anEntity::HasLuaScript,
+		"getLuaScriptClass", &anEntity::GetLuaScriptClass
 	);
 }

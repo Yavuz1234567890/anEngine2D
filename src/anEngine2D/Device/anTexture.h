@@ -11,6 +11,7 @@ namespace anTextureFormat
 	{
 		RGB,
 		RGBA,
+		RG,
 		Red
 	};
 }

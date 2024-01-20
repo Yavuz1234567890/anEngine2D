@@ -62,6 +62,8 @@ public:
 	anSpriteRendererComponent& GetSpriteRenderer();
 	bool HasRigidbody() const;
 	anRigidbodyComponent& GetRigidbody();
+	bool HasLuaScript() const;
+	sol::table& GetLuaScriptClass();
 	//-----------------
 
 	static void RegisterLuaAPI(sol::state& state);

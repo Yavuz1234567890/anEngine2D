@@ -60,9 +60,13 @@ void anEditorState::Initialize()
 	{
 		auto closeApplication = [this]() { if (mSceneState == anSceneState::Runtime)StopScene(); };
 		auto loadScene = [this](const anString& path) { LoadScene((mProjectAssetsLocation / path).string()); };
+		auto setVSync = [this](bool vsync) { mApplication->GetWindow()->SetVSync(vsync); };
+		auto getVSync = [this]() { return mApplication->GetWindow()->IsVSync(); };
 
 		anEditorFunctions::SetCloseApplication(closeApplication);
 		anEditorFunctions::SetLoadScene(loadScene);
+		anEditorFunctions::SetSetVSync(setVSync);
+		anEditorFunctions::SetGetVSync(getVSync);
 	}
 
 	mPlayButtonTexture = anLoadTexture("icons/playbutton.png");
@@ -335,6 +339,7 @@ void anEditorState::OnImGuiRender()
 	if (SceneIsValid())
 	{
 		ImGui::Checkbox("Show Physics Colliders", &mRenderPhysics);
+		ImGui::Separator();
 		ImGuiColorPicker("Clear Color", mEditorScene->GetClearColor(), mSceneState != anSceneState::Runtime);
 	}
 

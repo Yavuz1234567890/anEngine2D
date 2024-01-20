@@ -17,8 +17,8 @@ void anTexture::Initialize()
 		whiteTextureSpec.Width = 1;
 		whiteTextureSpec.Height = 1;
 		whiteTextureSpec.Format = anTextureFormat::RGBA;
-		whiteTextureSpec.MinFilter = anTextureParameter::Nearest;
-		whiteTextureSpec.MagFilter = anTextureParameter::Nearest;
+		whiteTextureSpec.MinFilter = anTextureParameter::Linear;
+		whiteTextureSpec.MagFilter = anTextureParameter::Linear;
 		whiteTextureSpec.WrapS = anTextureParameter::Repeat;
 		whiteTextureSpec.WrapT = anTextureParameter::Repeat;
 
@@ -67,6 +67,12 @@ anTexture::anTexture(const anTextureCreationSpecification& spec)
 		dataFormat = GL_RGBA;
 	}
 
+	if (spec.Format == anTextureFormat::RG)
+	{
+		internalFormat = GL_RG8;
+		dataFormat = GL_RG;
+	}
+
 	if (spec.Format == anTextureFormat::Red)
 	{
 		internalFormat = GL_R8;
@@ -76,13 +82,12 @@ anTexture::anTexture(const anTextureCreationSpecification& spec)
 	glGenTextures(1, &mID);
 	glBindTexture(GL_TEXTURE_2D, mID);
 
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, spec.Width, spec.Height, 0, dataFormat, GL_UNSIGNED_BYTE, spec.Data);
+	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, _anGetTextureParameter<int>(spec.MinFilter));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, _anGetTextureParameter<int>(spec.MagFilter));
-	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _anGetTextureParameter<int>(spec.WrapS));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _anGetTextureParameter<int>(spec.WrapT));
-
-	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, spec.Width, spec.Height, 0, dataFormat, GL_UNSIGNED_BYTE, spec.Data);
 	
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -132,6 +137,12 @@ anTexture::anTexture(const anString& path)
 		dataFormat = GL_RGBA;
 	}
 
+	if (spec.Format == anTextureFormat::RG)
+	{
+		internalFormat = GL_RG8;
+		dataFormat = GL_RG;
+	}
+
 	if (spec.Format == anTextureFormat::Red)
 	{
 		internalFormat = GL_R8;
@@ -140,18 +151,16 @@ anTexture::anTexture(const anString& path)
 
 	glGenTextures(1, &mID);
 	glBindTexture(GL_TEXTURE_2D, mID);
+	
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, spec.Width, spec.Height, 0, dataFormat, GL_UNSIGNED_BYTE, spec.Data);
+	stbi_image_free(data);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, _anGetTextureParameter<int>(spec.MinFilter));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, _anGetTextureParameter<int>(spec.MagFilter));
-
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _anGetTextureParameter<int>(spec.WrapS));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _anGetTextureParameter<int>(spec.WrapT));
 
-	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, spec.Width, spec.Height, 0, dataFormat, GL_UNSIGNED_BYTE, spec.Data);
-
 	glBindTexture(GL_TEXTURE_2D, 0);
-
-	stbi_image_free(data);
 }
 
 anTexture::~anTexture()
@@ -232,6 +241,8 @@ anTexture* anLoadTexture(const anString& path)
 		format = anTextureFormat::RGBA;
 	if (channels == 3)
 		format = anTextureFormat::RGB;
+	if (channels == 2)
+		format = anTextureFormat::RG;
 	if (channels == 1)
 		format = anTextureFormat::Red;
 
