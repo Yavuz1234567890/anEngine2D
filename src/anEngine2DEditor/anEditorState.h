@@ -80,6 +80,7 @@ public:
 	anString GetExactTextEditorSource();
 	anEntity& GetSelectedEntity();
 	void RenderOverlays();
+	float GetEditorCameraZoomLevel() const;
 
 	template<typename T>
 	void DisplayAddComponentEntry(const anString& entryName);

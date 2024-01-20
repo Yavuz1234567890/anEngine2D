@@ -18,7 +18,7 @@ void anCamera2D::SetOrtho(float left, float right, float top, float bottom)
 	mTop = top;
 	mBottom = bottom;
 
-	mProjectionMatrix = glm::ortho(left * mZoom, right * mZoom, bottom * mZoom, top * mZoom);
+	mProjectionMatrix = glm::ortho(left, right, bottom, top);
 }
 
 void anCamera2D::SetPosition(const anFloat2& pos)
@@ -58,14 +58,15 @@ float anCamera2D::GetRotation() const
 void anCamera2D::CalculateViewMatrix()
 {
 	anMatrix4 transform = glm::translate(anMatrix4(1.0f), { mPosition.x, mPosition.y, 0.0f }) *
-							glm::rotate(anMatrix4(1.0f), glm::radians(mRotation), { 0.0f, 0.0f, 1.0f });
+							glm::rotate(anMatrix4(1.0f), glm::radians(mRotation), { 0.0f, 0.0f, 1.0f }) *
+							glm::scale(anMatrix4(1.0f), { mZoom, mZoom, 1.0f });
 
 	mViewMatrix = glm::inverse(transform);
 }
 
 void anCamera2D::CalculateProjectionMatrix()
 {
-	mProjectionMatrix = glm::ortho(mLeft * mZoom, mRight * mZoom, mBottom * mZoom, mTop * mZoom);
+	mProjectionMatrix = glm::ortho(mLeft, mRight, mBottom, mTop);
 }
 
 void anCamera2D::SetZoomLevel(float zoomLevel)
@@ -73,7 +74,7 @@ void anCamera2D::SetZoomLevel(float zoomLevel)
 	if (zoomLevel > 0.0f)
 		mZoom = zoomLevel;
 
-	CalculateProjectionMatrix();
+	CalculateViewMatrix();
 }
 
 void anCamera2D::IncreaseZoomLevel(float incVal)
@@ -81,7 +82,7 @@ void anCamera2D::IncreaseZoomLevel(float incVal)
 	if (mZoom + incVal > 0.0f)
 		mZoom += incVal;
 
-	CalculateProjectionMatrix();
+	CalculateViewMatrix();
 }
 
 const anMatrix4& anCamera2D::GetProjectionMatrix() const

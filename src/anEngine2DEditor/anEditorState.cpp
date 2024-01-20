@@ -145,13 +145,12 @@ void anEditorState::Update(float dt)
 	}
 
 	anClear();
-	anEnableBlend();
-
+	
 	anRenderer2D::Get().ResetStats();
 	mFramebuffer->Bind();
 
-	anClearColor(SceneIsValid() ? mEditorScene->GetClearColor() : anColor(0, 0, 0));
 	anEnableBlend();
+	anClearColor(SceneIsValid() ? mEditorScene->GetClearColor() : anColor(0, 0, 0));
 
 	auto [mx, my] = ImGui::GetMousePos();
 	mx -= mViewportBounds[0].x;
@@ -184,12 +183,12 @@ void anEditorState::Update(float dt)
 			mEditorScene->EditorUpdate(dt, mEditorCamera);
 
 			RenderOverlays();
-			mGizmoSystem.UpdateGizmos(dt, mExactViewportMousePosition);
+			mGizmoSystem.UpdateGizmos(dt, mExactViewportMousePosition * GetEditorCameraZoomLevel());
 
 			anRenderer2D::Get().End();
 
 			if (mMousePosition.x >= 0 && mMousePosition.y >= 0 && mMousePosition.x < viewportSize.x && mMousePosition.y < viewportSize.y && mDragEditorCamera && !mGizmoSystem.IsUsing())
-				mEditorCamera.Move((mLastMousePosition - mMousePosition) * mEditorCameraSpeed * anFloat2(1.0f, -1.0f));
+				mEditorCamera.Move((mLastMousePosition - mMousePosition) * mEditorCameraSpeed * anFloat2(1.0f, -1.0f) * GetEditorCameraZoomLevel());
 		}
 
 		if (mSceneState == anSceneState::Runtime)
@@ -236,6 +235,17 @@ void anEditorState::OnEvent(const anEvent& event)
 	if (SceneIsValid())
 	{
 		mGizmoSystem.OnEvent(event);
+
+		if (event.Type == anEvent::MouseWheel)
+		{
+			if (mViewportWindowHovered)
+			{
+				float scrollSize = -event.MouseScroll.y;
+				mEditorCamera.IncreaseZoomLevel(scrollSize / 10.0f);
+				if (scrollSize < 0 && GetEditorCameraZoomLevel() > 0.1f)
+					mEditorCamera.Move((mExactViewportMousePosition - mEditorCamera.GetPosition()) / 10.0f);
+			}
+		}
 
 		if (event.Type == anEvent::KeyDown)
 		{
@@ -341,6 +351,8 @@ void anEditorState::OnImGuiRender()
 		ImGui::Checkbox("Show Physics Colliders", &mRenderPhysics);
 		ImGui::Separator();
 		ImGuiColorPicker("Clear Color", mEditorScene->GetClearColor(), mSceneState != anSceneState::Runtime);
+		ImGui::Separator();
+		ImGui::Text("Editor Camera Zoom Level: %f", mEditorCamera.GetZoomLevel());
 	}
 
 	ImGui::End();
@@ -457,7 +469,7 @@ void anEditorState::OnImGuiRender()
 
 				anEntity entity = mEditorScene->NewEntity(mNewEntityName);
 				auto& transform = entity.GetComponent<anTransformComponent>();
-				transform.Position = mExactViewportMousePosition;
+				transform.Position = mExactViewportMousePosition * GetEditorCameraZoomLevel();
 				transform.Size.x = float(int(texture->GetWidth()));
 				transform.Size.y = float(int(texture->GetHeight()));
 
@@ -1501,4 +1513,9 @@ void anEditorState::RenderOverlays()
 		int camH = (int)mCameraIconTexture->GetHeight();
 		anRenderer2D::Get().DrawTexture(mCameraIconTexture, transform.Position, { (float)camW, (float)camH }, { 255, 255, 255 }, false);
 	}
+}
+
+float anEditorState::GetEditorCameraZoomLevel() const
+{
+	return mEditorCamera.GetZoomLevel();
 }
