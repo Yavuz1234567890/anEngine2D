@@ -6,6 +6,8 @@
 #endif
 #include <stdio.h>
 
+static anFunction<void(anNativeScriptComponent&, anEntity&)> sNativeScriptCallback;
+
 anSceneSerializer::anSceneSerializer()
 {
 }
@@ -137,6 +139,17 @@ anEntity anSceneSerializer::DeserializeEntity(const anFileSystem::path& location
 
 				continue;
 			}
+
+			if (strcmp(child->Value(), "NativeScript") == 0)
+			{
+				auto& component = entity.AddComponent<anNativeScriptComponent>();
+				component.Path = child->Attribute("path");
+				component.ClassName = child->Attribute("className");
+				if (sNativeScriptCallback)
+					sNativeScriptCallback(component, entity);
+
+				continue;
+			}
 		}
 
 		return entity;
@@ -258,6 +271,18 @@ void anSceneSerializer::SerializeEntity(const anFileSystem::path& location, cons
 		printer.CloseElement();
 	}
 
+	if (entity.HasComponent<anNativeScriptComponent>())
+	{
+		auto& component = entity.GetComponent<anNativeScriptComponent>();
+
+		printer.OpenElement("NativeScript");
+
+		printer.PushAttribute("path", component.Path.string().c_str());
+		printer.PushAttribute("className", component.ClassName.c_str());
+		
+		printer.CloseElement();
+	}
+
 	printer.CloseElement();
 }
 
@@ -310,4 +335,9 @@ void anSceneSerializer::SerializeScene(const anFileSystem::path& location, anSce
 	document.Print(&printer);
 	if (file)
 		fclose(file);
+}
+
+void anSceneSerializer::SetLoadNativeScriptCallback(const anFunction<void(anNativeScriptComponent&, anEntity&)>& fn)
+{
+	sNativeScriptCallback = fn;
 }

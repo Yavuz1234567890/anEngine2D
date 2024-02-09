@@ -3,9 +3,9 @@
 #include "Device/anTexture.h"
 #include "anFont.h"
 #include "State/anStateManager.h"
-#include "anUserInputSystem.h"
+#include "anInputSystem.h"
+#include "anControllerDevice.h"
 #include "anMessage.h"
-
 
 static anApplication* sInstance = nullptr;
 
@@ -47,33 +47,30 @@ void anApplication::Start()
 	anSound::InitializeFMOD();
 	anInitializeShaders();
 	mStateManager->Initialize();
-	mControllerDevice.Initialize();
 	mImGui.Initialize(mWindow);
 	anRenderer2D::Get().Initialize();
-	anUserInputSystem::Initialize();
+	anControllerDevice::Initialize();
+	anInputSystem::Initialize();
 	anScriptSystem::Initialize();
 	Initialize();
 
-	int fps = 0;
-	float elapsedTime = 0.0f;
+	float secondTimer = 0.0f;
 	while (mWindow->IsRunning())
 	{
 		const float dt = mTimer.Tick();
-		elapsedTime += dt;
-		if (elapsedTime >= 1.0f)
+		secondTimer += dt;
+		if (secondTimer >= 1.0f)
 		{
-			mFramesPerSecond = fps;
-			elapsedTime = 0.0f;
-			fps = 0;
+			mFramesPerSecond = int(1.0f / dt);
+			secondTimer = 0.0f;
 		}
-		++fps;
-		
+
 		if (!mMinimized)
 		{
-			mControllerDevice.Update(dt);
+			anControllerDevice::Update(dt);
 			mStateManager->Update(dt);
 			Update(dt);
-			anUserInputSystem::Update(dt);
+			anInputSystem::Update(dt);
 
 			mImGui.Start();
 			OnImGui();
@@ -92,7 +89,7 @@ void anApplication::AOnEvent(const anEvent& event)
 		mMinimized = event.WindowWidth == 0 || event.WindowHeight == 0;
 
 	mStateManager->OnEvent(event);
-	anUserInputSystem::OnEvent(event);
+	anInputSystem::OnEvent(event);
 	OnEvent(event);
 }
 
@@ -128,11 +125,6 @@ void anApplication::LogWrite(const anString& msg)
 int anApplication::GetFramesPerSecond() const
 {
 	return mFramesPerSecond;
-}
-
-anControllerDevice anApplication::GetControllerDevice()
-{
-	return mControllerDevice;
 }
 
 void anApplication::EditorInfo(const anString& msg)
@@ -180,4 +172,11 @@ void anApplication::UserWarning(const anString& msg)
 anApplication* anApplication::Get()
 {
 	return sInstance;
+}
+
+void anApplication::RegisterLuaAPI(sol::state& state)
+{
+	state.set_function("closeApplication", [&]() { Get()->GetWindow()->Close(); });
+	state.set_function("setVSync", [&](bool vsync) { Get()->GetWindow()->SetVSync(vsync); });
+	state.set_function("getVSync", [&]() { return Get()->GetWindow()->IsVSync(); });
 }

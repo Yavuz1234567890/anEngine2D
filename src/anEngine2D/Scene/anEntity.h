@@ -49,6 +49,7 @@ public:
 	anTransformComponent& GetTransform();
 	anUUID& GetUUID();
 	anString& GetTag();
+	void SetTag(const anString& tag);
 	anScene* GetScene();
 	void Destroy();
 	anEntity Copy(const anString& tag);

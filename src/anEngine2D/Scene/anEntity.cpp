@@ -1,5 +1,6 @@
 #include "anEntity.h"
 #include "Math/anMath.h"
+#include "anComponents.h"
 
 anEntity::anEntity()
 	: mHandle(entt::null)
@@ -42,6 +43,11 @@ anUUID& anEntity::GetUUID()
 anString& anEntity::GetTag()
 {
 	return GetComponent<anTagComponent>().Tag;
+}
+
+void anEntity::SetTag(const anString& tag)
+{
+	GetComponent<anTagComponent>().Tag = tag;
 }
 
 anScene* anEntity::GetScene()
@@ -114,7 +120,8 @@ void anEntity::RegisterLuaAPI(sol::state& state)
 {
 	auto entity = state.new_usertype<anEntity>(
 		"anEntity",
-		"tag", &anEntity::GetTag,
+		"getTag", &anEntity::GetTag,
+		"setTag", &anEntity::SetTag,
 		"transform", &anEntity::GetTransform,
 		"scene", &anEntity::GetScene,
 		"destroy", &anEntity::Destroy,

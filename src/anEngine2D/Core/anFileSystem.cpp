@@ -1,6 +1,11 @@
 #include "anFileSystem.h"
 
+#ifdef PLATFORM_WINDOWS
+
 #include <windows.h>
+#include <shlobj.h>
+
+#endif
 
 #include <tinyfiledialogs.h>
 
@@ -95,4 +100,51 @@ void anShellExecuteOpen(const anString& location)
 #ifdef PLATFORM_WINDOWS
 	ShellExecuteA(NULL, "open", location.c_str(), NULL, NULL, SW_SHOWDEFAULT);
 #endif
+}
+
+void anShellExecute(const anString& location, const anString& parameters, bool show)
+{
+#ifdef PLATFORM_WINDOWS
+	ShellExecuteA(NULL, "open", location.c_str(), parameters.c_str(), NULL, show ? SW_SHOWDEFAULT : SW_HIDE);
+#endif
+}
+
+void anShellExecuteCmd(const anString& cmd, bool show)
+{
+#ifdef PLATFORM_WINDOWS
+	ShellExecuteA(NULL, "open", "cmd.exe", cmd.c_str(), NULL, show ? SW_SHOWDEFAULT : SW_HIDE);
+#endif
+}
+
+anFileSystem::path anGetFolderPath(anUInt32 id)
+{
+	anFileSystem::path res;
+
+#ifdef PLATFORM_WINDOWS
+
+	KNOWNFOLDERID wFolderID{};
+	switch (id)
+	{
+	case anFolderID::AppDataLocal:
+		wFolderID = FOLDERID_LocalAppData;
+		break;
+	case anFolderID::AppDataRoaming:
+		wFolderID = FOLDERID_RoamingAppData;
+		break;
+	case anFolderID::ProgramFiles:
+		wFolderID = FOLDERID_ProgramFiles;
+		break;
+	}
+
+	PWSTR pathTmp;
+	auto ret = SHGetKnownFolderPath(wFolderID, 0, nullptr, &pathTmp);
+
+	if (ret != S_OK)
+		CoTaskMemFree(pathTmp);
+
+	res = pathTmp;
+	CoTaskMemFree(pathTmp);
+#endif
+
+	return res;
 }

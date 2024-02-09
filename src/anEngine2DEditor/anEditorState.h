@@ -8,17 +8,10 @@
 #include "Scene/anSceneSerializer.h"
 #include "anGizmoSystem.h"
 #include "Core/anFileSystem.h"
+#include "Scene/anSceneManager.h"
+#include "Script/anNativeScript.h"
 
 #include <ImGuiColorTextEdit/TextEditor.h>
-
-namespace anSceneState
-{
-	enum : anUInt32
-	{
-		Runtime,
-		Edit
-	};
-}
 
 namespace anLogType
 {
@@ -74,28 +67,45 @@ public:
 	void UserInfo(const anString& msg);
 	void UserError(const anString& msg);
 	void UserWarning(const anString& msg);
-	void StartScene();
-	void StopScene();
 	void LoadScene(const anString& path);
 	anString GetExactTextEditorSource();
 	anEntity& GetSelectedEntity();
 	void RenderOverlays();
-	float GetEditorCameraZoomLevel() const;
+	void CloseProject();
+	void DetectVSCode();
+	void DetectVisualStudio();
+	void ExecuteVSCodeCommand(const anString& cmd);
+	void ExecuteVisualStudioCommand(const anString& cmd);
+	void OpenFileWithVSCode(const anFileSystem::path& path);
+	void OpenSolutionWithVisualStudio(const anFileSystem::path& path);
+	void GenerateNativeScriptProjectPremake();
+	void GenerateNativeScriptProject();
+	void GenerateNativeScriptProjectFile();
+	void CreateNativeScript(const anFileSystem::path& loc, const anString& name);
+	void IncludeAllHeadersFromAssets(anOutputFile& file, anVector<anString>& names, const anFileSystem::path& path);
+	static void ClearPath(anString& path);
+	static void RemoveSpaces(anString& src);
 
 	template<typename T>
 	void DisplayAddComponentEntry(const anString& entryName);
 private:
 	const anString mNewEntityName = "Entity";
-	anScene* mEditorScene = nullptr;
-	anScene* mRuntimeScene = nullptr;
 	anCamera2D mEditorCamera;
 	anFileSystem::path mEditorScenePath;
 	anEntity mSelectedEntity;
 
 	anString mProjectName;
+	anString mProjectSourceFileName;
 	anFileSystem::path mProjectLocation;
 	anFileSystem::path mProjectStartScenePath;
 	anFileSystem::path mProjectAssetsLocation;
+	anFileSystem::path mEditorPath;
+	anFileSystem::path mEditorIncludePath;
+	anFileSystem::path mEditorLibPath;
+	anFileSystem::path mEditorBinPath;
+	anFileSystem::path mProjectPremakeFile;
+	anFileSystem::path mProjectSourceFile;
+	anFileSystem::path mProjectSolution;
 
 	anFramebuffer* mFramebuffer;
 
@@ -103,8 +113,6 @@ private:
 	float mfHeight;
 
 	anFloat2 mViewportSize;
-	
-	anUInt32 mSceneState = anSceneState::Edit;
 	
 	anFloat2 mViewportBounds[2];
 
@@ -125,8 +133,6 @@ private:
 	anTexture* mArrowIconTexture;
 
 	anGizmoSystem mGizmoSystem;
-
-	anSceneSerializer mSceneSerializer;
 
 	bool mNoScene = true;
 
@@ -151,6 +157,15 @@ private:
 	anVector<anLogData> mLogs;
 
 	bool mRenderPhysics = true;
+
+	anFileSystem::path mVSCodePath;
+	anFileSystem::path mVSCode;
+	bool mVSCodeDetected = false;
+	bool mOpenLuaFileWithVSCode = false;
+
+	anFileSystem::path mVisualStudioPath;
+	anFileSystem::path mVisualStudio;
+	bool mVisualStudioDetected = false;
 };
 
 #endif

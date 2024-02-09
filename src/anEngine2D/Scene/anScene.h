@@ -7,6 +7,7 @@ class anEntity;
 #include "Renderer/anRenderer2D.h"
 #include "Core/anUUID.h"
 #include "anComponents.h"
+#include "Core/anEvent.h"
 
 #include <sol/sol.hpp>
 #include <entt.hpp>
@@ -41,6 +42,7 @@ public:
 	void EditorUpdate(float dt, anCamera2D& camera);
 	void RuntimeInitialize();
 	bool RuntimeUpdate(float dt);
+	void RuntimeOnEvent(const anEvent& e);
 	void RuntimeStop();
 	void OnViewportSize(anUInt32 width, anUInt32 height);
 	anUInt32 GetViewportWidth() const;
@@ -59,6 +61,7 @@ public:
 	
 	static void RegisterLuaAPI(sol::state& state);
 	static anScene* Copy(anScene* ref);
+	static void SetOnEntityCopyCallback(const anFunction<void(anEntity&)>& fn);
 private:
 	void SortDrawableList();
 	void DrawDrawables();

@@ -6,7 +6,6 @@
 #include "anEvent.h"
 #include "Renderer/anRenderer2D.h"
 #include "Core/anSound.h"
-#include "anControllerDevice.h"
 #include "ImGui/anImGuiDevice.h"
 #include "Script/anScriptSystem.h"
 #include "anLog.h"
@@ -39,11 +38,11 @@ public:
 	void OnImGui();
 	anWindow* GetWindow();
 	void LogWrite(const anString& msg);
-	anControllerDevice GetControllerDevice();
 	int GetFramesPerSecond() const;
 	void SetCurrentState(anState* state);
 	anState* GetCurrentState();
 	static anApplication* Get();
+	static void RegisterLuaAPI(sol::state& state);
 
 	template<class T>
 	void SetCurrentState()
@@ -68,7 +67,6 @@ protected:
 	int mFramesPerSecond;
 	anStateManager* mStateManager;
 	anOutputFile mLogFile;
-	anControllerDevice mControllerDevice;
 };
 
 #endif

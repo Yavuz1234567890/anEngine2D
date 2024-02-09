@@ -1,8 +1,8 @@
 #include "anGameState.h"
 #include "Project/anProject.h"
 #include "Device/anGPUCommands.h"
-#include "Editor/anEditorFunctions.h"
-#include "Core/anUserInputSystem.h"
+#include "Core/anInputSystem.h"
+#include "Scene/anSceneManager.h"
 
 anGameState::anGameState(anApplication* app)
 	: anState(app)
@@ -15,18 +15,6 @@ anGameState::~anGameState()
 
 void anGameState::Initialize()
 {
-	{
-		auto closeApplication = [this]() { mApplication->GetWindow()->Close(); };
-		auto loadScene = [this](const anString& path) { mScene = mSceneSerializer.DeserializeScene(mCurrentPath, mAssetsPath / path); };
-		auto setVSync = [this](bool vsync) { mApplication->GetWindow()->SetVSync(vsync); };
-		auto getVSync = [this]() { return mApplication->GetWindow()->IsVSync(); };
-
-		anEditorFunctions::SetCloseApplication(closeApplication);
-		anEditorFunctions::SetLoadScene(loadScene);
-		anEditorFunctions::SetSetVSync(setVSync);
-		anEditorFunctions::SetGetVSync(getVSync);
-	}
-
 	mCurrentPath = anFileSystem::current_path();
 
 	mAssetsPath = mCurrentPath / "assets";
@@ -41,27 +29,27 @@ void anGameState::Initialize()
 	mfWidth = (float)width;
 	mfHeight = (float)height;
 
-	mScene = mSceneSerializer.DeserializeScene(mCurrentPath, anProjectManager::GetCurrentProject()->StartScene);
+	anSceneManager::Load(mCurrentPath.string(), anProjectManager::GetCurrentProject()->StartScene);
 	
-	mScene->RuntimeInitialize();
+	anSceneManager::Get()->RuntimeInitialize();
 }
 
 void anGameState::Update(float dt)
 {
-	mScene->OnViewportSize(int(mfWidth), int(mfHeight));
+	anSceneManager::Get()->OnViewportSize(int(mfWidth), int(mfHeight));
 
-	anClearColor(mScene->GetClearColor());
+	anClearColor(anSceneManager::Get()->GetClearColor());
 	anEnableBlend();
 
-	mScene->RuntimeUpdate(dt);
+	anSceneManager::Get()->RuntimeUpdate(dt);
 
 	anRenderer2D::Get().End();
 }
 
 void anGameState::OnEvent(const anEvent& event)
 {
-	if (event.Type == anEvent::MouseMove)
-		anUserInputSystem::SetMousePosition((event.MousePosition - anFloat2(mfWidth, mfHeight) * 0.5f) + (mScene->HasCamera() ? mScene->GetCurrentCameraPosition() : anFloat2(0.0f, 0.0f)));
+	if (event.Type == anEvent::WindowClose)
+		anSceneManager::Get()->RuntimeStop();
 }
 
 void anGameState::OnImGuiRender()

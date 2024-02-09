@@ -16,6 +16,9 @@ public:
 	void SerializeEntity(const anFileSystem::path& location, const anEntity& ent, tinyxml2::XMLPrinter& printer);
 	anScene* DeserializeScene(const anFileSystem::path& location, const anFileSystem::path& filePath);
 	void SerializeScene(const anFileSystem::path& location, anScene* scene, const anFileSystem::path& filePath);
+	void SetLoadNativeScriptCallback(const anFunction<void(anNativeScriptComponent&, anEntity&)>& fn);
 };
+
+static anSceneSerializer anGlobalSceneSerializer;
 
 #endif

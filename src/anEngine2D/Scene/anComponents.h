@@ -9,6 +9,7 @@
 #include "Core/anSound.h"
 
 class anLuaScript;
+class anNativeScript;
 
 struct anUUIDComponent
 {
@@ -53,6 +54,21 @@ struct anTransformComponent
 		Rotation += rot;
 	}
 
+	const anFloat2& GetPosition() const
+	{
+		return Position;
+	}
+
+	const anFloat2& GetSize() const
+	{
+		return Size;
+	}
+
+	float GetRotation() const
+	{
+		return Rotation;
+	}
+
 	anTransformComponent() = default;
 	anTransformComponent(const anTransformComponent&) = default;
 
@@ -73,7 +89,10 @@ struct anTransformComponent
 			"rotation", &anTransformComponent::Rotation,
 			"increasePosition", &anTransformComponent::IncreasePosition,
 			"increaseSize", &anTransformComponent::IncreaseSize,
-			"increaseRotation", &anTransformComponent::IncreaseRotation
+			"increaseRotation", &anTransformComponent::IncreaseRotation,
+			"getPosition", sol::readonly(&anTransformComponent::GetPosition),
+			"getSize", sol::readonly(&anTransformComponent::GetSize),
+			"getRotation", sol::readonly(&anTransformComponent::GetRotation)
 		);
 	}
 };
@@ -183,6 +202,24 @@ struct anBoxColliderComponent
 	static anString GetComponentName() { return "BoxColliderComponent"; }
 };
 
+struct anNativeScriptComponent
+{
+	anFileSystem::path Path;
+	anString ClassName;
+	anNativeScript* Script;
+
+	template<class T>
+	T* Get()
+	{
+		return (T*)Script;
+	}
+
+	anNativeScriptComponent() = default;
+	anNativeScriptComponent(const anNativeScriptComponent&) = default;
+
+	static anString GetComponentName() { return "NativeScriptComponent"; }
+};
+
 template<typename... Component>
 struct anComponentGroup
 {
@@ -190,6 +227,6 @@ struct anComponentGroup
 
 using anAllComponents = anComponentGroup<anTransformComponent, anSpriteRendererComponent,
 	anLuaScriptComponent, anCameraComponent, anTagComponent, anUUIDComponent, anBoxColliderComponent,
-	anRigidbodyComponent>;
+	anRigidbodyComponent, anNativeScriptComponent>;
 
 #endif

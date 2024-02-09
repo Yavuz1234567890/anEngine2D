@@ -3,6 +3,8 @@
 
 #include "Math/anFloat2.h"
 
+#include <sol/sol.hpp>
+
 #define anControllerMax			4
 
 #define anControllerButtonA				0
@@ -38,15 +40,21 @@ struct anController
 class anControllerDevice
 {
 public:
-	anControllerDevice();
-	~anControllerDevice();
-
-	void Initialize();
-	void Update(float dt);
-	void VibrateController(anUInt32 id, float left, float right);
-	anController GetController(anUInt32 id) const;
+	static void Initialize();
+	static void Update(float dt);
+	static anController GetController(anUInt32 id);
+public:
+	static void VibrateController(anUInt32 id, float left, float right);
+	static float GetControllerLeftTrigger(anUInt32 id);
+	static float GetControllerRightTrigger(anUInt32 id);
+	static anFloat2 GetControllerLeftAxis(anUInt32 id);
+	static anFloat2 GetControllerRightAxis(anUInt32 id);
+	static bool GetControllerButton(anUInt32 id, int button);
+	static bool IsControllerConnected(anUInt32 id);
+public:
+	static void RegisterLuaAPI(sol::state& state);
 private:
-	anController mControllers[anControllerMax];
+	static anController sControllers[anControllerMax];
 };
 
 #endif

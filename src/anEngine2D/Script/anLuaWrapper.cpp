@@ -1,9 +1,11 @@
 #include "anLuaWrapper.h"
-#include "Core/anUserInputSystem.h"
+#include "Core/anInputSystem.h"
 #include "Core/anLog.h"
-#include "Editor/anEditorFunctions.h"
 #include "Math/anMath.h"
 #include "Core/anTimer.h"
+#include "Core/anControllerDevice.h"
+#include "Core/anApplication.h"
+#include "Scene/anSceneManager.h"
 
 anLuaWrapper::anLuaWrapper()
 {
@@ -32,13 +34,15 @@ void anLuaWrapper::WrapEngine()
 
 	anColor::RegisterLuaAPI(mState);
 	anMath::RegisterLuaAPI(mState);
-	anUserInputSystem::RegisterLuaAPI(mState);
-	anEditorFunctions::RegisterLuaAPI(mState);
+	anInputSystem::RegisterLuaAPI(mState);
+	anControllerDevice::RegisterLuaAPI(mState);
+	anSceneManager::RegisterLuaAPI(mState);
 	anTransformComponent::RegisterLuaAPI(mState);
 	anRigidbodyComponent::RegisterLuaAPI(mState);
 	anSpriteRendererComponent::RegisterLuaAPI(mState);
 	anScene::RegisterLuaAPI(mState);
 	anEntity::RegisterLuaAPI(mState);
+	anApplication::RegisterLuaAPI(mState);
 }
 
 sol::state& anLuaWrapper::GetState()

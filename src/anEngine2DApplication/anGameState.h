@@ -18,9 +18,6 @@ public:
 	void OnEvent(const anEvent& event) override;
 	void OnImGuiRender() override;
 private:
-	anScene* mScene;
-	anSceneSerializer mSceneSerializer;
-
 	anFileSystem::path mCurrentPath;
 	anFileSystem::path mAssetsPath;
 

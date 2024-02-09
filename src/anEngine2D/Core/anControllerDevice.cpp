@@ -18,13 +18,7 @@ static bool sXInputInitialized = false;
 
 #endif
 
-anControllerDevice::anControllerDevice()
-{
-}
-
-anControllerDevice::~anControllerDevice()
-{
-}
+anController anControllerDevice::sControllers[anControllerMax];
 
 void anControllerDevice::Initialize()
 {
@@ -52,7 +46,7 @@ void anControllerDevice::Initialize()
 	{
 		ZeroMemory(&sState, sizeof(XINPUT_STATE));
 		dwResult = sXInputGetState(i, &sState);
-		mControllers[i].IsConnected = (dwResult == ERROR_SUCCESS);
+		sControllers[i].IsConnected = (dwResult == ERROR_SUCCESS);
 	}
 
 #endif
@@ -90,28 +84,28 @@ void anControllerDevice::Update(float dt)
 	{
 		ZeroMemory(&sState, sizeof(XINPUT_STATE));
 		dwResult = sXInputGetState(i, &sState);
-		mControllers[i].IsConnected = (dwResult == ERROR_SUCCESS);
-		if (mControllers[i].IsConnected)
+		sControllers[i].IsConnected = (dwResult == ERROR_SUCCESS);
+		if (sControllers[i].IsConnected)
 		{
-			mControllers[i].LeftTrigger = sState.Gamepad.bLeftTrigger / 255.0f;
-			mControllers[i].RightTrigger = sState.Gamepad.bRightTrigger / 255.0f;
-			mControllers[i].LeftAxis = _NormalizeAxis(sState.Gamepad.sThumbLX, sState.Gamepad.sThumbLY);
-			mControllers[i].RightAxis = _NormalizeAxis(sState.Gamepad.sThumbRX, sState.Gamepad.sThumbRY);
+			sControllers[i].LeftTrigger = sState.Gamepad.bLeftTrigger / 255.0f;
+			sControllers[i].RightTrigger = sState.Gamepad.bRightTrigger / 255.0f;
+			sControllers[i].LeftAxis = _NormalizeAxis(sState.Gamepad.sThumbLX, sState.Gamepad.sThumbLY);
+			sControllers[i].RightAxis = _NormalizeAxis(sState.Gamepad.sThumbRX, sState.Gamepad.sThumbRY);
 
-			mControllers[i].ControllerButtons[anControllerButtonA] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_A;
-			mControllers[i].ControllerButtons[anControllerButtonB] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_B;
-			mControllers[i].ControllerButtons[anControllerButtonX] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_X;
-			mControllers[i].ControllerButtons[anControllerButtonY] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_Y;
-			mControllers[i].ControllerButtons[anControllerButtonStart] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_START;
-			mControllers[i].ControllerButtons[anControllerButtonBack] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_BACK;
-			mControllers[i].ControllerButtons[anControllerButtonLeftShoulder] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER;
-			mControllers[i].ControllerButtons[anControllerButtonRightShoulder] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER;
-			mControllers[i].ControllerButtons[anControllerButtonLeftThumb] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB;
-			mControllers[i].ControllerButtons[anControllerButtonRightThumb] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB;
-			mControllers[i].ControllerButtons[anControllerButtonUp] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP;
-			mControllers[i].ControllerButtons[anControllerButtonDown] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN;
-			mControllers[i].ControllerButtons[anControllerButtonLeft] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT;
-			mControllers[i].ControllerButtons[anControllerButtonRight] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT;
+			sControllers[i].ControllerButtons[anControllerButtonA] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_A;
+			sControllers[i].ControllerButtons[anControllerButtonB] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_B;
+			sControllers[i].ControllerButtons[anControllerButtonX] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_X;
+			sControllers[i].ControllerButtons[anControllerButtonY] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_Y;
+			sControllers[i].ControllerButtons[anControllerButtonStart] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_START;
+			sControllers[i].ControllerButtons[anControllerButtonBack] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_BACK;
+			sControllers[i].ControllerButtons[anControllerButtonLeftShoulder] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER;
+			sControllers[i].ControllerButtons[anControllerButtonRightShoulder] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER;
+			sControllers[i].ControllerButtons[anControllerButtonLeftThumb] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB;
+			sControllers[i].ControllerButtons[anControllerButtonRightThumb] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB;
+			sControllers[i].ControllerButtons[anControllerButtonUp] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP;
+			sControllers[i].ControllerButtons[anControllerButtonDown] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN;
+			sControllers[i].ControllerButtons[anControllerButtonLeft] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT;
+			sControllers[i].ControllerButtons[anControllerButtonRight] = sState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT;
 		}
 	}
 	
@@ -121,7 +115,7 @@ void anControllerDevice::Update(float dt)
 void anControllerDevice::VibrateController(anUInt32 id, float left, float right)
 {
 	int idx = (int)id;
-	if (mControllers[idx].IsConnected)
+	if (sControllers[idx].IsConnected)
 	{
 #ifdef PLATFORM_WINDOWS
 
@@ -139,7 +133,48 @@ void anControllerDevice::VibrateController(anUInt32 id, float left, float right)
 	}
 }
 
-anController anControllerDevice::GetController(anUInt32 id) const
+anController anControllerDevice::GetController(anUInt32 id)
 {
-	return mControllers[id];
+	return sControllers[id];
+}
+
+float anControllerDevice::GetControllerLeftTrigger(anUInt32 id)
+{
+	return sControllers[id].LeftTrigger;
+}
+
+float anControllerDevice::GetControllerRightTrigger(anUInt32 id)
+{
+	return sControllers[id].RightTrigger;
+}
+
+anFloat2 anControllerDevice::GetControllerLeftAxis(anUInt32 id)
+{
+	return sControllers[id].LeftAxis;
+}
+
+anFloat2 anControllerDevice::GetControllerRightAxis(anUInt32 id)
+{
+	return sControllers[id].RightAxis;
+}
+
+bool anControllerDevice::GetControllerButton(anUInt32 id, int button)
+{
+	return sControllers[id].ControllerButtons[button];
+}
+
+bool anControllerDevice::IsControllerConnected(anUInt32 id)
+{
+	return sControllers[id].IsConnected;
+}
+
+void anControllerDevice::RegisterLuaAPI(sol::state& state)
+{
+	state.set_function("vibrateController", &anControllerDevice::VibrateController);
+	state.set_function("getControllerLeftTrigger", &anControllerDevice::GetControllerLeftTrigger);
+	state.set_function("getControllerRightTrigger", &anControllerDevice::GetControllerRightTrigger);
+	state.set_function("getControllerLeftAxis", &anControllerDevice::GetControllerLeftAxis);
+	state.set_function("getControllerRightAxis", &anControllerDevice::GetControllerRightAxis);
+	state.set_function("getControllerButton", &anControllerDevice::GetControllerButton);
+	state.set_function("isControllerConnected", &anControllerDevice::IsControllerConnected);
 }

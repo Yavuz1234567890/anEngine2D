@@ -1,7 +1,11 @@
 #include "anScene.h"
 #include "anEntity.h"
-#include "Core/anUserInputSystem.h"
+#include "Core/anInputSystem.h"
 #include "anPhysicsTypes.h"
+#include "anComponents.h"
+#include "Script/anNativeScript.h"
+
+static anFunction<void(anEntity&)> sEntityCopyCallback;
 
 anScene::anScene()
 {
@@ -53,6 +57,16 @@ void anScene::RuntimeInitialize()
 		}
 	}
 
+	{
+		auto view = mRegistry.view<anNativeScriptComponent>();
+		for (auto entity : view)
+		{
+			auto script = view.get<anNativeScriptComponent>(entity);
+			if (script.Script)
+				script.Script->Initialize();
+		}
+	}
+
 	InitializePhysics();
 }
 
@@ -65,6 +79,16 @@ bool anScene::RuntimeUpdate(float dt)
 		for (auto entity : view)
 		{
 			auto script = view.get<anLuaScriptComponent>(entity);
+			if (script.Script)
+				script.Script->Update(dt);
+		}
+	}
+
+	{
+		auto view = mRegistry.view<anNativeScriptComponent>();
+		for (auto entity : view)
+		{
+			auto script = view.get<anNativeScriptComponent>(entity);
 			if (script.Script)
 				script.Script->Update(dt);
 		}
@@ -185,7 +209,6 @@ static void CopyComponentIfExistsIgnoreComponent(anComponentGroup<Component...>,
 	CopyComponentIfExistsIgnoreComponent<Component...>(dst, src, ignore);
 }
 
-
 anEntity anScene::CopyEntity(anEntity entity, const anString& tag)
 {
 	anEntity ent = NewEntity(tag);
@@ -201,6 +224,8 @@ anEntity anScene::CopyEntity(anEntity entity, const anString& tag)
 		comp.Script->LoadScript(path, editorPath);
 		comp.Script->Initialize(ent);
 	}
+	if (sEntityCopyCallback)
+		sEntityCopyCallback(ent);
 
 	return ent;
 }
@@ -306,7 +331,9 @@ void anScene::RegisterLuaAPI(sol::state& state)
 	auto scene = state.new_usertype<anScene>(
 		"anScene",
 		"findEntity", &anScene::FindEntityWithTag,
-		"clearColor", &anScene::GetClearColor
+		"clearColor", &anScene::GetClearColor,
+		"getViewportWidth", &anScene::GetViewportWidth,
+		"getViewportHeight", &anScene::GetViewportHeight
 	);
 }
 
@@ -420,4 +447,22 @@ void anScene::UpdatePhysics(float dt)
 		transform.Position.y = position.y;
 		transform.Rotation = glm::degrees(body->GetAngle());
 	}
+}
+
+void anScene::RuntimeOnEvent(const anEvent& e)
+{
+	{
+		auto view = mRegistry.view<anNativeScriptComponent>();
+		for (auto entity : view)
+		{
+			auto script = view.get<anNativeScriptComponent>(entity);
+			if (script.Script)
+				script.Script->OnEvent(e);
+		}
+	}
+}
+
+void anScene::SetOnEntityCopyCallback(const anFunction<void(anEntity&)>& fn)
+{
+	sEntityCopyCallback = fn;
 }

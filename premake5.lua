@@ -1,7 +1,7 @@
 workspace "anEngine2D"
 	location ""
 	architecture "x86_64"
-	startproject "anEngine2DEditor"
+	startproject "anEngine2DStudio"
 
 	configurations
 	{
@@ -30,7 +30,8 @@ workspace "anEngine2D"
 		"thirdparty/lua",
 		"thirdparty/ImGuiColorTextEdit",
 		"thirdparty/box2d/include",
-		"src/anEngine2D"
+		"src/anEngine2D",
+		"src/anEngine2DEditor"
 	}
 
 	filter "system:windows"
@@ -65,6 +66,11 @@ workspace "anEngine2D"
 		filter "system:windows"
 			systemversion "latest"
 
+			buildcommands 
+			{
+				"del /S *.pdb"
+			}
+
 		filter "configurations:Debug"
 			defines "C_DEBUG"
 			runtime "Debug"
@@ -93,6 +99,11 @@ workspace "anEngine2D"
 
 		filter "system:windows"
 			systemversion "latest"
+
+			buildcommands 
+			{
+				"del /S *.pdb"
+			}
 
 		filter "configurations:Debug"
 			defines "C_DEBUG"
@@ -125,6 +136,11 @@ workspace "anEngine2D"
 
 		filter "system:windows"
 			systemversion "latest"
+
+			buildcommands 
+			{
+				"del /S *.pdb"
+			}
 
 		filter "configurations:Debug"
 			defines "C_DEBUG"
@@ -178,6 +194,11 @@ workspace "anEngine2D"
 		filter "system:windows"
 			systemversion "latest"
 
+			buildcommands 
+			{
+				"del /S *.pdb"
+			}
+
 			libdirs
 			{
 				"thirdparty/glew/lib-x64",
@@ -229,6 +250,11 @@ workspace "anEngine2D"
 		filter "system:windows"
 			systemversion "latest"
 
+			buildcommands 
+			{
+				"del /S *.pdb"
+			}
+
 		filter "configurations:Debug"
 			defines "C_DEBUG"
 			runtime "Debug"
@@ -241,7 +267,7 @@ workspace "anEngine2D"
 
 	project "anEngine2DEditor"
 		location "src/anEngine2DEditor"
-		kind "WindowedApp"
+		kind "StaticLib"
 		language "C++"
 		cppdialect "C++17"
 		staticruntime "off"
@@ -257,11 +283,19 @@ workspace "anEngine2D"
 
 		links
 		{
-			"anEngine2D"
+			"anEngine2D",
+			"ImGui",
+			"Lua",
+			"Box2D"
 		}
 
 		filter "system:windows"
 			systemversion "latest"
+
+			buildcommands 
+			{
+				"del /S *.pdb"
+			}
 
 		filter "configurations:Debug"
 			defines "C_DEBUG"
@@ -272,6 +306,45 @@ workspace "anEngine2D"
 			defines "C_RELEASE"
 			runtime "Release"
 			optimize "on"
+
+		project "anEngine2DStudio"
+			location "src/anEngine2DStudio"
+			kind "WindowedApp"
+			language "C++"
+			cppdialect "C++17"
+			staticruntime "off"
+
+			targetdir "bin/%{cfg.buildcfg}"
+			objdir "obj/%{cfg.buildcfg}"
+
+			files
+			{
+				"src/anEngine2DStudio/**.cpp",
+				"src/anEngine2DStudio/**.h"
+			}
+
+			links
+			{
+				"anEngine2DEditor"
+			}
+
+			filter "system:windows"
+				systemversion "latest"
+				
+				buildcommands 
+				{
+					"del /S *.pdb"
+				}
+
+			filter "configurations:Debug"
+				defines "C_DEBUG"
+				runtime "Debug"
+				symbols "on"
+
+			filter "configurations:Release"
+				defines "C_RELEASE"
+				runtime "Release"
+				optimize "on"
 
 	project "anEngine2DApplication"
 		location "src/anEngine2DApplication"
@@ -296,6 +369,11 @@ workspace "anEngine2D"
 
 		filter "system:windows"
 			systemversion "latest"
+
+			buildcommands 
+			{
+				"del /S *.pdb"
+			}
 
 		filter "configurations:Debug"
 			defines "C_DEBUG"
