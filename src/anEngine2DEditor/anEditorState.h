@@ -83,9 +83,13 @@ public:
 	void GenerateNativeScriptProjectFile();
 	void CreateNativeScript(const anFileSystem::path& loc, const anString& name);
 	void IncludeAllHeadersFromAssets(anOutputFile& file, anVector<anString>& names, const anFileSystem::path& path);
-	static void ClearPath(anString& path);
+	static void ClearPath(anString& path, char r = '/');
 	static void RemoveSpaces(anString& src);
-
+	void BuildSolution();
+	void GenerateBuildFile();
+	void ExportProject();
+	void RunProject();
+	
 	template<typename T>
 	void DisplayAddComponentEntry(const anString& entryName);
 private:
@@ -106,6 +110,7 @@ private:
 	anFileSystem::path mProjectPremakeFile;
 	anFileSystem::path mProjectSourceFile;
 	anFileSystem::path mProjectSolution;
+	anFileSystem::path mProjectBuildFile;
 
 	anFramebuffer* mFramebuffer;
 
@@ -126,7 +131,6 @@ private:
 	float mEditorCameraSpeed = 1.0f;
 
 	anTexture* mPlayButtonTexture;
-	anTexture* mStopButtonTexture;
 	anTexture* mCameraIconTexture;
 	anTexture* mFolderIconTexture;
 	anTexture* mFileIconTexture;
@@ -166,6 +170,9 @@ private:
 	anFileSystem::path mVisualStudioPath;
 	anFileSystem::path mVisualStudio;
 	bool mVisualStudioDetected = false;
+
+	bool mProjectBuilded = false;
+	bool mRunProject = false;
 };
 
 #endif

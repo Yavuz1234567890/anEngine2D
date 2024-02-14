@@ -95,10 +95,10 @@ void anSetCurrentFolder(const anString& dir)
 #endif
 }
 
-void anShellExecuteOpen(const anString& location)
+void anShellExecuteOpen(const anString& location, bool show)
 {
 #ifdef PLATFORM_WINDOWS
-	ShellExecuteA(NULL, "open", location.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+	ShellExecuteA(NULL, "open", location.c_str(), NULL, NULL, show ? SW_SHOWDEFAULT : SW_HIDE);
 #endif
 }
 
@@ -147,4 +147,38 @@ anFileSystem::path anGetFolderPath(anUInt32 id)
 #endif
 
 	return res;
+}
+
+void anCreateProcess(const anString& appName, const anString& line)
+{
+#ifdef PLATFORM_WINDOWS
+	STARTUPINFOA si;
+	PROCESS_INFORMATION pi;
+
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory(&pi, sizeof(pi));
+
+	CreateProcessA(appName.c_str(),
+		(LPSTR)line.c_str(),
+		NULL, 
+		NULL, 
+		FALSE,
+		0,    
+		NULL, 
+		NULL, 
+		&si,  
+		&pi   
+	);
+
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+#endif
+}
+
+void anExecuteCommand(const anString& cmd)
+{
+#ifdef PLATFORM_WINDOWS
+	ShellExecuteA(NULL, "open", "cmd", cmd.c_str(), NULL, SW_HIDE);
+#endif
 }

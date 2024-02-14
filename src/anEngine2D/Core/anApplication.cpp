@@ -6,6 +6,7 @@
 #include "anInputSystem.h"
 #include "anControllerDevice.h"
 #include "anMessage.h"
+#include "Project/anProject.h"
 
 static anApplication* sInstance = nullptr;
 
@@ -41,6 +42,7 @@ void anApplication::Start()
 		anSetDefaultUserLogCallback({ userInfo, userError, userWarning });
 	}
 
+	anDisplayResolution::Initialize();
 	mWindow = anCreateWindow(mApplicationDesc.Title, mApplicationDesc.Width, mApplicationDesc.Height, onEvent, mApplicationDesc.WindowResizable, mApplicationDesc.WindowMaximized);
 	anTexture::Initialize();
 	anFont::Initialize();

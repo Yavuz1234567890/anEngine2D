@@ -7,6 +7,8 @@
 
 #include <entt.hpp>
 
+class anEntity;
+
 class anEntity
 {
 public:

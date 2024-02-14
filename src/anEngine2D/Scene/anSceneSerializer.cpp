@@ -44,6 +44,38 @@ static void SerializeColor(const anString& cname, const anColor& color, tinyxml2
 	printer.PushAttribute((cname + "a").c_str(), color.A);
 }
 
+anEntity anSceneSerializer::DeserializeEntity(const anFileSystem::path& location, const anFileSystem::path& filePath, anScene* scene)
+{
+	anEntity res;
+
+	tinyxml2::XMLDocument document;
+	document.LoadFile(filePath.string().c_str());
+	
+	tinyxml2::XMLElement* root = document.RootElement();
+	res = DeserializeEntity(location, root, scene);
+
+	return res;
+}
+
+void anSceneSerializer::SerializeEntity(const anFileSystem::path& location, const anEntity& entity, const anFileSystem::path& filePath)
+{
+	FILE* file;
+	fopen_s(&file, filePath.string().c_str(), "w");
+	if (!file)
+		return;
+
+	tinyxml2::XMLPrinter printer(file);
+
+	printer.PushHeader(true, true);
+
+	SerializeEntity(location, entity, printer);
+
+	tinyxml2::XMLDocument document;
+	document.Print(&printer);
+	if (file)
+		fclose(file);
+}
+
 anEntity anSceneSerializer::DeserializeEntity(const anFileSystem::path& location, tinyxml2::XMLElement* element, anScene* scene)
 {
 	if (strcmp(element->Value(), "Entity") == 0)
@@ -335,6 +367,12 @@ void anSceneSerializer::SerializeScene(const anFileSystem::path& location, anSce
 	document.Print(&printer);
 	if (file)
 		fclose(file);
+}
+
+anEntity anSceneSerializer::DeserializeEntity(const anFileSystem::path& file, anScene* scene)
+{
+	const anFileSystem::path loc = anFileSystem::current_path();
+	return DeserializeEntity(loc, loc / "assets" / file, scene);
 }
 
 void anSceneSerializer::SetLoadNativeScriptCallback(const anFunction<void(anNativeScriptComponent&, anEntity&)>& fn)

@@ -12,10 +12,13 @@ public:
 	anSceneSerializer();
 	~anSceneSerializer();
 
+	anEntity DeserializeEntity(const anFileSystem::path& location, const anFileSystem::path& filePath, anScene* scene);
+	void SerializeEntity(const anFileSystem::path& location, const anEntity& entity, const anFileSystem::path& filePath);
 	anEntity DeserializeEntity(const anFileSystem::path& location, tinyxml2::XMLElement* element, anScene* scene);
 	void SerializeEntity(const anFileSystem::path& location, const anEntity& ent, tinyxml2::XMLPrinter& printer);
 	anScene* DeserializeScene(const anFileSystem::path& location, const anFileSystem::path& filePath);
 	void SerializeScene(const anFileSystem::path& location, anScene* scene, const anFileSystem::path& filePath);
+	anEntity DeserializeEntity(const anFileSystem::path& file, anScene* scene);
 	void SetLoadNativeScriptCallback(const anFunction<void(anNativeScriptComponent&, anEntity&)>& fn);
 };
 

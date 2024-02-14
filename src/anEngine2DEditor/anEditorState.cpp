@@ -71,7 +71,6 @@ void anEditorState::Initialize()
 	}
 
 	mPlayButtonTexture = anLoadTexture("icons/playbutton.png");
-	mStopButtonTexture = anLoadTexture("icons/stopbutton.png");
 	mCameraIconTexture = anLoadTexture("icons/cameraicon.png");
 	mFolderIconTexture = anLoadTexture("icons/directoryicon.png");
 	mFileIconTexture = anLoadTexture("icons/fileicon.png");
@@ -91,8 +90,8 @@ void anEditorState::Initialize()
 	mProjectPremakeFile = mProjectLocation / "premake5.lua";
 	mProjectSourceFile = mProjectLocation / mProjectSourceFileName;
 	mProjectSolution = mProjectLocation / (mProjectName + ".sln");
-
 	mProjectAssetsLocation = mProjectLocation / "assets";
+	mProjectBuildFile = mProjectLocation / "build.bat";
 
 	mAssetBrowserLocation = mProjectAssetsLocation;
 											   
@@ -110,11 +109,13 @@ void anEditorState::Initialize()
 	DetectVSCode();
 	DetectVisualStudio();
 	
+	GenerateBuildFile();
 	anFileSystem::create_directory(mProjectAssetsLocation);
 	GenerateNativeScriptProjectPremake();
 	GenerateNativeScriptProject();
+	BuildSolution();
 	OpenSolutionWithVisualStudio(mProjectSolution);
-	
+
 	mFramebuffer = new anFramebuffer({ mApplication->GetWindow()->GetStartWidth(), mApplication->GetWindow()->GetStartHeight() });
 
 	{
@@ -137,6 +138,20 @@ void anEditorState::Initialize()
 
 void anEditorState::Update(float dt)
 {
+	mProjectBuilded = anFileSystem::exists(mProjectLocation / (mProjectName + ".exe"));
+
+	if (mRunProject && mProjectBuilded)
+	{
+		const anFileSystem::path prev = anFileSystem::current_path();
+		anFileSystem::current_path(mProjectLocation);
+		anString scenePath = mEditorScenePath.string();
+		ClearPath(scenePath, '\\');
+		system(("call \"" + mProjectName + ".exe\" \"" + scenePath + "\"").c_str());
+		anFileSystem::current_path(prev);
+		
+		mRunProject = false;
+	}
+
 	if (SceneIsValid())
 		anSceneManager::Get()->OnViewportSize(anUInt32(mViewportSize.x), anUInt32(mViewportSize.y));
 
@@ -244,6 +259,12 @@ void anEditorState::OnEvent(const anEvent& event)
 				}
 			}
 
+			if (event.KeyCode == anKeyB)
+			{
+				if (mLeftCtrl || mRightCtrl)
+					BuildSolution();
+			}
+
 			if (event.KeyCode == anKeyR)
 			{
 				if (mLeftCtrl || mRightCtrl)
@@ -305,6 +326,12 @@ void anEditorState::OnImGuiRender()
 					SetStartingScene(mEditorScenePath.lexically_relative(mProjectLocation));
 			}
 
+			if (ImGui::MenuItem("Export"))
+				ExportProject();
+
+			if (ImGui::MenuItem("Build", "Ctrl+B"))
+				BuildSolution();
+
 			ImGui::EndMenu();
 		}
 
@@ -329,11 +356,47 @@ void anEditorState::OnImGuiRender()
 
 	if (SceneIsValid())
 	{
+		ImGui::Text(mProjectBuilded ? "Project Builded" : "Project Unbuilded");
+		ImGui::Separator();
 		ImGui::Checkbox("Show Physics Colliders", &mRenderPhysics);
 		ImGui::Separator();
-		ImGui::Checkbox("Open Lua File With Visual Studio Code", &mOpenLuaFileWithVSCode);
-		ImGui::Separator();
 		ImGuiColorPicker("Clear Color", anSceneManager::Get()->GetClearColor());
+		ImGui::Separator();
+	}
+
+	ImGui::Checkbox("Open Lua File With Visual Studio Code", &mOpenLuaFileWithVSCode);
+	
+	ImGui::Separator();
+
+	if (anProjectManager::IsProjectActive())
+	{
+		if (ImGui::Checkbox("Is Fullscreen", &anProjectManager::GetCurrentProject()->IsFullscreen))
+			anProjectManager::SaveProject(anProjectManager::GetCurrentProject()->FullPath.string());
+
+		ImGui::Separator();
+
+		{
+			const char* bodyTypeStrings[] = { "640x360", "854x480", "960x540", "1024x576", "1280x720", "1366x768", "1600x900", "1920x1080" };
+			const char* currentBodyTypeString = bodyTypeStrings[anProjectManager::GetCurrentProject()->ResolutionID];
+			if (ImGui::BeginCombo("Window Resolution", currentBodyTypeString))
+			{
+				for (int i = 0; i < DISPLAY_RESOLUTIONS_SIZE; i++)
+				{
+					bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
+					if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
+					{
+						currentBodyTypeString = bodyTypeStrings[i];
+						anProjectManager::GetCurrentProject()->ResolutionID = i;
+						anProjectManager::SaveProject(anProjectManager::GetCurrentProject()->FullPath.string());
+					}
+
+					if (isSelected)
+						ImGui::SetItemDefaultFocus();
+				}
+
+				ImGui::EndCombo();
+			}
+		}
 	}
 
 	ImGui::End();
@@ -490,6 +553,15 @@ void anEditorState::OnImGuiRender()
 	ImGui::SameLine();
 
 	ImGui::Text(mAssetBrowserLocation.string().c_str());
+	// if (ImGui::BeginDragDropTarget())
+	// {
+	// 	if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_ENTITY_ITEM"))
+	// 	{
+	// 		anEntity entity = *((anEntity*)payload->Data);
+	// 		anGlobalSceneSerializer.SerializeEntity(mProjectLocation, entity, mAssetBrowserLocation / (entity.GetTag() + ".anEntity"));
+	// 	}
+	// 	ImGui::EndDragDropTarget();
+	// }
 
 	ImGui::Separator();
 
@@ -770,6 +842,12 @@ void anEditorState::DrawEntityToScenePanel(anEntity entity)
 	ImGuiTreeNodeFlags flags = ((mSelectedEntity == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 	flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 	bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity.GetHandle(), flags, tag.c_str());
+	if (ImGui::BeginDragDropSource())
+	{
+		ImGui::SetDragDropPayload("SCENE_ENTITY_ITEM", &entity, sizeof(anEntity));
+		ImGui::EndDragDropSource();
+	}
+
 	if (ImGui::IsItemClicked())
 		mSelectedEntity = entity;
 
@@ -1176,16 +1254,9 @@ void anEditorState::DrawToolbar()
 	const int iconSize = (int)mPlayButtonTexture->GetHeight();
 	float size = (float)iconSize;
 	
-	// anTexture* icon = mSceneState == anSceneState::Edit ? mPlayButtonTexture : mStopButtonTexture;
-	// 
-	// if (ImGui::ImageButton((ImTextureID)(uint64_t)icon->GetID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f)) && toolbarEnabled)
-	// {
-	// 	if (mSceneState == anSceneState::Edit)
-	// 		StartScene();
-	// 	else if (mSceneState == anSceneState::Runtime)
-	// 		StopScene();
-	// }
-
+	if (ImGui::ImageButton((ImTextureID)(uint64_t)mPlayButtonTexture->GetID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0, ImVec4(0.0f, 0.0f, 0.0f, 0.0f)) && toolbarEnabled)
+		RunProject();
+		
 	ImGui::SameLine();
 
 	const char* items[] = { "None", "Translate", "Scale", "Rotate" };
@@ -1692,7 +1763,7 @@ void anEditorState::GenerateNativeScriptProjectPremake()
 	file << "	  language \"C++\"									 \n";
 	file << "	  cppdialect \"C++17\"							 \n";
 	file << "																		 \n";
-	file << "	  targetdir \"bin\"										 \n";
+	file << "	  targetdir \"./\"										 \n";
 	file << "	  objdir \"obj\"		 \n";
 	file << "																		 \n";
 	file << "	  files														 \n";
@@ -1719,11 +1790,15 @@ void anEditorState::GenerateNativeScriptProjectPremake()
 	file << "	  filter \"system:windows\"					 \n";
 	file << "		  systemversion \"latest\"				 \n";
 	file << "																		 \n";
+	file << "			buildcommands {\n";
+	file << "				\"del /S *.pdb\"\n";
+	file << "			}\n";
+	file << "																		 \n";
 	file << "			postbuildcommands {\n";
-	file << "				(\"{COPY} " << binPath << "/glfw3.dll bin\"),\n";
-	file << "				(\"{COPY} " << binPath << "/glew32.dll bin\"),\n";
-	file << "				(\"{COPY} " << binPath << "/freetype.dll bin\"),\n";
-	file << "				(\"{COPY} " << binPath << "/fmod.dll bin\"),\n";
+	file << "				(\"{COPY} " << binPath << "/glfw3.dll ./\"),\n";
+	file << "				(\"{COPY} " << binPath << "/glew32.dll ./\"),\n";
+	file << "				(\"{COPY} " << binPath << "/freetype.dll ./\"),\n";
+	file << "				(\"{COPY} " << binPath << "/fmod.dll ./\"),\n";
 	file << "			}\n";
 	file << "																		 \n";
 	file << "	  filter \"configurations:Debug\"		 \n";
@@ -1734,8 +1809,7 @@ void anEditorState::GenerateNativeScriptProjectPremake()
 	file << "	  filter \"configurations:Release\"	 \n";
 	file << "	  	defines \"C_RELEASE\"						 \n";
 	file << "	  	runtime \"Release\"							 \n";
-	file << "	  	optimize \"on\"									 \n\n\n";
-	file << "include(\"" + rootPath + "\")\n";
+	file << "	  	optimize \"on\"									 \n\n";
 }
 
 void anEditorState::GenerateNativeScriptProject()
@@ -1766,6 +1840,58 @@ void anEditorState::GenerateNativeScriptProjectFile()
 	IncludeAllHeadersFromAssets(file, scriptNames, mProjectAssetsLocation);
 
 	file << "																																									\n";
+	file << "class anGameState;																																									\n";
+	file << "																																							 \n";
+	file << "class anEngine2DApplication : public anApplication														 \n";
+	file << "{																																						 \n";
+	file << "public:																																			 \n";
+	file << "	anEngine2DApplication()																											 \n";
+	file << "		: anApplication({ \"" + mProjectName + "\", 1200, 700, false, false })		 \n";
+	file << "	{																																						 \n";
+	file << "	}																																						 \n";
+	file << "																																							 \n";
+	file << "	~anEngine2DApplication()																										 \n";
+	file << "	{																																						 \n";
+	file << "	}																																						 \n";
+	file << "																																							 \n";
+	file << "	void Initialize() override																									 \n";
+	file << "	{																																						 \n";
+	file << "		anInitializeRandomDevice();																								 \n";
+	file << "																																							 \n";
+	file << "		anProjectManager::LoadProject(\"" + mProjectName + ".anProj\");																																				\n";
+	file << "																																							 \n";
+	file << "		const int width = anDisplayResolution::DisplayResolutions[anProjectManager::GetCurrentProject()->ResolutionID].Width;																																																								\n";
+	file << "		const int height = anDisplayResolution::DisplayResolutions[anProjectManager::GetCurrentProject()->ResolutionID].Height;																																																							\n";
+	file << "																																							 \n";
+	file << "		if (anProjectManager::GetCurrentProject()->IsFullscreen) mWindow->MakeFullscreen();																								 \n";
+	file << "		mWindow->SetSize(width, height);																																																																		\n";
+	file << "																																							 \n";
+	file << "		SetCurrentState<anGameState>();																						 \n";
+	file << "	}																																						 \n";
+	file << "																																							 \n";
+	file << "	void Update(float dt) override																							 \n";
+	file << "	{																																						 \n";
+	file << "	}																																						 \n";
+	file << "																																							 \n";
+	file << "	void OnEvent(const anEvent& event) override																	 \n";
+	file << "	{																																						 \n";
+	file << "	}																																						 \n";
+	file << "																																							 \n";
+	file << "	void OnImGuiRender() override																								 \n";
+	file << "	{																																						 \n";
+	file << "	}																																						 \n\n";
+	file << "	void SetStartScenePath(const anString& path)\n";
+	file << "	{																																						 \n";
+	file << "		mStartScenePath = path;\n";
+	file << "	}																																						 \n\n";
+	file << "	anString GetStartScenePath() const\n";
+	file << "	{																																						 \n";
+	file << "		return mStartScenePath;\n";
+	file << "	}																																						 \n\n";
+	file << "private:\n";
+	file << "	anString mStartScenePath;\n";
+	file << "};																																						 \n";
+	file << "																																							 \n";
 	file << "class anGameState : public anState																								\n";
 	file << "{																																								\n";
 	file << "public:																																					\n";
@@ -1784,15 +1910,13 @@ void anEditorState::GenerateNativeScriptProjectFile()
 	file << "																																																																					\n";
 	file << "		mAssetsPath = mCurrentPath / \"assets\";																																															\n";
 	file << "																																																																					\n";
-	file << "		anProjectManager::LoadProject(\"" + mProjectName + ".anProj\");																																				\n";
 	file << "		mApplication->GetWindow()->SetTitle(anProjectManager::GetCurrentProject()->Name);																											\n";
 	file << "																																																																					\n";
-	file << "		const anFloat2 monitorSize = mApplication->GetWindow()->GetMonitorSize();																															\n";
-	file << "		const int width = (int)monitorSize.x;																																																	\n";
-	file << "		const int height = (int)monitorSize.y;																																																\n";
+	file << "		mStartScenePath = ((anEngine2DApplication*)mApplication)->GetStartScenePath();\n";
+	file << "		if (mStartScenePath.empty()) mStartScenePath = anProjectManager::GetCurrentProject()->StartScene;\n";
 	file << "																																																																					\n";
-	file << "		mfWidth = (float)width;																																																								\n";
-	file << "		mfHeight = (float)height;																																																							\n";
+	file << "		mfWidth = (float)anDisplayResolution::DisplayResolutions[anProjectManager::GetCurrentProject()->ResolutionID].Width;																																																								\n";
+	file << "		mfHeight = (float)anDisplayResolution::DisplayResolutions[anProjectManager::GetCurrentProject()->ResolutionID].Height;																																																							\n";
 	file << "																																																																					\n";
 	file << "		auto loadCallback = [&](anNativeScriptComponent& component, anEntity& entity)\n";
 	file << "			{																								\n";
@@ -1814,7 +1938,7 @@ void anEditorState::GenerateNativeScriptProjectFile()
 	file << "			};																							\n\n";
 	file << "		anScene::SetOnEntityCopyCallback(onEntityCopy);\n";
 	file << "		anGlobalSceneSerializer.SetLoadNativeScriptCallback(loadCallback);\n";
-	file << "		anSceneManager::Load(mCurrentPath.string(), anProjectManager::GetCurrentProject()->StartScene);													\n";
+	file << "		anSceneManager::Load(mCurrentPath.string(), mStartScenePath);													\n";
 	file << "																																																																					\n";
 	file << "		anSceneManager::Get()->RuntimeInitialize();\n";
 	file << "	}																																																																				\n";
@@ -1848,45 +1972,14 @@ void anEditorState::GenerateNativeScriptProjectFile()
 	file << "\n";
 	file << "  float mfWidth = 0.0f;\n";
 	file << "  float mfHeight = 0.0f;\n";
+	file << "\n";
+	file << "	 anString mStartScenePath;\n";
 	file << "};																																										\n";
-	file << "																																							 \n";
-	file << "class anEngine2DApplication : public anApplication														 \n";
-	file << "{																																						 \n";
-	file << "public:																																			 \n";
-	file << "	anEngine2DApplication()																											 \n";
-	file << "		: anApplication({ \"" + mProjectName + "\", 1200, 700, false, false })		 \n";
-	file << "	{																																						 \n";
-	file << "	}																																						 \n";
-	file << "																																							 \n";
-	file << "	~anEngine2DApplication()																										 \n";
-	file << "	{																																						 \n";
-	file << "	}																																						 \n";
-	file << "																																							 \n";
-	file << "	void Initialize() override																									 \n";
-	file << "	{																																						 \n";
-	file << "		anInitializeRandomDevice();																								 \n";
-	file << "																																							 \n";
-	file << "		mWindow->MakeFullscreen();																								 \n";
-	file << "																																							 \n";
-	file << "		SetCurrentState<anGameState>();																						 \n";
-	file << "	}																																						 \n";
-	file << "																																							 \n";
-	file << "	void Update(float dt) override																							 \n";
-	file << "	{																																						 \n";
-	file << "	}																																						 \n";
-	file << "																																							 \n";
-	file << "	void OnEvent(const anEvent& event) override																	 \n";
-	file << "	{																																						 \n";
-	file << "	}																																						 \n";
-	file << "																																							 \n";
-	file << "	void OnImGuiRender() override																								 \n";
-	file << "	{																																						 \n";
-	file << "	}																																						 \n";
-	file << "};																																						 \n";
 	file << "																																							 \n";
 	file << "int anStartApplication(char** args, int argc)																 \n";
 	file << "{																																						 \n";
 	file << "	anEngine2DApplication* app = new anEngine2DApplication();										 \n";
+	file << "	if (argc == 2) app->SetStartScenePath(args[1]);\n";
 	file << "	app->Start();																																 \n";
 	file << "																																							 \n";
 	file << "	return 0;																																		 \n";
@@ -1956,12 +2049,12 @@ void anEditorState::IncludeAllHeadersFromAssets(anOutputFile& file, anVector<anS
 	}
 }
 
-void anEditorState::ClearPath(anString& path)
+void anEditorState::ClearPath(anString& path, char r)
 {
 	for (int i = 0; i < path.size(); i++)
 	{
-		if (path[i] == '\\')
-			path[i] = '/';
+		if (path[i] == '\\' || path[i] == '/')
+			path[i] = r;
 	}
 }
 
@@ -1985,4 +2078,80 @@ void anEditorState::OpenSolutionWithVisualStudio(const anFileSystem::path& path)
 		GenerateNativeScriptProject();
 
 	ExecuteVisualStudioCommand("\"" + path.string() + "\"");
+}
+
+void anEditorState::BuildSolution()
+{
+	anFileSystem::remove(mProjectLocation / (mProjectName + ".exe"));
+
+	if (!anFileSystem::exists(mProjectSolution))
+		GenerateNativeScriptProject();
+
+	if (!anFileSystem::exists(mProjectBuildFile))
+		GenerateBuildFile();
+
+	anShellExecuteOpen(mProjectBuildFile.string(), false);
+}
+
+void anEditorState::GenerateBuildFile()
+{
+	anString vsPath = mVisualStudio.string();
+	anString solPath = mProjectSolution.string();
+	ClearPath(vsPath);
+	ClearPath(solPath);
+
+	anOutputFile buildFile(mProjectBuildFile);
+	buildFile << "call \"" << vsPath << "\" " << "\"" << solPath << "\" /Build";
+}
+
+static void _CopyItem(const anFileSystem::path& first, const anFileSystem::path& second)
+{
+	anFileSystem::path loc = second / first.filename();
+	anFileSystem::copy(first, loc);
+}
+
+void anEditorState::ExportProject()
+{
+	anString in;
+	if (anSelectFolderDialog(in, "Export Project"))
+	{
+		anString loc = (anFileSystem::path{ in } / mProjectName).string();
+		ClearPath(loc);
+
+		const anFileSystem::path exeFile = mProjectLocation / (mProjectName + ".exe");
+		const anFileSystem::path glfwFile = mProjectLocation / "glfw3.dll";
+		const anFileSystem::path glewFile = mProjectLocation / "glew32.dll";
+		const anFileSystem::path freetypeFile = mProjectLocation / "glew32.dll";
+		const anFileSystem::path fmodFile = mProjectLocation / "fmod.dll";
+		if (!anFileSystem::exists(exeFile))
+			anShowMessageBox("Error", "Couldn't find '" + mProjectName + ".exe' please build the project.", anMessageBoxDialogType::Ok, anMessageBoxIconType::Error);
+		if (!anFileSystem::exists(glfwFile))
+			anShowMessageBox("Error", "Couldn't find 'glfw3.dll' please build the project.", anMessageBoxDialogType::Ok, anMessageBoxIconType::Error);
+		if (!anFileSystem::exists(glewFile))
+			anShowMessageBox("Error", "Couldn't find 'glew32.dll' please build the project.", anMessageBoxDialogType::Ok, anMessageBoxIconType::Error);
+		if (!anFileSystem::exists(fmodFile))
+			anShowMessageBox("Error", "Couldn't find 'fmod.dll' please build the project.", anMessageBoxDialogType::Ok, anMessageBoxIconType::Error);
+		if (!anFileSystem::exists(freetypeFile))
+			anShowMessageBox("Error", "Couldn't find 'freetype.dll' please build the project.", anMessageBoxDialogType::Ok, anMessageBoxIconType::Error);
+
+		anFileSystem::create_directory(loc);
+		_CopyItem(mProjectLocation / (mProjectName + ".anProj"), loc);
+		_CopyItem(mProjectAssetsLocation, loc);
+		_CopyItem(exeFile, loc);
+		_CopyItem(glfwFile, loc);
+		_CopyItem(glewFile, loc);
+		_CopyItem(freetypeFile, loc);
+		_CopyItem(fmodFile, loc);
+
+		anShellExecuteOpen(loc);
+	}
+}
+
+void anEditorState::RunProject()
+{
+	if (!mRunProject)
+	{
+		BuildSolution();
+		mRunProject = true;
+	}
 }

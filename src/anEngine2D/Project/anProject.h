@@ -4,12 +4,26 @@
 #include "Core/anTypes.h"
 #include "Core/anFileSystem.h"
 
+#define DISPLAY_RESOLUTIONS_SIZE 8
+
+struct anDisplayResolution
+{
+	int Width;
+	int Height;
+
+	static anDisplayResolution DisplayResolutions[DISPLAY_RESOLUTIONS_SIZE];
+
+	static void Initialize();
+};
+
 struct anProject
 {
 	anString Name;
 	anString StartScene;
 	anFileSystem::path Location;
 	anFileSystem::path FullPath;
+	bool IsFullscreen = true;
+	int ResolutionID;
 };
 
 class anProjectManager

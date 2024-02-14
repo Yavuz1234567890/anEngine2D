@@ -207,6 +207,11 @@ public:
 		}
 	}
 
+	void SetSize(int width, int height) override
+	{
+		glfwSetWindowSize(mHandle, width, height);
+	}
+
 private:
 	GLFWwindow* mHandle = nullptr;
 };

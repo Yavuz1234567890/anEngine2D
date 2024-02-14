@@ -4,6 +4,7 @@
 #include "anPhysicsTypes.h"
 #include "anComponents.h"
 #include "Script/anNativeScript.h"
+#include "Device/anGPUCommands.h"
 
 static anFunction<void(anEntity&)> sEntityCopyCallback;
 
@@ -134,6 +135,8 @@ void anScene::OnViewportSize(anUInt32 width, anUInt32 height)
 {
 	mViewportWidth = width;
 	mViewportHeight = height;
+
+	anSetViewport({ 0.0f, 0.0f }, { float(int(width)), float(int(height)) });
 
 	int iWidth = (int)width;
 	int iHeight = (int)height;

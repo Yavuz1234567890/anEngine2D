@@ -2,6 +2,20 @@
 
 #include <tinyxml2.h>
 
+anDisplayResolution anDisplayResolution::DisplayResolutions[DISPLAY_RESOLUTIONS_SIZE];
+
+void anDisplayResolution::Initialize()
+{
+	DisplayResolutions[0] = { 640, 360 };
+	DisplayResolutions[1] = { 854, 480 };
+	DisplayResolutions[2] = { 960, 540 };
+	DisplayResolutions[3] = { 1024, 576 };
+	DisplayResolutions[4] = { 1280, 720 };
+	DisplayResolutions[5] = { 1366, 768 };
+	DisplayResolutions[6] = { 1600, 900 };
+	DisplayResolutions[7] = { 1920, 1080 };
+}
+
 anProject* anProjectManager::sCurrentProject = nullptr;
 
 void anProjectManager::SetCurrentProject(anProject* project)
@@ -41,6 +55,18 @@ void anProjectManager::LoadProject(const anString& path)
 				sCurrentProject->StartScene = child->Attribute("path");
 				continue;
 			}
+
+			if (strcmp(child->Value(), "IsFullscreen") == 0)
+			{
+				sCurrentProject->IsFullscreen = child->BoolAttribute("fullscreen");
+				continue;
+			}
+
+			if (strcmp(child->Value(), "DisplayResolution") == 0)
+			{
+				sCurrentProject->ResolutionID = child->IntAttribute("id");
+				continue;
+			}
 		}
 	}
 }
@@ -66,6 +92,14 @@ void anProjectManager::SaveProject(const anString& path)
 
 	printer.OpenElement("StartScene");
 	printer.PushAttribute("path", sCurrentProject->StartScene.c_str());
+	printer.CloseElement();
+
+	printer.OpenElement("IsFullscreen");
+	printer.PushAttribute("fullscreen", sCurrentProject->IsFullscreen);
+	printer.CloseElement();
+
+	printer.OpenElement("DisplayResolution");
+	printer.PushAttribute("id", sCurrentProject->ResolutionID);
 	printer.CloseElement();
 
 	printer.CloseElement();

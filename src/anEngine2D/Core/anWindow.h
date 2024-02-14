@@ -33,7 +33,8 @@ public:
 	virtual void SetVSync(bool vsync) = 0;
 	virtual void SetWindowIcon(const void* data, int width, int height) = 0;
 	virtual void* GetHandle() const = 0;
-	
+	virtual void SetSize(int width, int height) = 0;
+
 	void SetWindowIcon(const anString& path)
 	{
 		int width = 0;
